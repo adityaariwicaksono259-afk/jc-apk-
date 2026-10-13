@@ -32,6 +32,18 @@ data class ResetConfirmRequest(
     val token: String
 )
 
+data class ForgotRequest(
+    val email: String,
+    val name: String
+)
+
+data class ForgotConfirmRequest(
+    val email: String,
+    val otp: String,
+    @SerializedName("new_password")
+    val newPassword: String
+)
+
 // ============================================
 // RESPONSE MODELS
 // ============================================

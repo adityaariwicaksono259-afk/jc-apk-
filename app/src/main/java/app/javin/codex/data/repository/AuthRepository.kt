@@ -139,6 +139,44 @@ class AuthRepository(private val session: SessionManager) {
         }
     }
 
+    // ============================================
+    // FORGOT PASSWORD — STEP 1: verify email + name, kirim OTP
+    // ============================================
+    suspend fun forgotRequest(email: String, name: String): AuthResult<AuthResponse> = withContext(Dispatchers.IO) {
+        try {
+            val resp = api.forgotRequest(ForgotRequest(email, name))
+            if (resp.isSuccessful && resp.body() != null) {
+                val body = resp.body()!!
+                if (body.ok) AuthResult.Success(body)
+                else AuthResult.Error(body.message ?: "Gagal kirim OTP", body.code)
+            } else {
+                val errBody = resp.errorBody()?.string()
+                AuthResult.Error(parseMsg(errBody) ?: "Gagal kirim OTP", parseCode(errBody))
+            }
+        } catch (e: Exception) {
+            AuthResult.Error(e.message ?: "Network error")
+        }
+    }
+
+    // ============================================
+    // FORGOT PASSWORD — STEP 2: verify OTP + set password baru
+    // ============================================
+    suspend fun forgotConfirm(email: String, otp: String, newPassword: String): AuthResult<String> = withContext(Dispatchers.IO) {
+        try {
+            val resp = api.forgotConfirm(ForgotConfirmRequest(email, otp, newPassword))
+            if (resp.isSuccessful && resp.body() != null) {
+                val body = resp.body()!!
+                if (body.ok) AuthResult.Success(body.message ?: "Password berhasil direset")
+                else AuthResult.Error(body.message ?: "Gagal reset password")
+            } else {
+                val errBody = resp.errorBody()?.string()
+                AuthResult.Error(parseMsg(errBody) ?: "Gagal reset password")
+            }
+        } catch (e: Exception) {
+            AuthResult.Error(e.message ?: "Network error")
+        }
+    }
+
     suspend fun checkLogin(): AuthResult<User> = withContext(Dispatchers.IO) {
         try {
             val token = session.getToken()

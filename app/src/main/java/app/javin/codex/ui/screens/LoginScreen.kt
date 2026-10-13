@@ -35,7 +35,7 @@ fun LoginScreen(
     authRepo: AuthRepository,
     onLoginSuccess: (User) -> Unit,
     onNavigateRegister: () -> Unit = {},
-    onNavigateResetPassword: (String) -> Unit = {}
+    onNavigateResetPassword: () -> Unit = {}
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -43,7 +43,6 @@ fun LoginScreen(
     var loading by remember { mutableStateOf(false) }
     var errorMsg by remember { mutableStateOf<String?>(null) }
     var errorCode by remember { mutableStateOf<String?>(null) }
-    var showResetDialog by remember { mutableStateOf(false) }
     var showNotRegisteredDialog by remember { mutableStateOf(false) }
 
     val scope = rememberCoroutineScope()
@@ -137,7 +136,7 @@ fun LoginScreen(
                     // Reset button (kalau password salah ATAU belum punya password)
                     if (errorCode == "WRONG_PASSWORD" || errorCode == "NO_PASSWORD") {
                         Spacer(Modifier.height(8.dp))
-                        TextButton(onClick = { showResetDialog = true }) {
+                        TextButton(onClick = { onNavigateResetPassword() }) {
                             Text(
                                 if (errorCode == "NO_PASSWORD") "Set password sekarang"
                                 else "Lupa password? Ubah password",
@@ -222,31 +221,6 @@ fun LoginScreen(
         }
     }
 
-    // Reset dialog
-    if (showResetDialog) {
-        AlertDialog(
-            onDismissRequest = { showResetDialog = false },
-            title = { Text("Reset Password") },
-            text = { Text("Kirim link reset ke $email?") },
-            confirmButton = {
-                TextButton(onClick = {
-                    showResetDialog = false
-                    scope.launch {
-                        loading = true
-                        val r = authRepo.resetPassword(email)
-                        loading = false
-                        errorMsg = when (r) {
-                            is AuthResult.Success -> "Link reset dikirim ke email"
-                            is AuthResult.Error -> r.message
-                        }
-                    }
-                }) { Text("Kirim") }
-            },
-            dismissButton = {
-                TextButton(onClick = { showResetDialog = false }) { Text("Batal") }
-            }
-        )
-    }
 
     // Not registered dialog
     if (showNotRegisteredDialog) {

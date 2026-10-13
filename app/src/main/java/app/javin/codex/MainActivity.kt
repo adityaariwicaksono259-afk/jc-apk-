@@ -18,6 +18,7 @@ import app.javin.codex.data.repository.AuthRepository
 import app.javin.codex.data.repository.AuthResult
 import app.javin.codex.data.session.SessionManager
 import app.javin.codex.ui.components.VideoBackground
+import app.javin.codex.ui.screens.ForgotPasswordScreen
 import app.javin.codex.ui.screens.HomeScreen
 import app.javin.codex.ui.screens.LoginScreen
 import app.javin.codex.ui.screens.RegisterScreen
@@ -67,6 +68,7 @@ sealed class Screen {
     object Login : Screen()
     object Register : Screen()
     object Home : Screen()
+    object Forgot : Screen()
     data class ResetPassword(val token: String) : Screen()
 }
 
@@ -127,7 +129,7 @@ fun JavinAppRoot() {
                         screen = Screen.Home
                     },
                     onNavigateRegister = { screen = Screen.Register },
-                    onNavigateResetPassword = { /* handled by dialog */ }
+                    onNavigateResetPassword = { screen = Screen.Forgot }
                 )
             }
 
@@ -150,6 +152,14 @@ fun JavinAppRoot() {
                         MainActivity.pendingResetToken = null
                         screen = Screen.Login
                     }
+                )
+            }
+
+            is Screen.Forgot -> {
+                ForgotPasswordScreen(
+                    authRepo = authRepo,
+                    onResetSuccess = { screen = Screen.Login },
+                    onBackToLogin = { screen = Screen.Login }
                 )
             }
 

@@ -47,6 +47,19 @@ interface ApiService {
     ): Response<SimpleResponse>
 
     // ============================================
+    // AUTH — FORGOT PASSWORD
+    // ============================================
+    @POST("api/auth/password/forgot-request")
+    suspend fun forgotRequest(
+        @Body body: ForgotRequest
+    ): Response<AuthResponse>
+
+    @POST("api/auth/password/forgot-confirm")
+    suspend fun forgotConfirm(
+        @Body body: ForgotConfirmRequest
+    ): Response<SimpleResponse>
+
+    // ============================================
     // AUTH — ME (cek login status)
     // ============================================
     @GET("api/auth/me")
