@@ -108,7 +108,7 @@ fun RegisterScreen(
                             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(12.dp),
-                            colors = textFieldColors()
+                            colors = registerTextFieldColors()
                         )
                         Spacer(Modifier.height(12.dp))
 
@@ -126,7 +126,7 @@ fun RegisterScreen(
                             ),
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(12.dp),
-                            colors = textFieldColors()
+                            colors = registerTextFieldColors()
                         )
                         Spacer(Modifier.height(12.dp))
 
@@ -153,7 +153,7 @@ fun RegisterScreen(
                             ),
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(12.dp),
-                            colors = textFieldColors()
+                            colors = registerTextFieldColors()
                         )
 
                         Spacer(Modifier.height(20.dp))
