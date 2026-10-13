@@ -77,6 +77,10 @@ dependencies {
     // Image
     implementation("io.coil-kt:coil-compose:2.7.0")
 
+    // Media3 (ExoPlayer)
+    implementation("androidx.media3:media3-exoplayer:1.4.1")
+    implementation("androidx.media3:media3-ui:1.4.1")
+
     // DataStore
     implementation("androidx.datastore:datastore-preferences:1.1.1")
 

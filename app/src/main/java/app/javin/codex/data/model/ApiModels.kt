@@ -1,0 +1,93 @@
+package app.javin.codex.data.model
+
+import com.google.gson.annotations.SerializedName
+
+// ============================================
+// REQUEST MODELS
+// ============================================
+
+data class RegisterRequest(
+    val email: String,
+    val password: String,
+    val name: String? = null
+)
+
+data class LoginPasswordRequest(
+    val email: String,
+    val password: String
+)
+
+data class VerifyOtpRequest(
+    val email: String,
+    val code: String
+)
+
+data class ResetPasswordRequest(
+    val email: String
+)
+
+data class ResetConfirmRequest(
+    @SerializedName("new_password")
+    val newPassword: String,
+    val token: String
+)
+
+// ============================================
+// RESPONSE MODELS
+// ============================================
+
+data class AuthResponse(
+    val ok: Boolean,
+    val mode: String? = null,
+    @SerializedName("user_code")
+    val userCode: String? = null,
+    val email: String? = null,
+    val message: String? = null,
+    val code: String? = null,
+    @SerializedName("can_reset")
+    val canReset: Boolean? = null,
+    @SerializedName("expires_in")
+    val expiresIn: Int? = null
+)
+
+data class VerifyResponse(
+    val ok: Boolean,
+    val mode: String? = null,
+    val user: User? = null,
+    @SerializedName("session_token")
+    val sessionToken: String? = null,
+    val message: String? = null
+)
+
+data class User(
+    val id: Int? = null,
+    @SerializedName("user_code")
+    val userCode: String? = null,
+    val name: String? = null,
+    val email: String? = null,
+    val avatar: String? = null,
+    val bio: String? = null,
+    @SerializedName("extra_limit")
+    val extraLimit: Int? = null,
+    val tier: String? = null,
+    @SerializedName("tier_expires_at")
+    val tierExpiresAt: Long? = null,
+    @SerializedName("api_key")
+    val apiKey: String? = null,
+    val credits: Int? = null,
+    val onboarded: Int? = null
+)
+
+data class MeResponse(
+    val ok: Boolean,
+    @SerializedName("logged_in")
+    val loggedIn: Boolean = false,
+    @SerializedName("is_demo")
+    val isDemo: Boolean = false,
+    val user: User? = null
+)
+
+data class SimpleResponse(
+    val ok: Boolean,
+    val message: String? = null
+)
