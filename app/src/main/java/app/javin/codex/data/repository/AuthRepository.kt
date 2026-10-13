@@ -1,6 +1,7 @@
 package app.javin.codex.data.repository
 
 import app.javin.codex.data.api.ApiClient
+import com.google.gson.Gson
 import app.javin.codex.data.model.*
 import app.javin.codex.data.session.SessionManager
 import kotlinx.coroutines.Dispatchers
@@ -170,12 +171,27 @@ class AuthRepository(private val session: SessionManager) {
     // ============================================
 
 
+    private val gson = Gson()
+
     private fun parseCode(json: String?): String? {
         if (json.isNullOrBlank()) return null
-        return Regex("\"code\"\\s*:\\s*\"([^\"]+)\"").find(json)?.groupValues?.get(1)
+        return try {
+            val map = gson.fromJson(json, Map::class.java)
+            map["code"] as? String
+        } catch (e: Exception) {
+            // Fallback regex
+            Regex("\"code\"\\s*:\\s*\"([^\"]+)\"").find(json)?.groupValues?.get(1)
+        }
     }
+
     private fun parseMsg(json: String?): String? {
         if (json.isNullOrBlank()) return null
-        return Regex("\"message\"\\s*:\\s*\"([^\"]+)\"").find(json)?.groupValues?.get(1)
+        return try {
+            val map = gson.fromJson(json, Map::class.java)
+            map["message"] as? String
+        } catch (e: Exception) {
+            // Fallback regex
+            Regex("\"message\"\\s*:\\s*\"([^\"]+)\"").find(json)?.groupValues?.get(1)
+        }
     }
 }
