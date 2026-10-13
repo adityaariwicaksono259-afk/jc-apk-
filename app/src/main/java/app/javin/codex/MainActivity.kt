@@ -81,7 +81,14 @@ fun JavinAppRoot() {
                         userName = user.name
                         screen = Screen.Home
                     },
-                    onNavigateRegister = { screen = Screen.Register }
+                    onNavigateRegister = { screen = Screen.Register },
+                    onNavigateResetPassword = { email ->
+                        // TODO: bikin ResetPasswordScreen nanti
+                        // Sementara panggil reset endpoint langsung
+                        scope.launch {
+                            authRepo.resetPassword(email)
+                        }
+                    }
                 )
             }
 

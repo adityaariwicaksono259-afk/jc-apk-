@@ -6,7 +6,10 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -25,42 +28,31 @@ import app.javin.codex.data.model.User
 import app.javin.codex.data.repository.AuthRepository
 import app.javin.codex.data.repository.AuthResult
 import app.javin.codex.ui.components.VideoBackground
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-
-enum class LoginStep { PASSWORD, OTP }
 
 @Composable
 fun LoginScreen(
     authRepo: AuthRepository,
     onLoginSuccess: (User) -> Unit,
-    onNavigateRegister: () -> Unit = {}
+    onNavigateRegister: () -> Unit = {},
+    onNavigateResetPassword: (String) -> Unit = {}
 ) {
-    var step by remember { mutableStateOf(LoginStep.PASSWORD) }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
-    var otp by remember { mutableStateOf("") }
     var loading by remember { mutableStateOf(false) }
     var errorMsg by remember { mutableStateOf<String?>(null) }
-    var showResetButton by remember { mutableStateOf(false) }
-    var countdown by remember { mutableStateOf(600) }
+    var errorCode by remember { mutableStateOf<String?>(null) }
     var showResetDialog by remember { mutableStateOf(false) }
+    var showNotRegisteredDialog by remember { mutableStateOf(false) }
 
     val scope = rememberCoroutineScope()
 
-    LaunchedEffect(step) {
-        if (step == LoginStep.OTP) {
-            countdown = 600
-            while (countdown > 0) {
-                delay(1000)
-                countdown--
-            }
-        }
-    }
-
     Box(Modifier.fillMaxSize().background(Color.Black)) {
+        // Video background (loop)
         VideoBackground(videoResId = R.raw.login_bg, loop = true)
+
+        // Dark overlay biar form kebaca
         Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.55f)))
 
         Column(
@@ -71,22 +63,24 @@ fun LoginScreen(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            // TITLE
             Text(
-                text = if (step == LoginStep.PASSWORD) "Welcome Back!" else "Cek Email Kamu",
-                fontSize = 30.sp,
+                text = "Welcome back to Javin Codex",
+                fontSize = 26.sp,
                 fontWeight = FontWeight.Black,
                 color = Color.White,
                 textAlign = TextAlign.Center
             )
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(6.dp))
             Text(
-                text = if (step == LoginStep.PASSWORD) "Masuk ke Javin Codex" else "Kode OTP dikirim ke $email",
+                text = "Sign in to continue",
                 fontSize = 13.sp,
-                color = Color.White.copy(alpha = 0.75f),
+                color = Color.White.copy(alpha = 0.65f),
                 textAlign = TextAlign.Center
             )
             Spacer(Modifier.height(28.dp))
 
+            // FORM CARD
             Surface(
                 shape = RoundedCornerShape(20.dp),
                 color = Color.White.copy(alpha = 0.08f),
@@ -96,142 +90,108 @@ fun LoginScreen(
                     modifier = Modifier.padding(20.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    if (step == LoginStep.PASSWORD) {
-                        FieldEmail(
-                            value = email,
-                            onValueChange = { email = it.trim() },
-                            enabled = !loading,
+                    // EMAIL
+                    OutlinedTextField(
+                        value = email,
+                        onValueChange = { email = it.trim(); errorMsg = null; errorCode = null },
+                        label = { Text("Email") },
+                        leadingIcon = { Icon(Icons.Default.Email, contentDescription = null) },
+                        singleLine = true,
+                        enabled = !loading,
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Email,
                             imeAction = ImeAction.Next
-                        )
-                        Spacer(Modifier.height(12.dp))
-                        FieldPassword(
-                            value = password,
-                            onValueChange = { password = it },
-                            visible = passwordVisible,
-                            onToggleVisible = { passwordVisible = !passwordVisible },
-                            enabled = !loading,
-                            imeAction = ImeAction.Done
-                        )
+                        ),
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = loginTextFieldColors()
+                    )
+                    Spacer(Modifier.height(12.dp))
 
-                        if (showResetButton) {
-                            Spacer(Modifier.height(8.dp))
-                            TextButton(onClick = { showResetDialog = true }) {
-                                Text(
-                                    "Lupa password? Ubah password",
-                                    color = Color(0xFFFFAA00),
-                                    fontSize = 12.sp,
-                                    fontWeight = FontWeight.SemiBold
+                    // PASSWORD
+                    OutlinedTextField(
+                        value = password,
+                        onValueChange = { password = it; errorMsg = null; errorCode = null },
+                        label = { Text("Password") },
+                        leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
+                        trailingIcon = {
+                            IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                                Icon(
+                                    imageVector = if (passwordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                                    contentDescription = null
                                 )
                             }
-                        }
+                        },
+                        singleLine = true,
+                        enabled = !loading,
+                        visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Password,
+                            imeAction = ImeAction.Done
+                        ),
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = loginTextFieldColors()
+                    )
 
-                        Spacer(Modifier.height(20.dp))
-
-                        ButtonPrimary(
-                            text = "Lanjut",
-                            loading = loading,
-                            enabled = email.isNotBlank() && password.isNotBlank() && !loading,
-                            onClick = {
-                                errorMsg = null
-                                showResetButton = false
-                                scope.launch {
-                                    loading = true
-                                    val result = authRepo.loginPassword(email, password)
-                                    loading = false
-                                    when (result) {
-                                        is AuthResult.Success -> {
-                                            step = LoginStep.OTP
-                                            otp = ""
-                                        }
-                                        is AuthResult.Error -> {
-                                            errorMsg = result.message
-                                            if (result.code == "WRONG_PASSWORD") showResetButton = true
-                                        }
-                                    }
-                                }
-                            }
-                        )
-
-                    } else {
-                        // ==== STEP 2: OTP ====
-                        OutlinedTextField(
-                            value = otp,
-                            onValueChange = { v ->
-                                if (v.length <= 6 && v.all { it.isDigit() }) otp = v
-                            },
-                            label = { Text("Kode OTP (6 digit)") },
-                            leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
-                            singleLine = true,
-                            enabled = !loading,
-                            keyboardOptions = KeyboardOptions(
-                                keyboardType = KeyboardType.NumberPassword,
-                                imeAction = ImeAction.Done
-                            ),
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(12.dp),
-                            colors = textFieldColors()
-                        )
-
+                    // Reset button (kalau password salah)
+                    if (errorCode == "WRONG_PASSWORD") {
                         Spacer(Modifier.height(8.dp))
-                        Text(
-                            text = "Berlaku ${formatCountdown(countdown)}",
-                            color = if (countdown < 60) Color(0xFFFF6B6B) else Color.White.copy(alpha = 0.6f),
-                            fontSize = 12.sp
-                        )
-
-                        Spacer(Modifier.height(20.dp))
-
-                        ButtonPrimary(
-                            text = "Masuk",
-                            loading = loading,
-                            enabled = otp.length == 6 && countdown > 0 && !loading,
-                            onClick = {
-                                errorMsg = null
-                                scope.launch {
-                                    loading = true
-                                    val result = authRepo.verifyOtp(email, otp)
-                                    loading = false
-                                    when (result) {
-                                        is AuthResult.Success -> onLoginSuccess(result.data)
-                                        is AuthResult.Error -> errorMsg = result.message
-                                    }
-                                }
-                            }
-                        )
-
-                        Spacer(Modifier.height(8.dp))
-                        TextButton(
-                            onClick = {
-                                errorMsg = null
-                                scope.launch {
-                                    loading = true
-                                    authRepo.loginPassword(email, password)
-                                    loading = false
-                                    countdown = 600
-                                }
-                            },
-                            enabled = !loading
-                        ) {
+                        TextButton(onClick = { showResetDialog = true }) {
                             Text(
-                                "Kirim ulang kode",
+                                "Lupa password? Ubah password",
+                                color = Color(0xFFFFAA00),
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        }
+                    }
+
+                    // Daftar button (kalau belum terdaftar)
+                    if (errorCode == "NOT_REGISTERED") {
+                        Spacer(Modifier.height(8.dp))
+                        TextButton(onClick = { showNotRegisteredDialog = true }) {
+                            Text(
+                                "Belum punya akun? Daftar",
                                 color = Color(0xFF4A9EFF),
-                                fontSize = 12.sp
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.SemiBold
                             )
                         }
-                        TextButton(
-                            onClick = {
-                                step = LoginStep.PASSWORD
-                                otp = ""
-                                errorMsg = null
-                                countdown = 600
-                            },
-                            enabled = !loading
-                        ) {
-                            Text(
-                                "< Kembali ke email",
-                                color = Color.White.copy(alpha = 0.6f),
-                                fontSize = 12.sp
-                            )
+                    }
+
+                    Spacer(Modifier.height(16.dp))
+
+                    // LOGIN BUTTON
+                    Button(
+                        onClick = {
+                            errorMsg = null
+                            errorCode = null
+                            scope.launch {
+                                loading = true
+                                val result = authRepo.loginPassword(email, password)
+                                loading = false
+                                when (result) {
+                                    is AuthResult.Success -> onLoginSuccess(result.data)
+                                    is AuthResult.Error -> {
+                                        errorMsg = result.message
+                                        errorCode = result.code
+                                    }
+                                }
+                            }
+                        },
+                        enabled = email.isNotBlank() && password.isNotBlank() && !loading,
+                        modifier = Modifier.fillMaxWidth().height(52.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF4A9EFF),
+                            contentColor = Color.White
+                        )
+                    ) {
+                        if (loading) {
+                            CircularProgressIndicator(color = Color.White, modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+                        } else {
+                            Text("Masuk", fontSize = 15.sp, fontWeight = FontWeight.Bold)
                         }
                     }
 
@@ -247,11 +207,9 @@ fun LoginScreen(
                 }
             }
 
+            // DIVIDER + GOOGLE
             Spacer(Modifier.height(20.dp))
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth()
-            ) {
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
                 HorizontalDivider(modifier = Modifier.weight(1f), color = Color.White.copy(alpha = 0.2f))
                 Text("  atau  ", color = Color.White.copy(alpha = 0.5f), fontSize = 12.sp)
                 HorizontalDivider(modifier = Modifier.weight(1f), color = Color.White.copy(alpha = 0.2f))
@@ -272,7 +230,7 @@ fun LoginScreen(
 
             Spacer(Modifier.height(20.dp))
             Row(horizontalArrangement = Arrangement.Center) {
-                Text("Baru di Javin? ", color = Color.White.copy(alpha = 0.7f), fontSize = 13.sp)
+                Text("Belum punya akun? ", color = Color.White.copy(alpha = 0.7f), fontSize = 13.sp)
                 Text(
                     "Daftar",
                     color = Color(0xFF4A9EFF),
@@ -284,6 +242,7 @@ fun LoginScreen(
         }
     }
 
+    // Reset dialog
     if (showResetDialog) {
         AlertDialog(
             onDismissRequest = { showResetDialog = false },
@@ -308,102 +267,28 @@ fun LoginScreen(
             }
         )
     }
-}
 
-// ============================================
-// HELPER COMPOSABLES
-// ============================================
-
-@Composable
-private fun FieldEmail(
-    value: String,
-    onValueChange: (String) -> Unit,
-    enabled: Boolean,
-    imeAction: ImeAction
-) {
-    OutlinedTextField(
-        value = value,
-        onValueChange = onValueChange,
-        label = { Text("Email") },
-        leadingIcon = { Icon(Icons.Default.Email, contentDescription = null) },
-        singleLine = true,
-        enabled = enabled,
-        keyboardOptions = KeyboardOptions(
-            keyboardType = KeyboardType.Email,
-            imeAction = imeAction
-        ),
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
-        colors = textFieldColors()
-    )
-}
-
-@Composable
-private fun FieldPassword(
-    value: String,
-    onValueChange: (String) -> Unit,
-    visible: Boolean,
-    onToggleVisible: () -> Unit,
-    enabled: Boolean,
-    imeAction: ImeAction
-) {
-    OutlinedTextField(
-        value = value,
-        onValueChange = onValueChange,
-        label = { Text("Password") },
-        leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
-        trailingIcon = {
-            IconButton(onClick = onToggleVisible) {
-                Icon(
-                    imageVector = if (visible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                    contentDescription = if (visible) "Sembunyikan" else "Tampilkan"
-                )
+    // Not registered dialog
+    if (showNotRegisteredDialog) {
+        AlertDialog(
+            onDismissRequest = { showNotRegisteredDialog = false },
+            title = { Text("Belum Terdaftar") },
+            text = { Text("Akun $email belum terdaftar.\n\nDaftar dulu atau login pakai Google?") },
+            confirmButton = {
+                TextButton(onClick = {
+                    showNotRegisteredDialog = false
+                    onNavigateRegister()
+                }) { Text("Daftar") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showNotRegisteredDialog = false }) { Text("Batal") }
             }
-        },
-        singleLine = true,
-        enabled = enabled,
-        visualTransformation = if (visible) VisualTransformation.None else PasswordVisualTransformation(),
-        keyboardOptions = KeyboardOptions(
-            keyboardType = KeyboardType.Password,
-            imeAction = imeAction
-        ),
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
-        colors = textFieldColors()
-    )
-}
-
-@Composable
-private fun ButtonPrimary(
-    text: String,
-    loading: Boolean,
-    enabled: Boolean,
-    onClick: () -> Unit
-) {
-    Button(
-        onClick = onClick,
-        enabled = enabled,
-        modifier = Modifier.fillMaxWidth().height(52.dp),
-        shape = RoundedCornerShape(12.dp),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = Color(0xFF4A9EFF),
-            contentColor = Color.White
         )
-    ) {
-        if (loading) {
-            CircularProgressIndicator(
-                color = Color.White,
-                modifier = Modifier.size(20.dp),
-                strokeWidth = 2.dp
-            )
-        } else {
-            Text(text, fontSize = 15.sp, fontWeight = FontWeight.Bold)
-        }
     }
 }
 
 @Composable
-private fun textFieldColors() = OutlinedTextFieldDefaults.colors(
+private fun loginTextFieldColors() = OutlinedTextFieldDefaults.colors(
     focusedTextColor = Color.White,
     unfocusedTextColor = Color.White,
     focusedBorderColor = Color(0xFF4A9EFF),
@@ -416,9 +301,3 @@ private fun textFieldColors() = OutlinedTextFieldDefaults.colors(
     unfocusedTrailingIconColor = Color.White.copy(alpha = 0.6f),
     cursorColor = Color(0xFF4A9EFF)
 )
-
-private fun formatCountdown(sec: Int): String {
-    val m = sec / 60
-    val s = sec % 60
-    return "%02d:%02d".format(m, s)
-}

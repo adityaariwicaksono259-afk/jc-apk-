@@ -28,6 +28,8 @@ import app.javin.codex.ui.components.VideoBackground
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
+enum class LoginStep { PASSWORD, OTP }
+
 @Composable
 fun RegisterScreen(
     authRepo: AuthRepository,
