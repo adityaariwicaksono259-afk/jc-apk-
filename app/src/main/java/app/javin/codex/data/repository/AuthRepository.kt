@@ -23,8 +23,21 @@ class AuthRepository(private val session: SessionManager) {
             val resp = api.register(RegisterRequest(email, password, name))
             if (resp.isSuccessful && resp.body() != null) {
                 val body = resp.body()!!
-                if (body.ok) AuthResult.Success(body)
-                else AuthResult.Error(body.message ?: "Gagal daftar", body.code)
+                if (body.ok) {
+                    // Kalau mode=login (existing user), auto-save session
+                    if (body.mode == "login" && body.sessionToken != null && body.user != null) {
+                        session.saveSession(
+                            token = body.sessionToken,
+                            userCode = body.user.userCode ?: "",
+                            userName = body.user.name,
+                            userEmail = body.user.email,
+                            userAvatar = body.user.avatar
+                        )
+                    }
+                    AuthResult.Success(body)
+                } else {
+                    AuthResult.Error(body.message ?: "Gagal daftar", body.code)
+                }
             } else {
                 val errBody = resp.errorBody()?.string()
                 AuthResult.Error(parseMsg(errBody) ?: "HTTP ${resp.code()}", parseCode(errBody))

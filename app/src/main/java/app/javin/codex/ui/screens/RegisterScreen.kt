@@ -169,8 +169,26 @@ fun RegisterScreen(
                                     loading = false
                                     when (result) {
                                         is AuthResult.Success -> {
-                                            step = LoginStep.OTP
-                                            otp = ""
+                                            val body = result.data
+                                            if (body.mode == "login") {
+                                                // Existing user → langsung Home (session udah ke-save)
+                                                // Need User object — bikin minimal dari body.user
+                                                val u = body.user
+                                                if (u != null) {
+                                                    onRegisterSuccess(u)
+                                                } else {
+                                                    // Fallback: bikin placeholder User
+                                                    onRegisterSuccess(app.javin.codex.data.model.User(
+                                                        userCode = body.userCode,
+                                                        name = name,
+                                                        email = email
+                                                    ))
+                                                }
+                                            } else {
+                                                // New user → lanjut OTP
+                                                step = LoginStep.OTP
+                                                otp = ""
+                                            }
                                         }
                                         is AuthResult.Error -> errorMsg = result.message
                                     }
@@ -254,9 +272,28 @@ fun RegisterScreen(
                                 errorMsg = null
                                 scope.launch {
                                     loading = true
-                                    authRepo.register(email, password, name.ifBlank { null })
+                                    val result = authRepo.register(email, password, name.ifBlank { null })
                                     loading = false
-                                    countdown = 600
+                                    when (result) {
+                                        is AuthResult.Success -> {
+                                            if (result.data.mode == "login") {
+                                                // Email udah ada (mungkin OTP expired + auto-login)
+                                                val u = result.data.user
+                                                if (u != null) {
+                                                    onRegisterSuccess(u)
+                                                } else {
+                                                    onRegisterSuccess(app.javin.codex.data.model.User(
+                                                        userCode = result.data.userCode,
+                                                        name = name,
+                                                        email = email
+                                                    ))
+                                                }
+                                            } else {
+                                                countdown = 600
+                                            }
+                                        }
+                                        is AuthResult.Error -> errorMsg = result.message
+                                    }
                                 }
                             },
                             enabled = !loading
