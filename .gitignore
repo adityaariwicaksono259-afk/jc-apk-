@@ -55,3 +55,8 @@ npm-debug.log*
 tmp/
 temp/
 *.tmp
+
+# ==== Source video/logo (yang dipakai cuma trimmed) ====
+*_full.mp4
+logo-original.png
+*.orig.png
