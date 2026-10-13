@@ -1,0 +1,89 @@
+package app.javin.codex.data.repository
+
+import app.javin.codex.data.api.ApiService
+import app.javin.codex.data.model.Tool
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+
+class ToolRepository(private val api: ApiService) {
+
+    private var cachedTools: List<Tool>? = null
+    private var cachedFolders: List<String>? = null
+
+    // ============================================
+    // FETCH ALL TOOLS
+    // ============================================
+    suspend fun getTools(forceRefresh: Boolean = false): Result<List<Tool>> = withContext(Dispatchers.IO) {
+        if (!forceRefresh && cachedTools != null) {
+            return@withContext Result.success(cachedTools!!)
+        }
+        try {
+            val resp = api.getEndpoints()
+            if (resp.isSuccessful && resp.body() != null) {
+                // Parse List<Map> → List<Tool> manual (biar robust)
+                val tools = resp.body()!!.mapNotNull { m ->
+                    try {
+                        Tool(
+                            catalogId = m["catalogId"]?.toString(),
+                            name = m["name"]?.toString(),
+                            desc = m["desc"]?.toString(),
+                            folder = m["folder"]?.toString(),
+                            subfolder = m["subfolder"]?.toString(),
+                            m = m["m"]?.toString(),
+                            needKey = (m["needKey"] as? Boolean) ?: false,
+                            params = null,
+                            outputType = m["outputType"]?.toString()
+                        )
+                    } catch (e: Exception) {
+                        null
+                    }
+                }
+                cachedTools = tools
+                Result.success(tools)
+            } else {
+                Result.failure(Exception("HTTP ${resp.code()}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    // ============================================
+    // GET FOLDERS (kategori unik)
+    // ============================================
+    suspend fun getFolders(): Result<List<String>> = withContext(Dispatchers.IO) {
+        cachedFolders?.let { return@withContext Result.success(it) }
+        getTools().map { tools ->
+            val folders = tools.map { it.displayFolder }.distinct().sorted()
+            cachedFolders = folders
+            folders
+        }
+    }
+
+    // ============================================
+    // FILTER by folder
+    // ============================================
+    suspend fun getToolsByFolder(folder: String): Result<List<Tool>> = withContext(Dispatchers.IO) {
+        getTools().map { tools ->
+            if (folder.isBlank() || folder.equals("Semua", true)) {
+                tools
+            } else {
+                tools.filter { it.displayFolder.equals(folder, ignoreCase = true) }
+            }
+        }
+    }
+
+    // ============================================
+    // SEARCH by name
+    // ============================================
+    suspend fun searchTools(query: String): Result<List<Tool>> = withContext(Dispatchers.IO) {
+        if (query.isBlank()) return@withContext getTools()
+        getTools().map { tools ->
+            val q = query.lowercase()
+            tools.filter {
+                it.displayName.lowercase().contains(q) ||
+                it.displayDesc.lowercase().contains(q)
+            }
+        }
+    }
+}

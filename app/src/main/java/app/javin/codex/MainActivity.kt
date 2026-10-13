@@ -12,9 +12,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import app.javin.codex.data.model.User
 import app.javin.codex.data.repository.AuthRepository
+import app.javin.codex.data.repository.AuthResult
 import app.javin.codex.data.session.SessionManager
 import app.javin.codex.ui.components.VideoBackground
+import app.javin.codex.ui.screens.HomeScreen
 import app.javin.codex.ui.screens.LoginScreen
 import app.javin.codex.ui.screens.RegisterScreen
 import kotlinx.coroutines.launch
@@ -23,20 +26,15 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        setContent {
-            JavinAppRoot()
-        }
+        setContent { JavinAppRoot() }
     }
 }
 
-// ============================================
-// SCREEN STATE
-// ============================================
 sealed class Screen {
     object Splash : Screen()
     object Login : Screen()
     object Register : Screen()
-    object Home : Screen()  // TODO: ganti nanti
+    object Home : Screen()
 }
 
 @Composable
@@ -45,16 +43,12 @@ fun JavinAppRoot() {
     val scope = rememberCoroutineScope()
 
     var screen by remember { mutableStateOf<Screen>(Screen.Splash) }
-    var userCode by remember { mutableStateOf<String?>(null) }
+    var userName by remember { mutableStateOf<String?>(null) }
 
-    // Init dependencies
     val session = remember { SessionManager.getInstance(context) }
     val authRepo = remember { AuthRepository(session) }
 
-    Surface(
-        modifier = Modifier.fillMaxSize(),
-        color = Color.Black
-    ) {
+    Surface(modifier = Modifier.fillMaxSize(), color = Color.Black) {
         when (screen) {
             is Screen.Splash -> {
                 Box(Modifier.fillMaxSize().background(Color.Black)) {
@@ -63,15 +57,13 @@ fun JavinAppRoot() {
                         loop = false,
                         onVideoEnd = {
                             scope.launch {
-                                val loggedIn = authRepo.isLoggedIn()
-                                if (loggedIn) {
-                                    // Cek session masih valid
+                                if (authRepo.isLoggedIn()) {
                                     val result = authRepo.checkLogin()
-                                    screen = if (result is app.javin.codex.data.repository.AuthResult.Success) {
-                                        userCode = result.data.userCode
-                                        Screen.Home
+                                    if (result is AuthResult.Success) {
+                                        userName = result.data.name
+                                        screen = Screen.Home
                                     } else {
-                                        Screen.Login
+                                        screen = Screen.Login
                                     }
                                 } else {
                                     screen = Screen.Login
@@ -85,32 +77,37 @@ fun JavinAppRoot() {
             is Screen.Login -> {
                 LoginScreen(
                     authRepo = authRepo,
-                    onLoginSuccess = { user ->
-                        userCode = user.userCode
+                    onLoginSuccess = { user: User ->
+                        userName = user.name
                         screen = Screen.Home
                     },
-                    onNavigateRegister = {
-                        screen = Screen.Register
-                    }
+                    onNavigateRegister = { screen = Screen.Register }
                 )
             }
 
             is Screen.Register -> {
                 RegisterScreen(
                     authRepo = authRepo,
-                    onRegisterSuccess = { user ->
-                        userCode = user.userCode
+                    onRegisterSuccess = { user: User ->
+                        userName = user.name
                         screen = Screen.Home
                     },
-                    onNavigateLogin = {
-                        screen = Screen.Login
-                    }
+                    onNavigateLogin = { screen = Screen.Login }
                 )
             }
 
             is Screen.Home -> {
-                // TODO: Home screen nanti
-                Box(Modifier.fillMaxSize().background(Color.Black))
+                HomeScreen(
+                    userName = userName,
+                    onLogout = {
+                        scope.launch {
+                            authRepo.logout()
+                            userName = null
+                            screen = Screen.Login
+                        }
+                    },
+                    onToolClick = { /* TODO: buka ToolScreen */ }
+                )
             }
         }
     }
