@@ -1,0 +1,57 @@
+# ============================================
+# JAVIN CODEX ANDROID — GITIGNORE
+# ============================================
+
+# ==== Gradle ====
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+local.properties
+
+# ==== Android ====
+*.apk
+*.aab
+*.ap_
+*.dex
+captures/
+.externalNativeBuild/
+.cxx/
+app/release/
+app/debug/
+
+# ==== IDE ====
+.idea/
+*.iml
+.vscode/
+*.swp
+*.swo
+
+# ==== OS ====
+.DS_Store
+Thumbs.db
+
+# ==== Secrets — JANGAN PERNAH COMMIT INI ====
+.env
+.env.*
+!.env.example
+*.keystore
+*.jks
+keystore.properties
+google-services.json
+firebase-admin.json
+service-account*.json
+*-service-account*.json
+secrets/
+.secrets/
+*.pem
+*.key
+
+# ==== Logs ====
+*.log
+logs/
+npm-debug.log*
+
+# ==== Temp ====
+tmp/
+temp/
+*.tmp
