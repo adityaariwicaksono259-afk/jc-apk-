@@ -1,5 +1,6 @@
 package app.javin.codex
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -20,13 +21,44 @@ import app.javin.codex.ui.components.VideoBackground
 import app.javin.codex.ui.screens.HomeScreen
 import app.javin.codex.ui.screens.LoginScreen
 import app.javin.codex.ui.screens.RegisterScreen
+import app.javin.codex.ui.screens.ResetPasswordScreen
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
+
+    // Global state buat deep link reset token
+    companion object {
+        var pendingResetToken by mutableStateOf<String?>(null)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        handleIntent(intent)
         setContent { JavinAppRoot() }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        handleIntent(intent)
+    }
+
+    private fun handleIntent(intent: Intent?) {
+        val data = intent?.data ?: return
+        // Cek deep link reset password
+        // Format: https://jvin.pages.dev/reset-password?token=xxx
+        //     atau javincodex://reset?token=xxx
+        if (data.host == "jvin.pages.dev" && data.path?.startsWith("/reset-password") == true) {
+            val token = data.getQueryParameter("token")
+            if (!token.isNullOrBlank()) {
+                pendingResetToken = token
+            }
+        } else if (data.scheme == "javincodex" && data.host == "reset") {
+            val token = data.getQueryParameter("token")
+            if (!token.isNullOrBlank()) {
+                pendingResetToken = token
+            }
+        }
     }
 }
 
@@ -35,6 +67,7 @@ sealed class Screen {
     object Login : Screen()
     object Register : Screen()
     object Home : Screen()
+    data class ResetPassword(val token: String) : Screen()
 }
 
 @Composable
@@ -48,8 +81,16 @@ fun JavinAppRoot() {
     val session = remember { SessionManager.getInstance(context) }
     val authRepo = remember { AuthRepository(session) }
 
+    // Watch deep link token — kalau ada, langsung ke ResetPasswordScreen
+    LaunchedEffect(MainActivity.pendingResetToken) {
+        val token = MainActivity.pendingResetToken
+        if (!token.isNullOrBlank()) {
+            screen = Screen.ResetPassword(token)
+        }
+    }
+
     Surface(modifier = Modifier.fillMaxSize(), color = Color.Black) {
-        when (screen) {
+        when (val current = screen) {
             is Screen.Splash -> {
                 Box(Modifier.fillMaxSize().background(Color.Black)) {
                     VideoBackground(
@@ -57,6 +98,10 @@ fun JavinAppRoot() {
                         loop = false,
                         onVideoEnd = {
                             scope.launch {
+                                // Kalau ada pending reset token, jangan ke Login
+                                if (!MainActivity.pendingResetToken.isNullOrBlank()) {
+                                    return@launch
+                                }
                                 if (authRepo.isLoggedIn()) {
                                     val result = authRepo.checkLogin()
                                     if (result is AuthResult.Success) {
@@ -82,13 +127,7 @@ fun JavinAppRoot() {
                         screen = Screen.Home
                     },
                     onNavigateRegister = { screen = Screen.Register },
-                    onNavigateResetPassword = { email ->
-                        // TODO: bikin ResetPasswordScreen nanti
-                        // Sementara panggil reset endpoint langsung
-                        scope.launch {
-                            authRepo.resetPassword(email)
-                        }
-                    }
+                    onNavigateResetPassword = { /* handled by dialog */ }
                 )
             }
 
@@ -100,6 +139,17 @@ fun JavinAppRoot() {
                         screen = Screen.Home
                     },
                     onNavigateLogin = { screen = Screen.Login }
+                )
+            }
+
+            is Screen.ResetPassword -> {
+                ResetPasswordScreen(
+                    token = current.token,
+                    authRepo = authRepo,
+                    onBackToLogin = {
+                        MainActivity.pendingResetToken = null
+                        screen = Screen.Login
+                    }
                 )
             }
 
