@@ -47,7 +47,10 @@ data class AuthResponse(
     @SerializedName("can_reset")
     val canReset: Boolean? = null,
     @SerializedName("expires_in")
-    val expiresIn: Int? = null
+    val expiresIn: Int? = null,
+    val user: User? = null,
+    @SerializedName("session_token")
+    val sessionToken: String? = null
 )
 
 data class VerifyResponse(
