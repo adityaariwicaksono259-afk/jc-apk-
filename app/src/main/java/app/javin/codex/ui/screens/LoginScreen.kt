@@ -134,12 +134,13 @@ fun LoginScreen(
                         colors = loginTextFieldColors()
                     )
 
-                    // Reset button (kalau password salah)
-                    if (errorCode == "WRONG_PASSWORD") {
+                    // Reset button (kalau password salah ATAU belum punya password)
+                    if (errorCode == "WRONG_PASSWORD" || errorCode == "NO_PASSWORD") {
                         Spacer(Modifier.height(8.dp))
                         TextButton(onClick = { showResetDialog = true }) {
                             Text(
-                                "Lupa password? Ubah password",
+                                if (errorCode == "NO_PASSWORD") "Set password sekarang"
+                                else "Lupa password? Ubah password",
                                 color = Color(0xFFFFAA00),
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.SemiBold
@@ -207,28 +208,7 @@ fun LoginScreen(
                 }
             }
 
-            // DIVIDER + GOOGLE
-            Spacer(Modifier.height(20.dp))
-            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-                HorizontalDivider(modifier = Modifier.weight(1f), color = Color.White.copy(alpha = 0.2f))
-                Text("  atau  ", color = Color.White.copy(alpha = 0.5f), fontSize = 12.sp)
-                HorizontalDivider(modifier = Modifier.weight(1f), color = Color.White.copy(alpha = 0.2f))
-            }
-            Spacer(Modifier.height(14.dp))
-
-            OutlinedButton(
-                onClick = { /* TODO: Google Sign-In */ },
-                modifier = Modifier.fillMaxWidth().height(50.dp),
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
-                border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.3f))
-            ) {
-                Text("G", fontWeight = FontWeight.Black, fontSize = 18.sp)
-                Spacer(Modifier.width(8.dp))
-                Text("Lanjutkan dengan Google", fontSize = 14.sp)
-            }
-
-            Spacer(Modifier.height(20.dp))
+            Spacer(Modifier.height(24.dp))
             Row(horizontalArrangement = Arrangement.Center) {
                 Text("Belum punya akun? ", color = Color.White.copy(alpha = 0.7f), fontSize = 13.sp)
                 Text(
@@ -273,7 +253,7 @@ fun LoginScreen(
         AlertDialog(
             onDismissRequest = { showNotRegisteredDialog = false },
             title = { Text("Belum Terdaftar") },
-            text = { Text("Akun $email belum terdaftar.\n\nDaftar dulu atau login pakai Google?") },
+            text = { Text("Akun $email belum terdaftar.\n\nMau daftar sekarang?") },
             confirmButton = {
                 TextButton(onClick = {
                     showNotRegisteredDialog = false
