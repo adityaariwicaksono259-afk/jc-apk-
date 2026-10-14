@@ -75,12 +75,12 @@ fun MainScreen(
                     categoryName = category,
                     onBack = { openCategory = null },
                     onToolClick = { tool ->
+                        openCategory = null
                         when {
                             tool.displayFolder.equals("AI", ignoreCase = true) -> openChatWithTool = tool
                             tool.catalogId == "am-preset-search" -> openAmScreen = "search"
                             tool.catalogId == "premium-amfinder" -> openAmScreen = "finder"
                             tool.catalogId == "premium-amprem" -> openAmScreen = "prem"
-                            tool.catalogId == "ep267" -> openGenericTool = tool
                             else -> openGenericTool = tool
                         }
                     }
@@ -157,7 +157,12 @@ fun MainScreen(
                         when (selectedTab) {
                             NavTab.HOME -> HomeScreen(
                                 userName = userName,
-                                onCategoryClick = { openCategory = it }
+                                onCategoryClick = {
+                                    openCategory = it
+                                    openGenericTool = null
+                                    openAmScreen = null
+                                    openChatWithTool = null
+                                }
                             )
 
                             NavTab.CHAT -> PlaceholderTab(

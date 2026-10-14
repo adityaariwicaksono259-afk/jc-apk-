@@ -25,6 +25,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.javin.codex.data.session.SessionManager
+import app.javin.codex.data.session.ThemeManager
+import app.javin.codex.data.session.ThemeMode
 import coil.compose.AsyncImage
 import kotlinx.coroutines.launch
 
@@ -40,6 +42,13 @@ fun ProfileScreen(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val session = remember { SessionManager.getInstance(context) }
+    val themeManager = remember { ThemeManager.getInstance(context) }
+    var currentTheme by remember { mutableStateOf(ThemeMode.GLASS) }
+    var showThemeDialog by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        currentTheme = themeManager.getTheme()
+    }
 
     var userName by remember { mutableStateOf("User") }
     var userCode by remember { mutableStateOf("") }
@@ -192,6 +201,15 @@ fun ProfileScreen(
         SectionTitle("Privasi & Pengaturan")
 
         GlassMenuItem(
+            icon = Icons.Default.Palette,
+            label = "Tema",
+            subtitle = when (currentTheme) {
+                ThemeMode.GLASS -> "Glassmorphism (default)"
+                ThemeMode.NEOBRUTALISM -> "NeoBrutalism (soft)"
+            },
+            onClick = { showThemeDialog = true }
+        )
+        GlassMenuItem(
             icon = Icons.Default.PrivacyTip,
             label = "Privasi",
             subtitle = "Last seen, foto profil, status",
@@ -231,6 +249,75 @@ fun ProfileScreen(
         )
 
         Spacer(Modifier.height(24.dp))
+
+    // ============================================
+    // THEME DIALOG
+    // ============================================
+    if (showThemeDialog) {
+        AlertDialog(
+            onDismissRequest = { showThemeDialog = false },
+            title = { Text("Pilih Tema", fontWeight = FontWeight.Bold) },
+            text = {
+                Column {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                scope.launch { themeManager.setTheme(ThemeMode.GLASS) }
+                                currentTheme = ThemeMode.GLASS
+                                showThemeDialog = false
+                            }
+                            .padding(vertical = 12.dp, horizontal = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        RadioButton(
+                            selected = currentTheme == ThemeMode.GLASS,
+                            onClick = {
+                                scope.launch { themeManager.setTheme(ThemeMode.GLASS) }
+                                currentTheme = ThemeMode.GLASS
+                                showThemeDialog = false
+                            }
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Column {
+                            Text("Glassmorphism", fontWeight = if (currentTheme == ThemeMode.GLASS) FontWeight.Bold else FontWeight.Normal)
+                            Text("Biru ungu transparan (default)", fontSize = 11.sp, color = Color.Gray)
+                        }
+                    }
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                scope.launch { themeManager.setTheme(ThemeMode.NEOBRUTALISM) }
+                                currentTheme = ThemeMode.NEOBRUTALISM
+                                showThemeDialog = false
+                            }
+                            .padding(vertical = 12.dp, horizontal = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        RadioButton(
+                            selected = currentTheme == ThemeMode.NEOBRUTALISM,
+                            onClick = {
+                                scope.launch { themeManager.setTheme(ThemeMode.NEOBRUTALISM) }
+                                currentTheme = ThemeMode.NEOBRUTALISM
+                                showThemeDialog = false
+                            }
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Column {
+                            Text("NeoBrutalism", fontWeight = if (currentTheme == ThemeMode.NEOBRUTALISM) FontWeight.Bold else FontWeight.Normal)
+                            Text("Cream + border tebal (soft)", fontSize = 11.sp, color = Color.Gray)
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showThemeDialog = false }) {
+                    Text("Tutup")
+                }
+            }
+        )
+    }
 
         // ============================================
         // LOGOUT BUTTON
