@@ -230,6 +230,7 @@ fun SettingsScreen(
 
 @Composable
 private fun SectionTitle(text: String) {
+    val t = LocalThemeTokens.current
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -241,10 +242,7 @@ private fun SectionTitle(text: String) {
                 .width(3.dp)
                 .height(14.dp)
                 .clip(RoundedCornerShape(2.dp))
-                .background(
-                    if (t.isNeo) androidx.compose.ui.graphics.SolidColor(t.cardBorder)
-                    else Brush.verticalGradient(listOf(t.accent, t.accent))
-                )
+                .background(t.accent)
         )
         Spacer(Modifier.width(10.dp))
         Text(
@@ -264,6 +262,7 @@ private fun SettingsItem(
     subtitle: String,
     onClick: () -> Unit
 ) {
+    val t = LocalThemeTokens.current
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -318,6 +317,7 @@ private fun SettingsItem(
 
 @Composable
 private fun StatusCard(online: Boolean, modifier: Modifier = Modifier) {
+    val t = LocalThemeTokens.current
     Row(
         modifier = modifier
             .fillMaxWidth()
