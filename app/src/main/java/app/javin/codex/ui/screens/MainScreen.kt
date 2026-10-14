@@ -57,6 +57,8 @@ fun MainScreen(
     var openAmScreen by remember { mutableStateOf<String?>(null) }
     var openGenericTool by remember { mutableStateOf<Tool?>(null) }
     var profileSub by remember { mutableStateOf<ProfileSubScreen>(ProfileSubScreen.Main) }
+    var playerUrl by remember { mutableStateOf<String?>(null) }
+    var playerTitle by remember { mutableStateOf("Streaming") }
     val t = LocalThemeTokens.current
 
     AppBackground {
@@ -179,6 +181,14 @@ fun MainScreen(
                     }
                 }
             }
+            // Anime Player (paling atas)
+            playerUrl?.let { url ->
+                AnimePlayerScreen(
+                    videoUrl = url,
+                    title = playerTitle,
+                    onBack = { playerUrl = null }
+                )
+            }
             openGenericTool?.let { tool ->
                 Box(
                     modifier = Modifier
@@ -187,7 +197,11 @@ fun MainScreen(
                 ) {
                     GenericToolScreen(
                         tool = tool,
-                        onBack = { openGenericTool = null }
+                        onBack = { openGenericTool = null },
+                        onPlayVideo = { url, title ->
+                            playerUrl = url
+                            playerTitle = title
+                        }
                     )
                 }
             }

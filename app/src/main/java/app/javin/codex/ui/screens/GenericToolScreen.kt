@@ -50,7 +50,8 @@ sealed class ToolOutput {
 @Composable
 fun GenericToolScreen(
     tool: Tool,
-    onBack: () -> Unit = {}
+    onBack: () -> Unit = {},
+    onPlayVideo: (url: String, title: String) -> Unit = { _, _ -> }
 ) {
     val scope = rememberCoroutineScope()
     val repo = remember { ToolRepository(ApiClient.get()) }
@@ -185,7 +186,7 @@ fun GenericToolScreen(
                 Text("HASIL", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.5f), letterSpacing = 1.5.sp)
                 Spacer(Modifier.height(8.dp))
                 outputs.forEach { output ->
-                    RenderOutput(output, clipboard)
+                    RenderOutput(output, clipboard, onPlayVideo, tool.displayName)
                     Spacer(Modifier.height(10.dp))
                 }
             }
@@ -216,6 +217,12 @@ private fun parseOutput(raw: String): List<ToolOutput> {
                 if (!ok) {
                     val msg = (parsed["message"] as? String) ?: (parsed["error"] as? String) ?: "Gagal"
                     return listOf(ToolOutput.Error(msg))
+                }
+                // Khusus format stream (Animasu/Animekuindo/Dramabox/Reelshort):
+                // cek field streamUrl / stream_url / videoUrl / playUrl / file
+                val streamUrl = findStreamUrl(parsed, 0)
+                if (streamUrl != null) {
+                    list.add(ToolOutput.Video(streamUrl))
                 }
                 walkJson(parsed, list, 0)
             }
@@ -268,6 +275,9 @@ private fun detectUrlKind(s: String): Pair<String, String> {
     val t = s.trim()
     if (!t.startsWith("http")) return Pair("text", t)
     val lower = t.lowercase()
+    // Blogger embed / iframe / player / embed
+    if (lower.contains("blogger.com/video.g") || lower.contains("blogger.com/video")) return Pair("video", t)
+    if (lower.contains("/embed") || lower.contains("/player") || lower.contains("iframe")) return Pair("video", t)
     return when {
         lower.matches(Regex(".*\\.(jpg|jpeg|png|webp|gif|bmp|svg)(\\?.*)?$")) -> Pair("image", t)
         lower.matches(Regex(".*\\.(mp4|webm|mov|mkv)(\\?.*)?$")) -> Pair("video", t)
@@ -291,7 +301,7 @@ private fun walkJson(obj: Map<*, *>, out: MutableList<ToolOutput>, depth: Int) {
                                 key.contains("thumb") || key.contains("cover") ||
                                 key.contains("photo") || key.contains("artwork") ||
                                 key.contains("picture")
-                val isVideoKey = key.contains("video") || key.contains("mp4")
+                val isVideoKey = key.contains("video") || key.contains("mp4") || key.contains("stream")
                 val isAudioKey = key.contains("audio") || key.contains("mp3") || key.contains("sound")
                 val isTextKey = key.contains("message") || key.contains("text") ||
                                 key.contains("response") || key.contains("result") ||
@@ -331,7 +341,12 @@ private fun walkJson(obj: Map<*, *>, out: MutableList<ToolOutput>, depth: Int) {
 // RENDER OUTPUT
 // ============================================
 @Composable
-private fun RenderOutput(output: ToolOutput, clipboard: androidx.compose.ui.platform.ClipboardManager) {
+private fun RenderOutput(
+    output: ToolOutput,
+    clipboard: androidx.compose.ui.platform.ClipboardManager,
+    onPlayVideo: (url: String, title: String) -> Unit = { _, _ -> },
+    title: String = ""
+) {
     when (output) {
         is ToolOutput.Text -> {
             Box(
@@ -360,15 +375,20 @@ private fun RenderOutput(output: ToolOutput, clipboard: androidx.compose.ui.plat
         is ToolOutput.Video -> {
             Column {
                 Box(
-                    modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp))
-                        .background(Color(0x1AFFFFFF))
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(Color(0xFF000000))
+                        .clickable { onPlayVideo(output.url, title) }
                         .padding(20.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(Icons.Default.PlayCircle, null, tint = Color(0xFF4A9EFF), modifier = Modifier.size(56.dp))
-                        Spacer(Modifier.height(8.dp))
-                        Text("Video tersedia", fontSize = 13.sp, color = Color.White, fontWeight = FontWeight.Bold)
+                        Icon(Icons.Default.PlayCircle, null, tint = Color(0xFF4A9EFF), modifier = Modifier.size(64.dp))
+                        Spacer(Modifier.height(10.dp))
+                        Text("▶ Tonton Sekarang", fontSize = 15.sp, color = Color.White, fontWeight = FontWeight.Bold)
+                        Spacer(Modifier.height(4.dp))
+                        Text("Tap buat streaming di APK", fontSize = 11.sp, color = Color.White.copy(alpha = 0.6f))
                     }
                 }
                 Spacer(Modifier.height(8.dp))
@@ -376,7 +396,6 @@ private fun RenderOutput(output: ToolOutput, clipboard: androidx.compose.ui.plat
                     ActionChip(icon = Icons.Default.ContentCopy, label = "Copy URL") {
                         clipboard.setText(AnnotatedString(output.url))
                     }
-                    ActionChip(icon = Icons.Default.Download, label = "Buka Link") { }
                 }
             }
         }
@@ -421,7 +440,7 @@ private fun RenderOutput(output: ToolOutput, clipboard: androidx.compose.ui.plat
             }
         }
         is ToolOutput.ListItems -> {
-            output.items.forEach { RenderOutput(it, clipboard) }
+            output.items.forEach { RenderOutput(it, clipboard, onPlayVideo, title) }
         }
         is ToolOutput.Error -> {
             Box(
@@ -457,4 +476,27 @@ private fun ActionChip(icon: androidx.compose.ui.graphics.vector.ImageVector, la
         Spacer(Modifier.width(6.dp))
         Text(label, fontSize = 12.sp, color = Color.White, fontWeight = FontWeight.SemiBold)
     }
+}
+
+/**
+ * Cari field yang isinya URL streaming video (blogger/embed/mp4).
+ */
+private fun findStreamUrl(obj: Map<*, *>, depth: Int): String? {
+    if (depth > 3) return null
+    val streamKeys = setOf(
+        "streamurl", "stream_url", "videourl", "video_url",
+        "playurl", "play_url", "url_stream", "stream",
+        "file", "playurl"
+    )
+    for ((k, v) in obj) {
+        val key = k?.toString()?.lowercase() ?: continue
+        if (v is String && key in streamKeys && v.startsWith("http")) {
+            return v
+        }
+        if (v is Map<*, *>) {
+            val found = findStreamUrl(v, depth + 1)
+            if (found != null) return found
+        }
+    }
+    return null
 }
