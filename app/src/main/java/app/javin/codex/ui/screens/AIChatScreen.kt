@@ -14,6 +14,11 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Send
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.ui.platform.LocalContext
+import app.javin.codex.data.session.ChatHistoryManager
+import app.javin.codex.data.session.ChatHistoryItem
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -47,14 +52,31 @@ fun AIChatScreen(
     val scope = rememberCoroutineScope()
     val listState = rememberLazyListState()
 
+    val appContext = LocalContext.current
+    val chatHistory = remember { ChatHistoryManager.getInstance(appContext) }
+
     var messages by remember { mutableStateOf<List<ChatMessage>>(emptyList()) }
     var inputText by remember { mutableStateOf("") }
     var isTyping by remember { mutableStateOf(false) }
+    var showMenu by remember { mutableStateOf(false) }
 
-    // Initial greeting
-    LaunchedEffect(toolName) {
-        // Chat kosong dari awal
-        messages = emptyList()
+    // Load history dari DataStore
+    LaunchedEffect(catalogId) {
+        if (catalogId.isNullOrBlank()) {
+            messages = emptyList()
+            return@LaunchedEffect
+        }
+        val saved = chatHistory.load(catalogId)
+        messages = saved.map { ChatMessage(it.text, it.fromUser, it.timestamp) }
+    }
+
+    // Auto-save tiap ada perubahan pesan
+    LaunchedEffect(messages) {
+        if (!catalogId.isNullOrBlank() && messages.isNotEmpty()) {
+            chatHistory.save(catalogId, messages.map {
+                ChatHistoryItem(it.text, it.fromUser, it.timestamp)
+            })
+        }
     }
 
     // Auto-scroll ke bawah
@@ -154,6 +176,29 @@ fun AIChatScreen(
                     text = if (isTyping) "Mengetik..." else "Online",
                     fontSize = 11.sp,
                     color = if (isTyping) Color(0xFF7FFFA0) else Color.White.copy(alpha = 0.5f)
+                )
+            }
+
+            // Tombol Clear chat
+            Box(
+                modifier = Modifier
+                    .size(36.dp)
+                    .clip(CircleShape)
+                    .clickable {
+                        scope.launch {
+                            if (!catalogId.isNullOrBlank()) {
+                                chatHistory.clear(catalogId)
+                            }
+                            messages = emptyList()
+                        }
+                    },
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = "Clear chat",
+                    tint = Color.White.copy(alpha = 0.6f),
+                    modifier = Modifier.size(20.dp)
                 )
             }
         }
