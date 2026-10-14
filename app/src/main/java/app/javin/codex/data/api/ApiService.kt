@@ -72,6 +72,12 @@ interface ApiService {
     suspend fun logout(): Response<SimpleResponse>
 
     // ============================================
+    // APP — VERSION CHECK (auto-update)
+    // ============================================
+    @GET("api/app/version")
+    suspend fun getAppVersion(): Response<app.javin.codex.data.model.AppVersion>
+
+    // ============================================
     // ENDPOINTS — LIST (247 tools)
     // ============================================
     @GET("endpoints.json")

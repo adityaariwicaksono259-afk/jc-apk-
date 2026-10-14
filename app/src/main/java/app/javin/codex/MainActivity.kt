@@ -15,6 +15,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import app.javin.codex.data.model.User
 import app.javin.codex.data.repository.AuthRepository
+import app.javin.codex.data.update.NotificationHelper
 import app.javin.codex.data.repository.AuthResult
 import app.javin.codex.data.session.SessionManager
 import app.javin.codex.ui.components.GlassBackground
@@ -36,6 +37,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        NotificationHelper.createChannels(this)
         handleIntent(intent)
         setContent { JavinAppRoot() }
     }
