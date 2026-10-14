@@ -53,17 +53,8 @@ fun AIChatScreen(
 
     // Initial greeting
     LaunchedEffect(toolName) {
-        val greeting = when {
-            toolName.lowercase().contains("gpt") -> "Hai! Aku $toolName. Tanya apa aja ya!"
-            toolName.lowercase().contains("claude") -> "Hi! Aku $toolName. Ada yang bisa dibantu?"
-            toolName.lowercase().contains("deepseek") -> "Halo! Aku $toolName. Mau bahas apa?"
-            toolName.lowercase().contains("gemini") -> "Hey! Aku $toolName. Tanya apa aja!"
-            toolName.lowercase().contains("felo") -> "Hai! Aku $toolName. Siap bantu cari info."
-            else -> "Hai! Aku $toolName. Ada yang bisa aku bantu?"
-        }
-        messages = listOf(
-            ChatMessage(text = greeting, fromUser = false)
-        )
+        // Chat kosong dari awal
+        messages = emptyList()
     }
 
     // Auto-scroll ke bawah
