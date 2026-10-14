@@ -11,7 +11,7 @@ import kotlinx.coroutines.runBlocking
 
 private val Context.themeDataStore by preferencesDataStore(name = "javin_theme")
 
-enum class ThemeMode { DARK, LIGHT, SYSTEM }
+enum class ThemeMode { GLASS, NEOBRUTALISM }
 
 class ThemeManager(private val context: Context) {
 
@@ -23,9 +23,7 @@ class ThemeManager(private val context: Context) {
 
         fun getInstance(context: Context): ThemeManager {
             return instance ?: synchronized(this) {
-                instance ?: ThemeManager(context.applicationContext).also {
-                    instance = it
-                }
+                instance ?: ThemeManager(context.applicationContext).also { instance = it }
             }
         }
     }
@@ -37,31 +35,25 @@ class ThemeManager(private val context: Context) {
         cachedMode?.let { return it }
         return try {
             val prefs = context.themeDataStore.data.first()
-            val raw = prefs[KEY_THEME] ?: "DARK"
-            val mode = try { ThemeMode.valueOf(raw) } catch (e: Exception) { ThemeMode.DARK }
+            val raw = prefs[KEY_THEME] ?: "GLASS"
+            val mode = try { ThemeMode.valueOf(raw) } catch (e: Exception) { ThemeMode.GLASS }
             cachedMode = mode
             mode
-        } catch (e: Exception) {
-            ThemeMode.DARK
-        }
+        } catch (e: Exception) { ThemeMode.GLASS }
     }
 
     fun getThemeSync(): ThemeMode {
         cachedMode?.let { return it }
-        return runBlocking {
-            getTheme()
-        }
+        return runBlocking { getTheme() }
     }
 
     suspend fun setTheme(mode: ThemeMode) {
         cachedMode = mode
-        context.themeDataStore.edit { prefs ->
-            prefs[KEY_THEME] = mode.name
-        }
+        context.themeDataStore.edit { prefs -> prefs[KEY_THEME] = mode.name }
     }
 
     val themeFlow: Flow<ThemeMode> = context.themeDataStore.data.map { prefs ->
-        val raw = prefs[KEY_THEME] ?: "DARK"
-        try { ThemeMode.valueOf(raw) } catch (e: Exception) { ThemeMode.DARK }
+        val raw = prefs[KEY_THEME] ?: "GLASS"
+        try { ThemeMode.valueOf(raw) } catch (e: Exception) { ThemeMode.GLASS }
     }
 }

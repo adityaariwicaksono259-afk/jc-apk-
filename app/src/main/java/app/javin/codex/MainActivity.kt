@@ -18,12 +18,14 @@ import app.javin.codex.data.repository.AuthRepository
 import app.javin.codex.data.update.NotificationHelper
 import app.javin.codex.data.repository.AuthResult
 import app.javin.codex.data.session.SessionManager
+import app.javin.codex.data.session.ThemeManager
+import app.javin.codex.data.session.ThemeMode
 import app.javin.codex.data.lock.LockManager
 import app.javin.codex.ui.screens.LockScreen
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import app.javin.codex.ui.components.GlassBackground
+import app.javin.codex.ui.components.AppBackground
 import app.javin.codex.ui.components.VideoBackground
 import app.javin.codex.ui.screens.ForgotPasswordScreen
 import app.javin.codex.ui.screens.LoginScreen
@@ -31,6 +33,7 @@ import app.javin.codex.ui.screens.MainScreen
 import app.javin.codex.ui.screens.RegisterScreen
 import app.javin.codex.ui.screens.ResetPasswordScreen
 import app.javin.codex.ui.theme.JavinCodexTheme
+import app.javin.codex.ui.theme.LocalThemeTokens
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
@@ -83,6 +86,8 @@ fun JavinAppRoot() {
     var isLocked by remember { mutableStateOf(false) }
 
     val session = remember { SessionManager.getInstance(context) }
+    val themeManager = remember { ThemeManager.getInstance(context) }
+    var themeMode by remember { mutableStateOf(ThemeMode.GLASS) }
     val authRepo = remember { AuthRepository(session) }
     val lockManager = remember { LockManager.getInstance(context) }
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -116,6 +121,11 @@ fun JavinAppRoot() {
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
+    LaunchedEffect(Unit) {
+        themeMode = themeManager.getTheme()
+        themeManager.themeFlow.collect { themeMode = it }
+    }
+
     LaunchedEffect(MainActivity.pendingResetToken) {
         val token = MainActivity.pendingResetToken
         if (!token.isNullOrBlank()) {
@@ -123,14 +133,14 @@ fun JavinAppRoot() {
         }
     }
 
-    JavinCodexTheme(darkTheme = true) {
-        Surface(modifier = Modifier.fillMaxSize(), color = Color(0xFF0F0F1E)) {
+    JavinCodexTheme(mode = themeMode) {
+        AppBackground {
             if (isLocked) {
                 LockScreen(onUnlock = {
                     isLocked = false
                     scope.launch { lockManager.updateLastActive() }
                 })
-                return@Surface
+                return@AppBackground
             }
 
             when (val current = screen) {

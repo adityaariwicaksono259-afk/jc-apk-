@@ -12,6 +12,12 @@ import androidx.compose.material.icons.outlined.Chat
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.PlayCircle
 import androidx.compose.material.icons.outlined.Timelapse
+import app.javin.codex.ui.theme.LocalThemeTokens
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -41,9 +47,20 @@ fun JavinBottomNav(
     selectedTab: NavTab,
     onTabSelected: (NavTab) -> Unit
 ) {
+    val t = LocalThemeTokens.current
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .then(
+                if (t.isNeo) Modifier
+                    .background(t.cardBg)
+                    .border(width = 2.dp, color = t.cardBorder)
+                else Modifier
+            )
+    ) {
     NavigationBar(
-        containerColor = MaterialTheme.colorScheme.surface,
-        tonalElevation = 3.dp
+        containerColor = if (t.isNeo) t.cardBg else MaterialTheme.colorScheme.surface,
+        tonalElevation = if (t.isNeo) 0.dp else 3.dp
     ) {
         NavTab.entries.forEach { tab ->
             val selected = selectedTab == tab
@@ -64,13 +81,14 @@ fun JavinBottomNav(
                     )
                 },
                 colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = MaterialTheme.colorScheme.primary,
-                    selectedTextColor = MaterialTheme.colorScheme.primary,
-                    indicatorColor = MaterialTheme.colorScheme.primaryContainer,
-                    unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                    unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    selectedIconColor = if (t.isNeo) t.accentOn else MaterialTheme.colorScheme.primary,
+                    selectedTextColor = if (t.isNeo) t.accentOn else MaterialTheme.colorScheme.primary,
+                    indicatorColor = if (t.isNeo) t.accent else MaterialTheme.colorScheme.primaryContainer,
+                    unselectedIconColor = if (t.isNeo) t.textMuted else MaterialTheme.colorScheme.onSurfaceVariant,
+                    unselectedTextColor = if (t.isNeo) t.textMuted else MaterialTheme.colorScheme.onSurfaceVariant
                 )
             )
         }
+    }
     }
 }

@@ -20,8 +20,9 @@ import androidx.compose.ui.unit.sp
 import app.javin.codex.data.model.Tool
 import app.javin.codex.data.repository.AuthRepository
 import app.javin.codex.data.session.SessionManager
-import app.javin.codex.ui.components.GlassBackground
+import app.javin.codex.ui.components.AppBackground
 import app.javin.codex.ui.components.getToolIconUrl
+import app.javin.codex.ui.theme.LocalThemeTokens
 import app.javin.codex.ui.navigation.JavinBottomNav
 import app.javin.codex.ui.navigation.NavTab
 
@@ -51,7 +52,7 @@ fun MainScreen(
     var openGenericTool by remember { mutableStateOf<Tool?>(null) }
     var profileSub by remember { mutableStateOf<ProfileSubScreen>(ProfileSubScreen.Main) }
 
-    GlassBackground {
+    AppBackground {
         val chatTool = openChatWithTool
         val category = openCategory
         val amScreen = openAmScreen
@@ -199,6 +200,7 @@ private fun PlaceholderTab(
     title: String,
     subtitle: String
 ) {
+    val t = LocalThemeTokens.current
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
@@ -212,14 +214,14 @@ private fun PlaceholderTab(
             Text(
                 text = title,
                 fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.White
+                fontWeight = if (t.isNeo) FontWeight.Black else FontWeight.Bold,
+                color = t.textPrimary
             )
             Spacer(Modifier.height(4.dp))
             Text(
                 text = subtitle,
                 fontSize = 13.sp,
-                color = Color.White.copy(alpha = 0.5f)
+                color = t.textMuted
             )
         }
     }

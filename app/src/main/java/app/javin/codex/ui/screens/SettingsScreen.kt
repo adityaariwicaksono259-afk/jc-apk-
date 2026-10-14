@@ -25,6 +25,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import app.javin.codex.ui.theme.LocalThemeTokens
 import app.javin.codex.data.session.ThemeManager
 import app.javin.codex.data.session.ThemeMode
 import kotlinx.coroutines.delay
@@ -37,8 +38,9 @@ fun SettingsScreen(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val themeManager = remember { ThemeManager.getInstance(context) }
+    val t = LocalThemeTokens.current
 
-    var currentTheme by remember { mutableStateOf(ThemeMode.DARK) }
+    var currentTheme by remember { mutableStateOf(ThemeMode.GLASS) }
     var isOnline by remember { mutableStateOf(checkInternet(context)) }
     var showThemeDialog by remember { mutableStateOf(false) }
     var showAboutDialog by remember { mutableStateOf(false) }
@@ -75,15 +77,15 @@ fun SettingsScreen(
                 modifier = Modifier
                     .size(40.dp)
                     .clip(CircleShape)
-                    .background(Color(0x1AFFFFFF))
-                    .border(1.dp, Color(0x26FFFFFF), CircleShape)
+                    .background(t.iconBg)
+                    .border(if (t.isNeo) 2.dp else 1.dp, t.cardBorder, CircleShape)
                     .clickable(onClick = onBack),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = Icons.Default.ArrowBack,
                     contentDescription = "Back",
-                    tint = Color.White,
+                    tint = t.textPrimary,
                     modifier = Modifier.size(20.dp)
                 )
             }
@@ -91,8 +93,8 @@ fun SettingsScreen(
             Text(
                 text = "Pengaturan",
                 fontSize = 22.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.White
+                fontWeight = if (t.isNeo) FontWeight.Black else FontWeight.Bold,
+                color = t.textPrimary
             )
         }
 
@@ -115,9 +117,8 @@ fun SettingsScreen(
             icon = Icons.Default.DarkMode,
             label = "Tema",
             subtitle = when (currentTheme) {
-                ThemeMode.DARK -> "Gelap"
-                ThemeMode.LIGHT -> "Terang"
-                ThemeMode.SYSTEM -> "Ikut Sistem"
+                ThemeMode.GLASS -> "Glassmorphism (default)"
+                ThemeMode.NEOBRUTALISM -> "NeoBrutalism (soft)"
             },
             onClick = { showThemeDialog = true }
         )
@@ -161,29 +162,20 @@ fun SettingsScreen(
             text = {
                 Column {
                     ThemeOption(
-                        label = "Gelap",
-                        selected = currentTheme == ThemeMode.DARK,
+                        label = "Glassmorphism",
+                        selected = currentTheme == ThemeMode.GLASS,
                         onClick = {
-                            scope.launch { themeManager.setTheme(ThemeMode.DARK) }
-                            currentTheme = ThemeMode.DARK
+                            scope.launch { themeManager.setTheme(ThemeMode.GLASS) }
+                            currentTheme = ThemeMode.GLASS
                             showThemeDialog = false
                         }
                     )
                     ThemeOption(
-                        label = "Terang",
-                        selected = currentTheme == ThemeMode.LIGHT,
+                        label = "NeoBrutalism",
+                        selected = currentTheme == ThemeMode.NEOBRUTALISM,
                         onClick = {
-                            scope.launch { themeManager.setTheme(ThemeMode.LIGHT) }
-                            currentTheme = ThemeMode.LIGHT
-                            showThemeDialog = false
-                        }
-                    )
-                    ThemeOption(
-                        label = "Ikut Sistem",
-                        selected = currentTheme == ThemeMode.SYSTEM,
-                        onClick = {
-                            scope.launch { themeManager.setTheme(ThemeMode.SYSTEM) }
-                            currentTheme = ThemeMode.SYSTEM
+                            scope.launch { themeManager.setTheme(ThemeMode.NEOBRUTALISM) }
+                            currentTheme = ThemeMode.NEOBRUTALISM
                             showThemeDialog = false
                         }
                     )
@@ -250,9 +242,8 @@ private fun SectionTitle(text: String) {
                 .height(14.dp)
                 .clip(RoundedCornerShape(2.dp))
                 .background(
-                    Brush.verticalGradient(
-                        colors = listOf(Color(0xFF4A9EFF), Color(0xFF7F5AF0))
-                    )
+                    if (t.isNeo) androidx.compose.ui.graphics.SolidColor(t.cardBorder)
+                    else Brush.verticalGradient(listOf(t.accent, t.accent))
                 )
         )
         Spacer(Modifier.width(10.dp))
@@ -260,7 +251,7 @@ private fun SectionTitle(text: String) {
             text = text.uppercase(),
             fontSize = 11.sp,
             fontWeight = FontWeight.Bold,
-            color = Color.White.copy(alpha = 0.6f),
+            color = t.textMuted,
             letterSpacing = 1.5.sp
         )
     }
@@ -277,9 +268,13 @@ private fun SettingsItem(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 20.dp, vertical = 4.dp)
-            .clip(RoundedCornerShape(16.dp))
-            .background(Color(0x14FFFFFF))
-            .border(1.dp, Color(0x26FFFFFF), RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(if (t.isNeo) 12.dp else 16.dp))
+            .background(t.cardBg)
+            .border(
+                if (t.isNeo) 2.dp else 1.dp,
+                t.cardBorder,
+                RoundedCornerShape(if (t.isNeo) 12.dp else 16.dp)
+            )
             .clickable(onClick = onClick)
             .padding(14.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -288,13 +283,13 @@ private fun SettingsItem(
             modifier = Modifier
                 .size(40.dp)
                 .clip(RoundedCornerShape(12.dp))
-                .background(Color(0x1AFFFFFF)),
+                .background(t.iconBg),
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                tint = Color(0xFF4A9EFF),
+                tint = if (t.isNeo) t.iconTint else t.accent,
                 modifier = Modifier.size(20.dp)
             )
         }
@@ -303,19 +298,19 @@ private fun SettingsItem(
             Text(
                 text = label,
                 fontSize = 15.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = Color(0xFFF0F0F5)
+                fontWeight = if (t.isNeo) FontWeight.Bold else FontWeight.SemiBold,
+                color = t.textPrimary
             )
             Text(
                 text = subtitle,
                 fontSize = 12.sp,
-                color = Color.White.copy(alpha = 0.5f)
+                color = t.textMuted
             )
         }
         Icon(
             imageVector = Icons.Default.ChevronRight,
             contentDescription = null,
-            tint = Color(0x66FFFFFF),
+            tint = t.textMuted,
             modifier = Modifier.size(20.dp)
         )
     }
@@ -328,12 +323,12 @@ private fun StatusCard(online: Boolean, modifier: Modifier = Modifier) {
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
             .background(
-                if (online) Color(0x1A7FFFA0) else Color(0x1AFF6B6B)
+                if (online) t.success.copy(alpha = 0.15f) else t.danger.copy(alpha = 0.15f)
             )
             .border(
-                1.dp,
-                if (online) Color(0x337FFFA0) else Color(0x33FF6B6B),
-                RoundedCornerShape(16.dp)
+                if (t.isNeo) 2.dp else 1.dp,
+                if (online) t.success else t.danger,
+                RoundedCornerShape(if (t.isNeo) 12.dp else 16.dp)
             )
             .padding(14.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -342,7 +337,7 @@ private fun StatusCard(online: Boolean, modifier: Modifier = Modifier) {
             modifier = Modifier
                 .size(10.dp)
                 .clip(CircleShape)
-                .background(if (online) Color(0xFF7FFFA0) else Color(0xFFFF6B6B))
+                .background(if (online) t.success else t.danger)
         )
         Spacer(Modifier.width(12.dp))
         Column(modifier = Modifier.weight(1f)) {
@@ -350,12 +345,12 @@ private fun StatusCard(online: Boolean, modifier: Modifier = Modifier) {
                 text = if (online) "Online" else "Offline",
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
-                color = if (online) Color(0xFF7FFFA0) else Color(0xFFFF6B6B)
+                color = if (online) t.success else t.danger
             )
             Text(
                 text = if (online) "Koneksi internet aktif" else "Tidak ada koneksi internet",
                 fontSize = 11.sp,
-                color = Color.White.copy(alpha = 0.6f)
+                color = t.textMuted
             )
         }
     }

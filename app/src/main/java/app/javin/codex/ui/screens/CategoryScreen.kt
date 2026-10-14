@@ -1,6 +1,7 @@
 package app.javin.codex.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -28,6 +29,7 @@ import app.javin.codex.data.api.ApiClient
 import app.javin.codex.data.model.Tool
 import app.javin.codex.data.repository.ToolRepository
 import app.javin.codex.ui.components.getToolIconUrl
+import app.javin.codex.ui.theme.LocalThemeTokens
 import coil.compose.AsyncImage
 import kotlinx.coroutines.launch
 
@@ -38,6 +40,7 @@ fun CategoryScreen(
     onToolClick: (Tool) -> Unit = {}
 ) {
     val scope = rememberCoroutineScope()
+    val t = LocalThemeTokens.current
     val repo = remember { ToolRepository(ApiClient.get()) }
 
     var tools by remember { mutableStateOf<List<Tool>>(emptyList()) }
@@ -81,14 +84,15 @@ fun CategoryScreen(
                 modifier = Modifier
                     .size(40.dp)
                     .clip(CircleShape)
-                    .background(Color(0x1AFFFFFF))
+                    .background(t.iconBg)
+                    .then(if (t.isNeo) Modifier.border(2.dp, t.cardBorder, CircleShape) else Modifier)
                     .clickable(onClick = onBack),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = Icons.Default.ArrowBack,
                     contentDescription = "Back",
-                    tint = Color.White,
+                    tint = t.textPrimary,
                     modifier = Modifier.size(20.dp)
                 )
             }
@@ -97,13 +101,13 @@ fun CategoryScreen(
                 Text(
                     text = categoryName,
                     fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White
+                    fontWeight = if (t.isNeo) FontWeight.Black else FontWeight.Bold,
+                    color = t.textPrimary
                 )
                 Text(
                     text = "${tools.size} tools",
                     fontSize = 11.sp,
-                    color = Color.White.copy(alpha = 0.5f)
+                    color = t.textMuted
                 )
             }
         }
@@ -120,23 +124,23 @@ fun CategoryScreen(
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
                 placeholder = {
-                    Text("Cari di $categoryName...", fontSize = 14.sp, color = Color.White.copy(alpha = 0.4f))
+                    Text("Cari di $categoryName...", fontSize = 14.sp, color = t.searchPlaceholder)
                 },
                 leadingIcon = {
-                    Icon(Icons.Default.Search, null, tint = Color.White.copy(alpha = 0.5f))
+                    Icon(Icons.Default.Search, null, tint = t.searchPlaceholder)
                 },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
                 keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(imeAction = ImeAction.Search),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = Color(0x0FFFFFFF),
-                    unfocusedContainerColor = Color(0x0FFFFFFF),
-                    focusedBorderColor = Color(0x1AFFFFFF),
-                    unfocusedBorderColor = Color(0x1AFFFFFF),
-                    focusedTextColor = Color.White,
-                    unfocusedTextColor = Color.White,
-                    cursorColor = Color(0xFF4A9EFF)
+                    focusedContainerColor = t.searchBg,
+                    unfocusedContainerColor = t.searchBg,
+                    focusedBorderColor = t.searchBorder,
+                    unfocusedBorderColor = t.searchBorder,
+                    focusedTextColor = t.searchText,
+                    unfocusedTextColor = t.searchText,
+                    cursorColor = t.accent
                 )
             )
         }
@@ -149,14 +153,14 @@ fun CategoryScreen(
         when {
             loading -> {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(color = Color(0xFF4A9EFF), strokeWidth = 3.dp)
+                    CircularProgressIndicator(color = t.accent, strokeWidth = 3.dp)
                 }
             }
 
             errorMsg != null -> {
                 Box(Modifier.fillMaxSize().padding(24.dp), contentAlignment = Alignment.Center) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(errorMsg!!, color = Color(0xFFFF6B6B), fontSize = 13.sp, textAlign = TextAlign.Center)
+                        Text(errorMsg!!, color = t.danger, fontSize = 13.sp, textAlign = TextAlign.Center)
                         Spacer(Modifier.height(16.dp))
                         Button(
                             onClick = {
@@ -169,7 +173,7 @@ fun CategoryScreen(
                                     loading = false
                                 }
                             },
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0x334A9EFF))
+                            colors = ButtonDefaults.buttonColors(containerColor = t.accentSoft)
                         ) { Text("Coba Lagi", color = Color.White) }
                     }
                 }
@@ -180,7 +184,7 @@ fun CategoryScreen(
                     Text(
                         if (searchQuery.isBlank()) "Belum ada tool di $categoryName"
                         else "Nggak ketemu: \"$searchQuery\"",
-                        color = Color.White.copy(alpha = 0.6f),
+                        color = t.textMuted,
                         fontSize = 13.sp
                     )
                 }
@@ -204,7 +208,7 @@ fun CategoryScreen(
                                 .fillMaxWidth()
                                 .padding(start = 66.dp)
                                 .height(1.dp)
-                                .background(Color(0x0FFFFFFF))
+                                .background(t.divider)
                         )
                     }
                     item { Spacer(Modifier.height(100.dp)) }
@@ -224,6 +228,7 @@ private fun ToolRow(
     iconUrl: String?,
     onClick: () -> Unit
 ) {
+    val t = LocalThemeTokens.current
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -234,8 +239,12 @@ private fun ToolRow(
         Box(
             modifier = Modifier
                 .size(46.dp)
-                .clip(RoundedCornerShape(13.dp))
-                .background(Color(0x14FFFFFF)),
+                .clip(RoundedCornerShape(if (t.isNeo) 10.dp else 13.dp))
+                .background(t.iconBg)
+                .then(
+                    if (t.isNeo) Modifier.border(2.dp, t.cardBorder, RoundedCornerShape(10.dp))
+                    else Modifier
+                ),
             contentAlignment = Alignment.Center
         ) {
             if (!iconUrl.isNullOrBlank()) {
@@ -250,7 +259,7 @@ private fun ToolRow(
                     text = name.take(1).uppercase(),
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.White.copy(alpha = 0.7f)
+                    color = if (t.isNeo) t.accentOn else Color.White.copy(alpha = 0.7f)
                 )
             }
         }
@@ -262,8 +271,8 @@ private fun ToolRow(
                 Text(
                     text = name,
                     fontSize = 15.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White,
+                    fontWeight = if (t.isNeo) FontWeight.Black else FontWeight.Bold,
+                    color = t.textPrimary,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -272,14 +281,15 @@ private fun ToolRow(
                     Box(
                         modifier = Modifier
                             .clip(RoundedCornerShape(6.dp))
-                            .background(Color(0x1AFFFFFF))
+                            .background(if (t.isNeo) t.accent else Color(0x1AFFFFFF))
+                            .then(if (t.isNeo) Modifier.border(1.5.dp, t.cardBorder, RoundedCornerShape(6.dp)) else Modifier)
                             .padding(horizontal = 6.dp, vertical = 2.dp)
                     ) {
                         Text(
                             text = tag,
                             fontSize = 9.sp,
                             fontWeight = FontWeight.SemiBold,
-                            color = Color.White.copy(alpha = 0.7f)
+                            color = if (t.isNeo) t.accentOn else Color.White.copy(alpha = 0.7f)
                         )
                     }
                 }
@@ -289,7 +299,7 @@ private fun ToolRow(
                 Text(
                     text = desc,
                     fontSize = 12.sp,
-                    color = Color.White.copy(alpha = 0.5f),
+                    color = t.textMuted,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                     lineHeight = 16.sp
@@ -302,7 +312,7 @@ private fun ToolRow(
         Icon(
             imageVector = Icons.Default.ChevronRight,
             contentDescription = null,
-            tint = Color(0x66FFFFFF),
+            tint = t.textMuted,
             modifier = Modifier.size(20.dp)
         )
     }
