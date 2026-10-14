@@ -1,3 +1,4 @@
+
 package app.javin.codex.ui.screens
 
 import androidx.compose.foundation.background
@@ -37,26 +38,53 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.Build
 import kotlinx.coroutines.launch
+import androidx.compose.material.icons.filled.Article
+import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.Build
+import androidx.compose.material.icons.filled.Casino
+import androidx.compose.material.icons.filled.CloudUpload
+import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.EmojiEmotions
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Movie
+import androidx.compose.material.icons.filled.Palette
+import androidx.compose.material.icons.filled.PersonSearch
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.SmartToy
+import androidx.compose.material.icons.filled.SportsEsports
+import androidx.compose.material.icons.filled.Widgets
+import androidx.compose.ui.graphics.vector.ImageVector
+// Icon mapping per kategori (Material Icons)
+private fun categoryIcon(name: String): ImageVector = when (name.lowercase()) {
+    "ai" -> Icons.Default.SmartToy
+    "anime" -> Icons.Default.Movie
+    "canvas" -> Icons.Default.Palette
+    "downloader" -> Icons.Default.Download
+    "search" -> Icons.Default.Search
+    "games" -> Icons.Default.SportsEsports
+    "tools" -> Icons.Default.Build
+    "random" -> Icons.Default.Casino
+    "berita" -> Icons.Default.Article
+    "primbon" -> Icons.Default.AutoAwesome
+    "info" -> Icons.Default.Info
+    "stalker" -> Icons.Default.PersonSearch
+    "islami" -> Icons.Default.AutoAwesome
+    "smm" -> Icons.Default.Share
+    "uploader" -> Icons.Default.CloudUpload
+    "sticker" -> Icons.Default.EmojiEmotions
+    else -> Icons.Default.Widgets
+}
 
-// Icon mapping per kategori (emoji)
-private fun categoryEmoji(name: String): String = when (name.lowercase()) {
-    "ai" -> "🤖"
-    "anime" -> "🎌"
-    "canvas" -> "🎨"
-    "downloader" -> "⬇️"
-    "search" -> "🔍"
-    "games" -> "🎮"
-    "tools" -> "🛠️"
-    "random" -> "🎲"
-    "berita" -> "📰"
-    "primbon" -> "🔮"
-    "info" -> "ℹ️"
-    "stalker" -> "🕵️"
-    "islami" -> "🕌"
-    "smm" -> "📱"
-    "uploader" -> "📤"
-    "sticker" -> "🖼️"
-    else -> "📦"
+// Gradient color per kategori
+private fun categoryColors(name: String): Pair<androidx.compose.ui.graphics.Color, androidx.compose.ui.graphics.Color> = when (name.lowercase()) {
+    "ai" -> androidx.compose.ui.graphics.Color(0xFF4A9EFF) to androidx.compose.ui.graphics.Color(0xFF7F5AF0)
+    "anime" -> androidx.compose.ui.graphics.Color(0xFFFF7FE5) to androidx.compose.ui.graphics.Color(0xFF7F5AF0)
+    "canvas" -> androidx.compose.ui.graphics.Color(0xFFFFB84D) to androidx.compose.ui.graphics.Color(0xFFFF7FE5)
+    "downloader" -> androidx.compose.ui.graphics.Color(0xFF4A9EFF) to androidx.compose.ui.graphics.Color(0xFF7FFFA0)
+    "search" -> androidx.compose.ui.graphics.Color(0xFF7FFFA0) to androidx.compose.ui.graphics.Color(0xFF4A9EFF)
+    "games" -> androidx.compose.ui.graphics.Color(0xFFFF6B6B) to androidx.compose.ui.graphics.Color(0xFFFF7FE5)
+    "tools" -> androidx.compose.ui.graphics.Color(0xFF7F5AF0) to androidx.compose.ui.graphics.Color(0xFF4A9EFF)
+    else -> androidx.compose.ui.graphics.Color(0xFF4A9EFF) to androidx.compose.ui.graphics.Color(0xFF7F5AF0)
 }
 
 @Composable
@@ -296,6 +324,8 @@ private fun CategoryCard(
     count: Int,
     onClick: () -> Unit
 ) {
+    val (color1, color2) = categoryColors(name)
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -311,11 +341,23 @@ private fun CategoryCard(
             .height(130.dp),
         verticalArrangement = Arrangement.SpaceBetween
     ) {
-        // Emoji
-        Text(
-            text = categoryEmoji(name),
-            fontSize = 40.sp
-        )
+        // Icon dengan gradient background
+        Box(
+            modifier = Modifier
+                .size(50.dp)
+                .clip(RoundedCornerShape(14.dp))
+                .background(
+                    Brush.linearGradient(colors = listOf(color1, color2))
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = categoryIcon(name),
+                contentDescription = name,
+                tint = Color.White,
+                modifier = Modifier.size(26.dp)
+            )
+        }
 
         Column {
             Text(
