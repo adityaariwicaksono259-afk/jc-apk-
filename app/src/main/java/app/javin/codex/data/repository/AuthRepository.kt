@@ -205,6 +205,65 @@ class AuthRepository(private val session: SessionManager) {
     suspend fun isLoggedIn(): Boolean = session.isLoggedIn()
 
     // ============================================
+    // UPDATE PROFILE
+    // ============================================
+    suspend fun updateProfile(name: String?, bio: String?): AuthResult<String> = withContext(Dispatchers.IO) {
+        try {
+            val resp = api.updateProfile(UpdateProfileRequest(name, bio))
+            if (resp.isSuccessful && resp.body() != null) {
+                val body = resp.body()!!
+                if (body.ok) {
+                    // Update session nama (biar sinkron)
+                    if (!name.isNullOrBlank()) {
+                        val token = session.getToken()
+                        val code = session.getUserCode()
+                        val email = session.getUserEmail() ?: ""
+                        val avatar = session.getUserAvatar()
+                        if (token != null && code != null) {
+                            session.saveSession(token, code, name, email, avatar)
+                        }
+                    }
+                    AuthResult.Success(body.message ?: "Berhasil")
+                } else AuthResult.Error(body.message ?: "Gagal update")
+            } else {
+                val errBody = resp.errorBody()?.string()
+                AuthResult.Error(parseMsg(errBody) ?: "Gagal update")
+            }
+        } catch (e: Exception) {
+            AuthResult.Error(e.message ?: "Network error")
+        }
+    }
+
+    // ============================================
+    // PRIVACY
+    // ============================================
+    suspend fun getPrivacy(): AuthResult<PrivacySettings> = withContext(Dispatchers.IO) {
+        try {
+            val resp = api.getPrivacy()
+            if (resp.isSuccessful && resp.body() != null) {
+                val body = resp.body()!!
+                if (body.ok && body.privacy != null) AuthResult.Success(body.privacy)
+                else AuthResult.Error(body.message ?: "Gagal load")
+            } else AuthResult.Error("HTTP ${resp.code()}")
+        } catch (e: Exception) {
+            AuthResult.Error(e.message ?: "Network error")
+        }
+    }
+
+    suspend fun updatePrivacy(req: PrivacyUpdateRequest): AuthResult<String> = withContext(Dispatchers.IO) {
+        try {
+            val resp = api.updatePrivacy(req)
+            if (resp.isSuccessful && resp.body() != null) {
+                val body = resp.body()!!
+                if (body.ok) AuthResult.Success(body.message ?: "Berhasil")
+                else AuthResult.Error(body.message ?: "Gagal update")
+            } else AuthResult.Error("HTTP ${resp.code()}")
+        } catch (e: Exception) {
+            AuthResult.Error(e.message ?: "Network error")
+        }
+    }
+
+    // ============================================
     // HELPERS — extract token & user dari response
     // ============================================
 

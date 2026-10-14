@@ -47,10 +47,19 @@ fun ProfileScreen(
     var userJoined by remember { mutableStateOf("") }
 
     LaunchedEffect(Unit) {
-        // Load dari session
-        userName = session.getUserCode() ?: "User"  // fallback
-        // Ambil dari DataStore (nama, code, email)
-        // Ambil user detail dari /api/auth/me nanti
+        userName = session.getUserName() ?: "User"
+        userCode = session.getUserCode() ?: ""
+        userEmail = session.getUserEmail() ?: ""
+        // Format joined date dari saved_at
+        val savedAt = try {
+            session.getSavedAt()
+        } catch (e: Exception) { 0L }
+        userJoined = if (savedAt > 0) {
+            try {
+                val sdf = java.text.SimpleDateFormat("MMMM yyyy", java.util.Locale("id", "ID"))
+                sdf.format(java.util.Date(savedAt))
+            } catch (e: Exception) { "baru-baru ini" }
+        } else "baru-baru ini"
     }
 
     Column(

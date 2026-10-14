@@ -106,3 +106,44 @@ data class SimpleResponse(
     val ok: Boolean,
     val message: String? = null
 )
+
+
+// ============================================
+// USER PROFILE
+// ============================================
+data class UpdateProfileRequest(
+    val name: String? = null,
+    val bio: String? = null
+)
+
+data class UpdateProfileResponse(
+    val ok: Boolean,
+    val message: String? = null,
+    val user: User? = null
+)
+
+data class PrivacySettings(
+    @SerializedName("last_seen")
+    val lastSeen: String = "everyone",
+    @SerializedName("profile_photo")
+    val profilePhoto: String = "everyone",
+    val status: String = "everyone",
+    @SerializedName("read_receipts")
+    val readReceipts: Boolean = true
+)
+
+data class PrivacyResponse(
+    val ok: Boolean,
+    val privacy: PrivacySettings? = null,
+    val message: String? = null
+)
+
+data class PrivacyUpdateRequest(
+    @SerializedName("last_seen")
+    val lastSeen: String? = null,
+    @SerializedName("profile_photo")
+    val profilePhoto: String? = null,
+    val status: String? = null,
+    @SerializedName("read_receipts")
+    val readReceipts: Boolean? = null
+)

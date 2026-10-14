@@ -72,6 +72,31 @@ interface ApiService {
     suspend fun logout(): Response<SimpleResponse>
 
     // ============================================
+    // USER — PROFILE + PRIVACY
+    // ============================================
+    @POST("api/user/update-profile")
+    suspend fun updateProfile(
+        @Body body: UpdateProfileRequest
+    ): Response<UpdateProfileResponse>
+
+    @GET("api/user/privacy")
+    suspend fun getPrivacy(): Response<PrivacyResponse>
+
+    @POST("api/user/privacy")
+    suspend fun updatePrivacy(
+        @Body body: PrivacyUpdateRequest
+    ): Response<PrivacyResponse>
+
+    // ============================================
+    // PROXY — CALL TOOL (proxy-ext)
+    // ============================================
+    @GET("api/proxy-ext")
+    suspend fun callTool(
+        @Query("id") catalogId: String,
+        @Query("q") query: String
+    ): Response<okhttp3.ResponseBody>
+
+    // ============================================
     // APP — VERSION CHECK (auto-update)
     // ============================================
     @GET("api/app/version")

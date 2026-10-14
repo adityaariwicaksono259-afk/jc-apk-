@@ -53,11 +53,16 @@ fun AIChatScreen(
 
     // Initial greeting
     LaunchedEffect(toolName) {
+        val greeting = when {
+            toolName.lowercase().contains("gpt") -> "Hai! Aku $toolName. Tanya apa aja ya!"
+            toolName.lowercase().contains("claude") -> "Hi! Aku $toolName. Ada yang bisa dibantu?"
+            toolName.lowercase().contains("deepseek") -> "Halo! Aku $toolName. Mau bahas apa?"
+            toolName.lowercase().contains("gemini") -> "Hey! Aku $toolName. Tanya apa aja!"
+            toolName.lowercase().contains("felo") -> "Hai! Aku $toolName. Siap bantu cari info."
+            else -> "Hai! Aku $toolName. Ada yang bisa aku bantu?"
+        }
         messages = listOf(
-            ChatMessage(
-                text = "Hai! Aku $toolName. Ada yang bisa aku bantu?",
-                fromUser = false
-            )
+            ChatMessage(text = greeting, fromUser = false)
         )
     }
 
@@ -70,20 +75,25 @@ fun AIChatScreen(
 
     fun sendMessage() {
         val text = inputText.trim()
-        if (text.isEmpty() || isTyping) return
+        if (text.isEmpty() || isTyping || catalogId.isNullOrBlank()) return
 
         // Add user message
         messages = messages + ChatMessage(text = text, fromUser = true)
         inputText = ""
         isTyping = true
 
-        // TODO: call backend /api/proxy-ext?id=catalogId&q=text
+        // Panggil backend proxy-ext
         scope.launch {
-            delay(1500)  // simulate AI thinking
-            messages = messages + ChatMessage(
-                text = "Maaf, fitur AI belum connect ke server. Sebentar lagi ya! 🔧",
-                fromUser = false
-            )
+            val repo = app.javin.codex.data.repository.ToolRepository(app.javin.codex.data.api.ApiClient.get())
+            val result = repo.callTool(catalogId, text)
+            result.onSuccess { reply ->
+                messages = messages + ChatMessage(text = reply, fromUser = false)
+            }.onFailure { err ->
+                messages = messages + ChatMessage(
+                    text = "❌ Error: ${err.message ?: "Gagal memanggil AI"}",
+                    fromUser = false
+                )
+            }
             isTyping = false
         }
     }
@@ -286,12 +296,30 @@ private fun ChatBubble(message: ChatMessage) {
                 )
                 .padding(horizontal = 14.dp, vertical = 10.dp)
         ) {
-            Text(
-                text = message.text,
-                fontSize = 14.sp,
-                color = Color.White,
-                lineHeight = 20.sp
-            )
+            Column {
+                Text(
+                    text = message.text,
+                    fontSize = 14.sp,
+                    color = Color.White,
+                    lineHeight = 20.sp
+                )
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    text = formatChatTime(message.timestamp),
+                    fontSize = 10.sp,
+                    color = Color.White.copy(alpha = 0.6f),
+                    modifier = Modifier.align(Alignment.End)
+                )
+            }
         }
+    }
+}
+
+private fun formatChatTime(ts: Long): String {
+    return try {
+        val sdf = java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault())
+        sdf.format(java.util.Date(ts))
+    } catch (e: Exception) {
+        ""
     }
 }

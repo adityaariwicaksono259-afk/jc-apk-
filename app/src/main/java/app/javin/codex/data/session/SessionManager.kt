@@ -105,6 +105,42 @@ class SessionManager(private val context: Context) {
         }
     }
 
+    suspend fun getUserName(): String? {
+        return try {
+            val prefs = context.dataStore.data.first()
+            prefs[KEY_USER_NAME]
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    suspend fun getUserEmail(): String? {
+        return try {
+            val prefs = context.dataStore.data.first()
+            prefs[KEY_USER_EMAIL]
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    suspend fun getUserAvatar(): String? {
+        return try {
+            val prefs = context.dataStore.data.first()
+            prefs[KEY_USER_AVATAR]
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    suspend fun getSavedAt(): Long {
+        return try {
+            val prefs = context.dataStore.data.first()
+            prefs[KEY_SAVED_AT] ?: 0L
+        } catch (e: Exception) {
+            0L
+        }
+    }
+
     // ============================================
     // FLOW — reactive observation
     // ============================================
