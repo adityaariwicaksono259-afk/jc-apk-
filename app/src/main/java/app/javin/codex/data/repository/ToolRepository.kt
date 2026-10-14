@@ -78,7 +78,16 @@ class ToolRepository(private val api: ApiService) {
     // ============================================
     suspend fun callTool(catalogId: String, query: String): Result<String> = withContext(Dispatchers.IO) {
         try {
-            val resp = api.callTool(catalogId, query)
+            // Cari endpoint untuk tau nama param bener
+            val ep = cachedTools?.firstOrNull { it.catalogId == catalogId }
+            val paramName = ep?.params?.firstOrNull()?.n ?: "q"
+
+            val resp = if (paramName == "q") {
+                api.callTool(catalogId, query)
+            } else {
+                // Param generic — pakai map
+                api.callToolDynamic(catalogId, mapOf(paramName to query))
+            }
             if (!resp.isSuccessful) {
                 return@withContext Result.failure(Exception("HTTP ${resp.code()}"))
             }
@@ -137,13 +146,21 @@ class ToolRepository(private val api: ApiService) {
         when (data) {
             is String -> if (data.isNotBlank()) return data
             is Map<*, *> -> {
-                (data["message"] as? String)?.let { if (it.isNotBlank()) return it }
-                (data["response"] as? String)?.let { if (it.isNotBlank()) return it }
-                (data["text"] as? String)?.let { if (it.isNotBlank()) return it }
-                (data["result"] as? String)?.let { if (it.isNotBlank()) return it }
-                (data["reply"] as? String)?.let { if (it.isNotBlank()) return it }
-                (data["answer"] as? String)?.let { if (it.isNotBlank()) return it }
-                (data["data"] as? String)?.let { if (it.isNotBlank()) return it }
+                (data["message"] as? String)?.let { if (it.isNotBlank()) return cleanText(it) }
+                (data["response"] as? String)?.let { if (it.isNotBlank()) return cleanText(it) }
+                (data["text"] as? String)?.let { if (it.isNotBlank()) return cleanText(it) }
+                (data["result"] as? String)?.let { if (it.isNotBlank()) return cleanText(it) }
+                (data["reply"] as? String)?.let { if (it.isNotBlank()) return cleanText(it) }
+                (data["answer"] as? String)?.let { if (it.isNotBlank()) return cleanText(it) }
+                // Nested 2 level
+                val inner = data["data"]
+                if (inner is Map<*, *>) {
+                    (inner["message"] as? String)?.let { if (it.isNotBlank()) return cleanText(it) }
+                    (inner["response"] as? String)?.let { if (it.isNotBlank()) return cleanText(it) }
+                    (inner["text"] as? String)?.let { if (it.isNotBlank()) return cleanText(it) }
+                    (inner["result"] as? String)?.let { if (it.isNotBlank()) return cleanText(it) }
+                }
+                if (inner is String && inner.isNotBlank()) return cleanText(inner)
             }
             is List<*> -> {
                 if (data.size == 1) {
@@ -158,6 +175,17 @@ class ToolRepository(private val api: ApiService) {
             }
         }
         return null
+    }
+
+    private fun cleanText(s: String): String {
+        val trimmed = s.trim()
+        // Kalau HTML error dari upstream
+        if (trimmed.startsWith("<") || trimmed.contains("<h1>")) {
+            return "⚠️ Server AI ini sedang error. Coba AI lain."
+        }
+        // Kalau isinya kosong banget
+        if (trimmed.length < 2) return "⚠️ AI tidak memberi jawaban. Coba lagi."
+        return trimmed
     }
 
 }

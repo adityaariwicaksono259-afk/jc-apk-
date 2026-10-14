@@ -50,8 +50,13 @@ fun CategoryScreen(
         errorMsg = null
         val result = repo.getToolsByFolder(categoryName)
         loading = false
-        result.onSuccess { tools = it }
-            .onFailure { errorMsg = it.message ?: "Gagal load" }
+        result.onSuccess { allTools ->
+            // Filter AI: cuma yang tested works (exclude yang upstream 4xx/5xx)
+            val workingAi = setOf("ep003", "ep005", "ep006", "ep008", "ep119", "ep120")
+            tools = if (categoryName.equals("AI", true)) {
+                allTools.filter { it.catalogId in workingAi }
+            } else allTools
+        }.onFailure { errorMsg = it.message ?: "Gagal load" }
     }
 
     val visibleTools = remember(tools, searchQuery) {

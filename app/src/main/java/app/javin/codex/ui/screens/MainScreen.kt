@@ -68,7 +68,13 @@ fun MainScreen(
                 CategoryScreen(
                     categoryName = category,
                     onBack = { openCategory = null },
-                    onToolClick = { tool -> openChatWithTool = tool }
+                    onToolClick = { tool ->
+                        // AI → chat, lainnya → belum diimplementasi
+                        if (tool.displayFolder.equals("AI", ignoreCase = true)) {
+                            openChatWithTool = tool
+                        }
+                        // TODO: kategori lain bikin ToolScreen masing-masing
+                    }
                 )
             }
 

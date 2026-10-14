@@ -96,6 +96,12 @@ interface ApiService {
         @Query("q") query: String
     ): Response<okhttp3.ResponseBody>
 
+    @GET("api/proxy-ext")
+    suspend fun callToolDynamic(
+        @Query("id") catalogId: String,
+        @QueryMap params: Map<String, String>
+    ): Response<okhttp3.ResponseBody>
+
     // ============================================
     // APP — VERSION CHECK (auto-update)
     // ============================================
