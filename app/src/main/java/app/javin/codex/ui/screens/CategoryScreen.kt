@@ -9,6 +9,23 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Movie
+import androidx.compose.material.icons.filled.Tv
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.Palette
+import androidx.compose.material.icons.filled.SportsEsports
+import androidx.compose.material.icons.filled.Build
+import androidx.compose.material.icons.filled.Casino
+import androidx.compose.material.icons.filled.Article
+import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.PersonSearch
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.CloudUpload
+import androidx.compose.material.icons.filled.EmojiEmotions
+import androidx.compose.material.icons.filled.SmartToy
+import androidx.compose.material.icons.filled.Widgets
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Search
@@ -257,11 +274,11 @@ private fun ToolRow(
                     modifier = Modifier.size(26.dp)
                 )
             } else {
-                Text(
-                    text = name.take(1).uppercase(),
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = if (t.isNeo) t.accentOn else Color.White.copy(alpha = 0.7f)
+                Icon(
+                    imageVector = getToolIconVector(name),
+                    contentDescription = name,
+                    tint = if (t.isNeo) t.iconTint else Color.White.copy(alpha = 0.85f),
+                    modifier = Modifier.size(24.dp)
                 )
             }
         }
@@ -317,5 +334,33 @@ private fun ToolRow(
             tint = t.textMuted,
             modifier = Modifier.size(20.dp)
         )
+    }
+}
+
+
+/**
+ * Return Material Icon vector untuk tool, fallback kalau favicon gak ada.
+ */
+private fun getToolIconVector(name: String): androidx.compose.ui.graphics.vector.ImageVector {
+    val n = name.lowercase()
+    return when {
+        n.contains("animasu") || n.contains("animekuindo") || n.contains("anime") -> Icons.Default.Movie
+        n.contains("stream") || n.contains("tv") -> Icons.Default.Tv
+        n.contains("search") -> Icons.Default.Search
+        n.contains("download") -> Icons.Default.Download
+        n.contains("canvas") || n.contains("image") || n.contains("ai image") -> Icons.Default.Palette
+        n.contains("game") -> Icons.Default.SportsEsports
+        n.contains("am") || n.contains("finder") -> Icons.Default.Search
+        n.contains("primbon") || n.contains("zodiak") -> Icons.Default.AutoAwesome
+        n.contains("berita") || n.contains("news") -> Icons.Default.Article
+        n.contains("stalk") -> Icons.Default.PersonSearch
+        n.contains("smm") || n.contains("social") -> Icons.Default.Share
+        n.contains("upload") -> Icons.Default.CloudUpload
+        n.contains("sticker") || n.contains("emoji") -> Icons.Default.EmojiEmotions
+        n.contains("chat") || n.contains("gpt") || n.contains("claude") || n.contains("gemini") -> Icons.Default.SmartToy
+        n.contains("tool") || n.contains("utility") -> Icons.Default.Build
+        n.contains("random") -> Icons.Default.Casino
+        n.contains("info") -> Icons.Default.Info
+        else -> Icons.Default.Widgets
     }
 }

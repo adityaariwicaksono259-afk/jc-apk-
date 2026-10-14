@@ -1,5 +1,6 @@
 package app.javin.codex.ui.screens
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -56,8 +57,7 @@ fun MainScreen(
     var openAmScreen by remember { mutableStateOf<String?>(null) }
     var openGenericTool by remember { mutableStateOf<Tool?>(null) }
     var profileSub by remember { mutableStateOf<ProfileSubScreen>(ProfileSubScreen.Main) }
-
-    val anyOverlayOpen = openChatWithTool != null || openAmScreen != null || openGenericTool != null
+    val t = LocalThemeTokens.current
 
     AppBackground {
         Box(modifier = Modifier.fillMaxSize()) {
@@ -152,29 +152,44 @@ fun MainScreen(
             }
 
             // ============ OVERLAY LAYER ============
-            // AI Chat
             openChatWithTool?.let { tool ->
-                AIChatScreen(
-                    toolName = tool.displayName,
-                    toolIconUrl = getToolIconUrl(tool.displayName, tool.catalogId),
-                    catalogId = tool.catalogId,
-                    onBack = { openChatWithTool = null }
-                )
-            }
-            // AM Screens
-            openAmScreen?.let { am ->
-                when (am) {
-                    "search" -> AmSearchScreen(onBack = { openAmScreen = null })
-                    "finder" -> AmFinderScreen(onBack = { openAmScreen = null })
-                    "prem" -> AmPremScreen(onBack = { openAmScreen = null })
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(t.bg)
+                ) {
+                    AIChatScreen(
+                        toolName = tool.displayName,
+                        toolIconUrl = getToolIconUrl(tool.displayName, tool.catalogId),
+                        catalogId = tool.catalogId,
+                        onBack = { openChatWithTool = null }
+                    )
                 }
             }
-            // Generic tool
+            openAmScreen?.let { am ->
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(t.bg)
+                ) {
+                    when (am) {
+                        "search" -> AmSearchScreen(onBack = { openAmScreen = null })
+                        "finder" -> AmFinderScreen(onBack = { openAmScreen = null })
+                        "prem" -> AmPremScreen(onBack = { openAmScreen = null })
+                    }
+                }
+            }
             openGenericTool?.let { tool ->
-                GenericToolScreen(
-                    tool = tool,
-                    onBack = { openGenericTool = null }
-                )
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(t.bg)
+                ) {
+                    GenericToolScreen(
+                        tool = tool,
+                        onBack = { openGenericTool = null }
+                    )
+                }
             }
         }
     }

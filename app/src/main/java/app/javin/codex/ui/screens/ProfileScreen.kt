@@ -24,6 +24,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import app.javin.codex.ui.theme.LocalThemeTokens
 import app.javin.codex.data.session.SessionManager
 import app.javin.codex.data.session.ThemeManager
 import app.javin.codex.data.session.ThemeMode
@@ -42,6 +43,7 @@ fun ProfileScreen(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val session = remember { SessionManager.getInstance(context) }
+    val t = LocalThemeTokens.current
     val themeManager = remember { ThemeManager.getInstance(context) }
     var currentTheme by remember { mutableStateOf(ThemeMode.GLASS) }
     var showThemeDialog by remember { mutableStateOf(false) }
@@ -365,6 +367,7 @@ fun ProfileScreen(
 
 @Composable
 private fun SectionTitle(text: String) {
+    val t = LocalThemeTokens.current
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -400,13 +403,18 @@ private fun GlassMenuItem(
     subtitle: String,
     onClick: () -> Unit
 ) {
+    val t = LocalThemeTokens.current
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 20.dp, vertical = 4.dp)
-            .clip(RoundedCornerShape(16.dp))
-            .background(Color(0x14FFFFFF))
-            .border(1.dp, Color(0x26FFFFFF), RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(if (t.isNeo) 12.dp else 16.dp))
+            .background(t.cardBg)
+            .border(
+                if (t.isNeo) 2.dp else 1.dp,
+                t.cardBorder,
+                RoundedCornerShape(if (t.isNeo) 12.dp else 16.dp)
+            )
             .clickable(onClick = onClick)
             .padding(14.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -415,13 +423,13 @@ private fun GlassMenuItem(
             modifier = Modifier
                 .size(40.dp)
                 .clip(RoundedCornerShape(12.dp))
-                .background(Color(0x1AFFFFFF)),
+                .background(if (t.isNeo) t.iconBg else Color(0x1AFFFFFF)),
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                tint = Color(0xFF4A9EFF),
+                tint = if (t.isNeo) t.iconTint else Color(0xFF4A9EFF),
                 modifier = Modifier.size(20.dp)
             )
         }

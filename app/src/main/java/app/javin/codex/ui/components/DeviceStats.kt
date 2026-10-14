@@ -10,6 +10,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.BatteryFull
+import androidx.compose.material.icons.filled.Memory
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -17,10 +21,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import app.javin.codex.ui.theme.LocalThemeTokens
 import kotlinx.coroutines.delay
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -42,24 +48,21 @@ fun rememberDeviceInfo(): State<DeviceInfo> {
     LaunchedEffect(Unit) {
         while (true) {
             info.value = readDeviceInfo(context)
-            delay(5000)  // update tiap 5 detik
+            delay(5000)
         }
     }
     return info
 }
 
 fun readDeviceInfo(context: Context): DeviceInfo {
-    // ==== TIME ====
     val timeFmt = SimpleDateFormat("HH:mm", Locale.getDefault())
     val time = timeFmt.format(Date())
 
-    // ==== BATTERY ====
     val batteryIntent = context.registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
     val level = batteryIntent?.getIntExtra(BatteryManager.EXTRA_LEVEL, -1) ?: -1
     val scale = batteryIntent?.getIntExtra(BatteryManager.EXTRA_SCALE, -1) ?: -1
     val batteryPct = if (level >= 0 && scale > 0) (level * 100 / scale) else 0
 
-    // ==== RAM ====
     val am = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
     val memInfo = ActivityManager.MemoryInfo()
     am.getMemoryInfo(memInfo)
@@ -67,7 +70,6 @@ fun readDeviceInfo(context: Context): DeviceInfo {
     val availMb = memInfo.availMem / (1024 * 1024)
     val usedMb = totalMb - availMb
 
-    // ==== DEVICE MODEL ====
     val manufacturer = Build.MANUFACTURER.replaceFirstChar { it.uppercase() }
     val model = Build.MODEL
     val deviceModel = if (model.startsWith(manufacturer, ignoreCase = true)) {
@@ -88,20 +90,24 @@ fun readDeviceInfo(context: Context): DeviceInfo {
 @Composable
 fun DeviceStatsHeader() {
     val info by rememberDeviceInfo()
+    val t = LocalThemeTokens.current
+    val shape = RoundedCornerShape(if (t.isNeo) 14.dp else 20.dp)
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(20.dp))
+            .clip(shape)
             .background(
-                Brush.linearGradient(
-                    colors = listOf(Color(0x1FFFFFFF), Color(0x0DFFFFFF))
-                )
+                if (t.isNeo) t.cardBg
+                else Brush.linearGradient(listOf(Color(0x1FFFFFFF), Color(0x0DFFFFFF)))
             )
-            .border(1.dp, Color(0x26FFFFFF), RoundedCornerShape(20.dp))
+            .border(
+                if (t.isNeo) 2.dp else 1.dp,
+                if (t.isNeo) t.cardBorder else Color(0x26FFFFFF),
+                shape
+            )
             .padding(16.dp)
     ) {
-        // ==== Row 1: Time + Device ====
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -110,34 +116,31 @@ fun DeviceStatsHeader() {
             Text(
                 text = info.time,
                 fontSize = 32.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.White
+                fontWeight = if (t.isNeo) FontWeight.Black else FontWeight.Bold,
+                color = t.textPrimary
             )
             Text(
                 text = info.deviceModel,
                 fontSize = 12.sp,
-                color = Color.White.copy(alpha = 0.6f),
+                color = t.textMuted,
                 maxLines = 1
             )
         }
 
         Spacer(Modifier.height(12.dp))
 
-        // ==== Row 2: Battery + RAM ====
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // Battery
             StatChip(
-                icon = "🔋",
+                icon = Icons.Default.BatteryFull,
                 label = "Baterai",
                 value = "${info.battery}%",
                 modifier = Modifier.weight(1f)
             )
-            // RAM
             StatChip(
-                icon = "💾",
+                icon = Icons.Default.Memory,
                 label = "RAM",
                 value = "${info.ramUsedMb} / ${info.ramTotalMb} MB",
                 modifier = Modifier.weight(1f)
@@ -148,32 +151,43 @@ fun DeviceStatsHeader() {
 
 @Composable
 private fun StatChip(
-    icon: String,
+    icon: ImageVector,
     label: String,
     value: String,
     modifier: Modifier = Modifier
 ) {
+    val t = LocalThemeTokens.current
+    val shape = RoundedCornerShape(12.dp)
     Row(
         modifier = modifier
-            .clip(RoundedCornerShape(12.dp))
-            .background(Color(0x14FFFFFF))
-            .border(1.dp, Color(0x1AFFFFFF), RoundedCornerShape(12.dp))
+            .clip(shape)
+            .background(if (t.isNeo) t.accentSoft else Color(0x14FFFFFF))
+            .border(
+                if (t.isNeo) 1.5.dp else 1.dp,
+                if (t.isNeo) t.cardBorder else Color(0x1AFFFFFF),
+                shape
+            )
             .padding(horizontal = 10.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(icon, fontSize = 16.sp)
-        Spacer(Modifier.width(6.dp))
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = if (t.isNeo) t.iconTint else Color.White.copy(alpha = 0.85f),
+            modifier = Modifier.size(18.dp)
+        )
+        Spacer(Modifier.width(8.dp))
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = label,
                 fontSize = 9.sp,
-                color = Color.White.copy(alpha = 0.5f),
+                color = t.textMuted,
                 fontWeight = FontWeight.Medium
             )
             Text(
                 text = value,
                 fontSize = 11.sp,
-                color = Color.White,
+                color = t.textPrimary,
                 fontWeight = FontWeight.Bold,
                 maxLines = 1
             )
