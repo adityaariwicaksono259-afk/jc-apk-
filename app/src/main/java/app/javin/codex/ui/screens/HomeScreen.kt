@@ -318,28 +318,11 @@ private fun CategoryRow(info: CategoryInfo, onClick: () -> Unit) {
 
         Spacer(Modifier.width(8.dp))
 
-        if (info.comingSoon) {
-            Box(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(Color(0x33FFB84D))
-                    .border(1.dp, Color(0x66FFB84D), RoundedCornerShape(8.dp))
-                    .padding(horizontal = 8.dp, vertical = 4.dp)
-            ) {
-                Text(
-                    "Segera",
-                    fontSize = 10.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFFFFB84D)
-                )
-            }
-        } else {
-            Icon(
-                imageVector = Icons.Default.ChevronRight,
-                contentDescription = null,
-                tint = Color(0x66FFFFFF),
-                modifier = Modifier.size(20.dp)
-            )
-        }
+        Icon(
+            imageVector = Icons.Default.ChevronRight,
+            contentDescription = null,
+            tint = Color(0x66FFFFFF),
+            modifier = Modifier.size(20.dp)
+        )
     }
 }

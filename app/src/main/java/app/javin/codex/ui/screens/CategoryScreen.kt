@@ -51,14 +51,7 @@ fun CategoryScreen(
         val result = repo.getToolsByFolder(categoryName)
         loading = false
         result.onSuccess { allTools ->
-            // Filter pakai working IDs dari server (auto-update tanpa rebuild APK)
-            val workingIds = repo.getWorkingIds()
-            tools = if (workingIds.isNotEmpty()) {
-                allTools.filter { it.catalogId in workingIds }
-            } else {
-                // Fallback: kalau server gak balikin, tampil semua
-                allTools
-            }
+            tools = allTools
         }.onFailure { errorMsg = it.message ?: "Gagal load" }
     }
 
@@ -202,7 +195,7 @@ fun CategoryScreen(
                         ToolRow(
                             name = tool.displayName,
                             desc = tool.displayDesc,
-                            tag = getToolTag(tool.displayName),
+                            tag = "",
                             iconUrl = getToolIconUrl(tool.displayName, tool.catalogId),
                             onClick = { onToolClick(tool) }
                         )
@@ -221,14 +214,7 @@ fun CategoryScreen(
     }
 }
 
-// Tag otomatis per tool
-private fun getToolTag(name: String): String = when {
-    name.contains("stalker", true) || name.contains("profile", true) -> "Profile HD"
-    name.contains("downloader", true) || name.contains("download", true) -> "No Watermark"
-    name.contains("v2", true) -> "V2"
-    name.contains("multi", true) || name.contains("3-in-1", true) -> "3-in-1"
-    else -> ""
-}
+
 
 @Composable
 private fun ToolRow(
