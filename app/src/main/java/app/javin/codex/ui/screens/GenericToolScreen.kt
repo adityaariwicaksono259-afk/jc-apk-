@@ -27,6 +27,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import app.javin.codex.ui.theme.LocalThemeTokens
 import app.javin.codex.data.api.ApiClient
 import app.javin.codex.data.model.Tool
 import app.javin.codex.data.model.ToolParam
@@ -74,11 +75,13 @@ fun GenericToolScreen(
         outputs = emptyList()
 
         val catalogId = tool.catalogId ?: return
-        val firstParam = params.firstOrNull()?.n ?: "q"
-        val firstValue = values[firstParam] ?: ""
 
-        if (firstValue.isBlank()) {
-            errorMsg = "Isi ${firstParam} dulu"
+        // Kalau tool gak punya params → langsung call tanpa validasi
+        val firstParam = params.firstOrNull()?.n
+        val firstValue = if (firstParam != null) values[firstParam] ?: "" else ""
+
+        if (firstParam != null && firstValue.isBlank()) {
+            errorMsg = "Isi $firstParam dulu"
             return
         }
 

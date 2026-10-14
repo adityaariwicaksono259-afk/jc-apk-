@@ -36,6 +36,7 @@ import app.javin.codex.data.update.UpdateManager
 import app.javin.codex.ui.components.DeviceStatsHeader
 import app.javin.codex.ui.components.UpdateBanner
 import app.javin.codex.ui.theme.LocalThemeTokens
+import app.javin.codex.ui.theme.pickAccent
 import kotlinx.coroutines.launch
 
 data class CategoryInfo(
@@ -257,6 +258,7 @@ fun HomeScreen(
 @Composable
 private fun CategoryRow(info: CategoryInfo, onClick: () -> Unit) {
     val t = LocalThemeTokens.current
+    val accent = pickAccent(info.name, t.neoPalette, t.iconBg)
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -267,8 +269,12 @@ private fun CategoryRow(info: CategoryInfo, onClick: () -> Unit) {
         Box(
             modifier = Modifier
                 .size(46.dp)
-                .clip(RoundedCornerShape(13.dp))
-                .background(Color(0x14FFFFFF)),
+                .clip(RoundedCornerShape(if (t.isNeo) 10.dp else 13.dp))
+                .background(if (t.isNeo) accent else Color(0x14FFFFFF))
+                .then(
+                    if (t.isNeo) Modifier.border(2.dp, t.cardBorder, RoundedCornerShape(10.dp))
+                    else Modifier
+                ),
             contentAlignment = Alignment.Center
         ) {
             Icon(
@@ -296,7 +302,7 @@ private fun CategoryRow(info: CategoryInfo, onClick: () -> Unit) {
                     Box(
                         modifier = Modifier
                             .clip(RoundedCornerShape(6.dp))
-                            .background(if (t.isNeo) t.accent else Color(0x1AFFFFFF))
+                            .background(if (t.isNeo) accent else Color(0x1AFFFFFF))
                             .then(if (t.isNeo) Modifier.border(1.5.dp, t.cardBorder, RoundedCornerShape(6.dp)) else Modifier)
                             .padding(horizontal = 6.dp, vertical = 2.dp)
                     ) {

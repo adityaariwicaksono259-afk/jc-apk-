@@ -44,6 +44,7 @@ data class ThemeTokens(
     val searchPlaceholder: Color,
     val success: Color,
     val danger: Color,
+    val neoPalette: List<Color> = emptyList(),
     val scheme: androidx.compose.material3.ColorScheme
 )
 
@@ -106,6 +107,14 @@ val NeoTokens = ThemeTokens(
     searchBg = Color.White, searchBorder = Color(0xFF1A1A1A),
     searchText = Color(0xFF1A1A1A), searchPlaceholder = Color(0xFF8A8A8A),
     success = Color(0xFF4CAF50), danger = Color(0xFFE76F51),
+    neoPalette = listOf(
+        Color(0xFFFFD166),   // kuning
+        Color(0xFFFF8FA3),   // pink
+        Color(0xFF7BC9FF),   // biru langit
+        Color(0xFFA8E6A1),   // lime
+        Color(0xFFFFA552),   // orange
+        Color(0xFFC9A7FF)    // lavender
+    ),
     scheme = NeoScheme
 )
 
@@ -132,4 +141,17 @@ fun JavinCodexTheme(
     CompositionLocalProvider(LocalThemeTokens provides tokens) {
         MaterialTheme(colorScheme = tokens.scheme, content = content)
     }
+}
+
+
+/**
+ * Pilih warna accent dari palet Neo secara deterministik berdasarkan nama.
+ * Kalau palet kosong (Glass), balikin fallback.
+ */
+fun pickAccent(name: String, palette: List<Color>, fallback: Color): Color {
+    if (palette.isEmpty()) return fallback
+    var hash = 0
+    for (c in name) hash = hash * 31 + c.code
+    val idx = (hash.absoluteValue) % palette.size
+    return palette[idx]
 }

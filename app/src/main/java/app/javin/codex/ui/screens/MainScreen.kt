@@ -7,6 +7,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Chat as ChatIcon
+import androidx.compose.material.icons.filled.PlayCircle as PlayIcon
+import androidx.compose.material.icons.filled.Timelapse as StatusIcon
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -26,7 +31,6 @@ import app.javin.codex.ui.theme.LocalThemeTokens
 import app.javin.codex.ui.navigation.JavinBottomNav
 import app.javin.codex.ui.navigation.NavTab
 
-// Sub-screen dalam Profil (di atas bottom nav)
 sealed class ProfileSubScreen {
     object Main : ProfileSubScreen()
     object Edit : ProfileSubScreen()
@@ -52,30 +56,37 @@ fun MainScreen(
     var openGenericTool by remember { mutableStateOf<Tool?>(null) }
     var profileSub by remember { mutableStateOf<ProfileSubScreen>(ProfileSubScreen.Main) }
 
+    val anyOverlayOpen = openChatWithTool != null || openAmScreen != null || openGenericTool != null
+
     AppBackground {
-        val chatTool = openChatWithTool
-        val category = openCategory
-        val amScreen = openAmScreen
-        val genericTool = openGenericTool
-
-        when {
-            // ==== AI CHAT ====
-            chatTool != null -> {
-                AIChatScreen(
-                    toolName = chatTool.displayName,
-                    toolIconUrl = getToolIconUrl(chatTool.displayName, chatTool.catalogId),
-                    catalogId = chatTool.catalogId,
-                    onBack = { openChatWithTool = null }
+        Box(modifier = Modifier.fillMaxSize()) {
+            // ============ BASE LAYER ============
+            when {
+                // Sub-screen profil
+                profileSub is ProfileSubScreen.Edit -> EditProfileScreen(
+                    authRepo = authRepo,
+                    onBack = { profileSub = ProfileSubScreen.Main },
+                    onSaved = { profileSub = ProfileSubScreen.Main }
                 )
-            }
+                profileSub is ProfileSubScreen.Privacy -> PrivacyScreen(
+                    authRepo = authRepo,
+                    onBack = { profileSub = ProfileSubScreen.Main }
+                )
+                profileSub is ProfileSubScreen.Notification -> NotificationScreen(
+                    onBack = { profileSub = ProfileSubScreen.Main }
+                )
+                profileSub is ProfileSubScreen.Security -> PinSettingsScreen(
+                    onBack = { profileSub = ProfileSubScreen.Main }
+                )
+                profileSub is ProfileSubScreen.About -> AboutScreen(
+                    onBack = { profileSub = ProfileSubScreen.Main }
+                )
 
-            // ==== KATEGORI ====
-            category != null -> {
-                CategoryScreen(
-                    categoryName = category,
+                // Kategori (base) — tetap ke-render kalau tool overlay kebuka
+                openCategory != null -> CategoryScreen(
+                    categoryName = openCategory!!,
                     onBack = { openCategory = null },
                     onToolClick = { tool ->
-                        openCategory = null
                         when {
                             tool.displayFolder.equals("AI", ignoreCase = true) -> openChatWithTool = tool
                             tool.catalogId == "am-preset-search" -> openAmScreen = "search"
@@ -85,62 +96,9 @@ fun MainScreen(
                         }
                     }
                 )
-            }
 
-            // ==== AM CUSTOM SCREENS ====
-            amScreen != null -> {
-                when (amScreen) {
-                    "search" -> AmSearchScreen(onBack = { openAmScreen = null })
-                    "finder" -> AmFinderScreen(onBack = { openAmScreen = null })
-                    "prem" -> AmPremScreen(onBack = { openAmScreen = null })
-                }
-            }
-
-            // ==== GENERIC TOOL ====
-            genericTool != null -> {
-                GenericToolScreen(
-                    tool = genericTool,
-                    onBack = { openGenericTool = null }
-                )
-            }
-
-            // ==== SUB-SCREEN PROFIL ====
-            profileSub is ProfileSubScreen.Edit -> {
-                EditProfileScreen(
-                    authRepo = authRepo,
-                    onBack = { profileSub = ProfileSubScreen.Main },
-                    onSaved = { profileSub = ProfileSubScreen.Main }
-                )
-            }
-
-            profileSub is ProfileSubScreen.Privacy -> {
-                PrivacyScreen(
-                    authRepo = authRepo,
-                    onBack = { profileSub = ProfileSubScreen.Main }
-                )
-            }
-
-            profileSub is ProfileSubScreen.Notification -> {
-                NotificationScreen(
-                    onBack = { profileSub = ProfileSubScreen.Main }
-                )
-            }
-
-            profileSub is ProfileSubScreen.Security -> {
-                PinSettingsScreen(
-                    onBack = { profileSub = ProfileSubScreen.Main }
-                )
-            }
-
-            profileSub is ProfileSubScreen.About -> {
-                AboutScreen(
-                    onBack = { profileSub = ProfileSubScreen.Main }
-                )
-            }
-
-            // ==== MAIN TABS ====
-            else -> {
-                Scaffold(
+                // Main tabs
+                else -> Scaffold(
                     bottomBar = {
                         JavinBottomNav(
                             selectedTab = selectedTab,
@@ -164,25 +122,21 @@ fun MainScreen(
                                     openChatWithTool = null
                                 }
                             )
-
                             NavTab.CHAT -> PlaceholderTab(
-                                emoji = "💬",
+                                icon = ChatIcon,
                                 title = "Chat",
                                 subtitle = "Chat antar user segera hadir"
                             )
-
                             NavTab.PLAYLIST -> PlaceholderTab(
-                                emoji = "🎵",
+                                icon = PlayIcon,
                                 title = "Playlist",
                                 subtitle = "Playlist segera hadir"
                             )
-
                             NavTab.STATUS -> PlaceholderTab(
-                                emoji = "📸",
+                                icon = StatusIcon,
                                 title = "Status",
                                 subtitle = "Status segera hadir"
                             )
-
                             NavTab.PROFIL -> ProfileScreen(
                                 onLogout = onLogout,
                                 onEditProfile = { profileSub = ProfileSubScreen.Edit },
@@ -195,13 +149,39 @@ fun MainScreen(
                     }
                 }
             }
+
+            // ============ OVERLAY LAYER ============
+            // AI Chat
+            openChatWithTool?.let { tool ->
+                AIChatScreen(
+                    toolName = tool.displayName,
+                    toolIconUrl = getToolIconUrl(tool.displayName, tool.catalogId),
+                    catalogId = tool.catalogId,
+                    onBack = { openChatWithTool = null }
+                )
+            }
+            // AM Screens
+            openAmScreen?.let { am ->
+                when (am) {
+                    "search" -> AmSearchScreen(onBack = { openAmScreen = null })
+                    "finder" -> AmFinderScreen(onBack = { openAmScreen = null })
+                    "prem" -> AmPremScreen(onBack = { openAmScreen = null })
+                }
+            }
+            // Generic tool
+            openGenericTool?.let { tool ->
+                GenericToolScreen(
+                    tool = tool,
+                    onBack = { openGenericTool = null }
+                )
+            }
         }
     }
 }
 
 @Composable
 private fun PlaceholderTab(
-    emoji: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
     title: String,
     subtitle: String
 ) {
@@ -214,7 +194,12 @@ private fun PlaceholderTab(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Text(text = emoji, fontSize = 56.sp)
+            Icon(
+                imageVector = icon,
+                contentDescription = title,
+                tint = t.accent,
+                modifier = Modifier.size(72.dp)
+            )
             Spacer(Modifier.height(12.dp))
             Text(
                 text = title,

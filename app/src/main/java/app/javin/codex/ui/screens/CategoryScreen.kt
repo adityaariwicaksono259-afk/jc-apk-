@@ -30,6 +30,7 @@ import app.javin.codex.data.model.Tool
 import app.javin.codex.data.repository.ToolRepository
 import app.javin.codex.ui.components.getToolIconUrl
 import app.javin.codex.ui.theme.LocalThemeTokens
+import app.javin.codex.ui.theme.pickAccent
 import coil.compose.AsyncImage
 import kotlinx.coroutines.launch
 
@@ -229,6 +230,7 @@ private fun ToolRow(
     onClick: () -> Unit
 ) {
     val t = LocalThemeTokens.current
+    val accent = pickAccent(name, t.neoPalette, t.iconBg)
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -240,7 +242,7 @@ private fun ToolRow(
             modifier = Modifier
                 .size(46.dp)
                 .clip(RoundedCornerShape(if (t.isNeo) 10.dp else 13.dp))
-                .background(t.iconBg)
+                .background(if (t.isNeo) accent else t.iconBg)
                 .then(
                     if (t.isNeo) Modifier.border(2.dp, t.cardBorder, RoundedCornerShape(10.dp))
                     else Modifier
