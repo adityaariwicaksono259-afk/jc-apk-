@@ -88,7 +88,18 @@ fun GenericToolScreen(
 
         scope.launch {
             loading = true
-            val r = repo.callTool(catalogId, firstValue)
+            // Kirim SEMUA param yang dideklarasi (nama persis), skip yang kosong
+            val paramMap = mutableMapOf<String, String>()
+            params.forEach { p ->
+                val key = p.n ?: return@forEach
+                val v = values[key] ?: ""
+                if (v.isNotBlank()) paramMap[key] = v
+            }
+            // Fallback: kalau params kosong, kirim q
+            if (paramMap.isEmpty() && params.isEmpty()) {
+                paramMap["q"] = firstValue
+            }
+            val r = repo.callToolWithParams(catalogId, paramMap)
             loading = false
             r.onSuccess { raw ->
                 outputs = parseOutput(raw)

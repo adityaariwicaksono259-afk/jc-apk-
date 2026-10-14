@@ -217,6 +217,38 @@ class ToolRepository(private val api: ApiService) {
         } catch (e: Exception) { null }
     }
 
+
+    // ============================================
+    // CALL TOOL dengan param Map (auto-detect param name)
+    // ============================================
+    suspend fun callToolWithParams(catalogId: String, params: Map<String, String>): Result<String> = withContext(Dispatchers.IO) {
+        try {
+            val resp = api.callToolDynamic(catalogId, params)
+            if (!resp.isSuccessful) {
+                return@withContext Result.failure(Exception("HTTP ${resp.code()}"))
+            }
+            val body = resp.body() ?: return@withContext Result.failure(Exception("Response kosong"))
+            val text = body.string()
+
+            try {
+                val gson = com.google.gson.Gson()
+                val map = gson.fromJson(text, Map::class.java) as Map<*, *>
+                val okFlag = map["ok"] as? Boolean ?: map["status"] as? Boolean ?: true
+                if (!okFlag) {
+                    val msg = map["message"] as? String
+                        ?: (map["error"] as? String)
+                        ?: "Gagal dari server"
+                    return@withContext Result.failure(Exception(msg))
+                }
+                Result.success(text)
+            } catch (e: Exception) {
+                Result.success(text)
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     // ============================================
     // SEARCH by name
     // ============================================
