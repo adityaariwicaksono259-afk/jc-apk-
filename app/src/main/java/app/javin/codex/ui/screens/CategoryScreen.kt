@@ -52,7 +52,11 @@ fun CategoryScreen(
         loading = false
         result.onSuccess { allTools ->
             // Filter AI: cuma yang tested works (exclude yang upstream 4xx/5xx)
-            val workingAi = setOf("ep003", "ep005", "ep006", "ep008", "ep119", "ep120")
+            val workingAi = setOf(
+                "ep002", "ep003", "ep005",
+                "ep119", "ep120",
+                "ep124", "ep125", "ep126", "ep127"
+            )
             tools = if (categoryName.equals("AI", true)) {
                 allTools.filter { it.catalogId in workingAi }
             } else allTools

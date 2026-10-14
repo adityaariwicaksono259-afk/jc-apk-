@@ -78,15 +78,15 @@ class ToolRepository(private val api: ApiService) {
     // ============================================
     suspend fun callTool(catalogId: String, query: String): Result<String> = withContext(Dispatchers.IO) {
         try {
-            // Cari endpoint untuk tau nama param bener
-            val ep = cachedTools?.firstOrNull { it.catalogId == catalogId }
-            val paramName = ep?.params?.firstOrNull()?.n ?: "q"
-
-            val resp = if (paramName == "q") {
-                api.callTool(catalogId, query)
-            } else {
-                // Param generic — pakai map
-                api.callToolDynamic(catalogId, mapOf(paramName to query))
+            // Hardcode param per endpoint (karena tiap upstream beda-beda)
+            val resp = when (catalogId) {
+                "ep005" -> api.callToolDynamic(catalogId, mapOf("text" to query))
+                "ep120", "ep124", "ep125", "ep126", "ep127" -> api.callToolDynamic(catalogId, mapOf(
+                    "prompt" to query,
+                    "system" to "You are a helpful assistant.",
+                    "temperature" to "0.7"
+                ))
+                else -> api.callTool(catalogId, query)  // default: q
             }
             if (!resp.isSuccessful) {
                 return@withContext Result.failure(Exception("HTTP ${resp.code()}"))
@@ -178,14 +178,16 @@ class ToolRepository(private val api: ApiService) {
     }
 
     private fun cleanText(s: String): String {
-        val trimmed = s.trim()
+        var t = s.trim()
+        // Strip tag <think>...</think> dari reasoning model (DeepSeek R1)
+        t = t.replace(Regex("<think>[\\s\\S]*?</think>", RegexOption.IGNORE_CASE), "").trim()
         // Kalau HTML error dari upstream
-        if (trimmed.startsWith("<") || trimmed.contains("<h1>")) {
-            return "⚠️ Server AI ini sedang error. Coba AI lain."
+        if (t.startsWith("<") || t.contains("<h1>")) {
+            return "Server AI ini sedang error. Coba AI lain."
         }
         // Kalau isinya kosong banget
-        if (trimmed.length < 2) return "⚠️ AI tidak memberi jawaban. Coba lagi."
-        return trimmed
+        if (t.length < 2) return "AI tidak memberi jawaban. Coba lagi."
+        return t
     }
 
 }
