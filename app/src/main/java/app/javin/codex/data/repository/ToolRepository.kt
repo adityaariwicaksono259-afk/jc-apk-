@@ -33,7 +33,20 @@ class ToolRepository(private val api: ApiService) {
                             subfolder = m["subfolder"]?.toString(),
                             m = m["m"]?.toString(),
                             needKey = (m["needKey"] as? Boolean) ?: false,
-                            params = null,
+                            params = (m["params"] as? List<*>)?.mapNotNull { p ->
+                                if (p is Map<*, *>) {
+                                    app.javin.codex.data.model.ToolParam(
+                                        n = p["n"]?.toString(),
+                                        t = p["t"]?.toString(),
+                                        r = when (val rv = p["r"]) {
+                                            is Number -> rv.toInt()
+                                            is String -> rv.toIntOrNull()
+                                            else -> null
+                                        },
+                                        d = p["d"]?.toString()
+                                    )
+                                } else null
+                            },
                             outputType = m["outputType"]?.toString()
                         )
                     } catch (e: Exception) {
