@@ -89,21 +89,20 @@ class ToolRepository(private val api: ApiService) {
             try {
                 val gson = com.google.gson.Gson()
                 val map = gson.fromJson(text, Map::class.java) as Map<*, *>
-                val ok = map["ok"] as? Boolean ?: true
-                if (!ok) {
-                    val msg = map["message"] as? String ?: "Gagal dari server"
+
+                // Handle error: {ok:false} ATAU {status:false}
+                val okFlag = map["ok"] as? Boolean ?: map["status"] as? Boolean ?: true
+                if (!okFlag) {
+                    val msg = map["message"] as? String
+                        ?: (map["error"] as? String)
+                        ?: "Gagal dari server"
                     return@withContext Result.failure(Exception(msg))
                 }
-                // Cari field text/reply/result/message/data
-                val extracted = map["reply"] as? String
-                    ?: map["result"] as? String
-                    ?: map["text"] as? String
-                    ?: map["message"] as? String
-                    ?: (map["data"]?.let { gson.toJson(it) })
-                    ?: text
+
+                // Extract text dari berbagai format
+                val extracted = extractText(map, gson) ?: text
                 Result.success(extracted)
             } catch (e: Exception) {
-                // Bukan JSON — return raw
                 Result.success(text)
             }
         } catch (e: Exception) {
