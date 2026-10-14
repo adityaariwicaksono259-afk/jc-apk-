@@ -7,10 +7,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Chat as ChatIcon
-import androidx.compose.material.icons.filled.PlayCircle as PlayIcon
-import androidx.compose.material.icons.filled.Timelapse as StatusIcon
+import androidx.compose.material.icons.filled.Chat
+import androidx.compose.material.icons.filled.PlayCircle
+import androidx.compose.material.icons.filled.Timelapse
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -123,17 +124,17 @@ fun MainScreen(
                                 }
                             )
                             NavTab.CHAT -> PlaceholderTab(
-                                icon = ChatIcon,
+                                icon = Icons.Filled.Chat,
                                 title = "Chat",
                                 subtitle = "Chat antar user segera hadir"
                             )
                             NavTab.PLAYLIST -> PlaceholderTab(
-                                icon = PlayIcon,
+                                icon = Icons.Filled.PlayCircle,
                                 title = "Playlist",
                                 subtitle = "Playlist segera hadir"
                             )
                             NavTab.STATUS -> PlaceholderTab(
-                                icon = StatusIcon,
+                                icon = Icons.Filled.Timelapse,
                                 title = "Status",
                                 subtitle = "Status segera hadir"
                             )
