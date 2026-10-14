@@ -10,6 +10,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.PlayCircle
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -32,6 +35,17 @@ import coil.compose.AsyncImage
 import com.google.gson.Gson
 import kotlinx.coroutines.launch
 
+sealed class ToolOutput {
+    data class Text(val text: String) : ToolOutput()
+    data class Image(val url: String) : ToolOutput()
+    data class Link(val url: String, val label: String = "") : ToolOutput()
+    data class Video(val url: String, val thumb: String = "") : ToolOutput()
+    data class Audio(val url: String) : ToolOutput()
+    data class ListItems(val items: List<ToolOutput>) : ToolOutput()
+    data class Error(val message: String) : ToolOutput()
+    data class Raw(val json: String) : ToolOutput()
+}
+
 @Composable
 fun GenericToolScreen(
     tool: Tool,
@@ -44,7 +58,6 @@ fun GenericToolScreen(
     val params: List<ToolParam> = tool.params ?: emptyList()
     val values = remember { mutableStateMapOf<String, String>() }
 
-    // Init default values dari example_values atau defaults
     LaunchedEffect(tool.catalogId) {
         params.forEach { p ->
             val key = p.n ?: return@forEach
@@ -53,16 +66,12 @@ fun GenericToolScreen(
     }
 
     var loading by remember { mutableStateOf(false) }
+    var outputs by remember { mutableStateOf<List<ToolOutput>>(emptyList()) }
     var errorMsg by remember { mutableStateOf<String?>(null) }
-    var resultRaw by remember { mutableStateOf<String?>(null) }
-    var resultImageUrl by remember { mutableStateOf<String?>(null) }
-    var resultMap by remember { mutableStateOf<Map<String, Any?>?>(null) }
 
     fun callTool() {
         errorMsg = null
-        resultRaw = null
-        resultImageUrl = null
-        resultMap = null
+        outputs = emptyList()
 
         val catalogId = tool.catalogId ?: return
         val firstParam = params.firstOrNull()?.n ?: "q"
@@ -78,36 +87,7 @@ fun GenericToolScreen(
             val r = repo.callTool(catalogId, firstValue)
             loading = false
             r.onSuccess { raw ->
-                // Try parse as JSON
-                try {
-                    val gson = Gson()
-                    val map = gson.fromJson(raw, Map::class.java) as Map<*, *>
-                    resultMap = map as Map<String, Any?>
-
-                    // Cari image URL
-                    val imgFields = listOf("image", "img", "url", "avatar", "photo", "picture", "thumbnail", "result")
-                    for (k in imgFields) {
-                        val v = map[k]?.toString() ?: ""
-                        if (v.startsWith("http") && (v.contains(".jpg") || v.contains(".png") || v.contains(".jpeg") || v.contains(".webp"))) {
-                            resultImageUrl = v
-                            break
-                        }
-                    }
-
-                    // Cek nested data
-                    val data = map["data"]
-                    if (data is Map<*, *>) {
-                        for (k in imgFields) {
-                            val v = data[k]?.toString() ?: ""
-                            if (v.startsWith("http") && (v.contains(".jpg") || v.contains(".png") || v.contains(".jpeg") || v.contains(".webp"))) {
-                                resultImageUrl = v
-                                break
-                            }
-                        }
-                    }
-                } catch (e: Exception) {
-                    resultRaw = raw
-                }
+                outputs = parseOutput(raw)
             }.onFailure { errorMsg = it.message }
         }
     }
@@ -189,6 +169,7 @@ fun GenericToolScreen(
                 Box(
                     modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp))
                         .background(Color(0x33FF6B6B))
+                        .border(1.dp, Color(0x66FF6B6B), RoundedCornerShape(10.dp))
                         .padding(12.dp)
                 ) {
                     Text(errorMsg!!, color = Color(0xFFFFB0B0), fontSize = 13.sp)
@@ -196,51 +177,281 @@ fun GenericToolScreen(
             }
 
             // RESULT
-            if (resultImageUrl != null || resultRaw != null || resultMap != null) {
+            if (outputs.isNotEmpty()) {
                 Spacer(Modifier.height(20.dp))
                 Text("HASIL", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.5f), letterSpacing = 1.5.sp)
                 Spacer(Modifier.height(8.dp))
-
-                if (resultImageUrl != null) {
-                    AsyncImage(
-                        model = resultImageUrl,
-                        contentDescription = null,
-                        contentScale = ContentScale.Fit,
-                        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp))
-                    )
+                outputs.forEach { output ->
+                    RenderOutput(output, clipboard)
                     Spacer(Modifier.height(10.dp))
-                    Box(
-                        modifier = Modifier.clip(RoundedCornerShape(8.dp))
-                            .background(Color(0x334A9EFF))
-                            .clickable { clipboard.setText(AnnotatedString(resultImageUrl!!)) }
-                            .padding(horizontal = 12.dp, vertical = 6.dp)
-                    ) {
-                        Text("Copy Image URL", fontSize = 12.sp, color = Color.White, fontWeight = FontWeight.SemiBold)
-                    }
-                    Spacer(Modifier.height(10.dp))
-                }
-
-                if (resultRaw != null) {
-                    Box(
-                        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp))
-                            .background(Color(0x14FFFFFF))
-                            .padding(14.dp)
-                    ) {
-                        Text(resultRaw!!, fontSize = 12.sp, color = Color.White.copy(alpha = 0.85f))
-                    }
-                } else if (resultMap != null) {
-                    Box(
-                        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp))
-                            .background(Color(0x14FFFFFF))
-                            .border(1.dp, Color(0x26FFFFFF), RoundedCornerShape(12.dp))
-                            .padding(14.dp)
-                    ) {
-                        Text(Gson().toJson(resultMap), fontSize = 11.sp, color = Color.White.copy(alpha = 0.85f))
-                    }
                 }
             }
 
             Spacer(Modifier.height(60.dp))
         }
+    }
+}
+
+// ============================================
+// PARSER — auto-detect tipe output dari raw JSON
+// ============================================
+private fun parseOutput(raw: String): List<ToolOutput> {
+    val trimmed = raw.trim()
+    if (trimmed.isEmpty()) return listOf(ToolOutput.Error("Response kosong"))
+
+    val gson = Gson()
+
+    // Coba parse JSON
+    try {
+        val parsed = gson.fromJson(trimmed, Any::class.java)
+        val list = mutableListOf<ToolOutput>()
+
+        when (parsed) {
+            is Map<*, *> -> {
+                // Cek status error
+                val ok = parsed["ok"] as? Boolean ?: parsed["status"] as? Boolean ?: true
+                if (!ok) {
+                    val msg = (parsed["message"] as? String) ?: (parsed["error"] as? String) ?: "Gagal"
+                    return listOf(ToolOutput.Error(msg))
+                }
+                walkJson(parsed, list, 0)
+            }
+            is List<*> -> {
+                parsed.forEach { item ->
+                    if (item is Map<*, *>) walkJson(item, list, 0)
+                    else if (item is String) {
+                        val (kind, url) = detectUrlKind(item)
+                        list.add(when (kind) {
+                            "image" -> ToolOutput.Image(url)
+                            "video" -> ToolOutput.Video(url)
+                            "audio" -> ToolOutput.Audio(url)
+                            "link" -> ToolOutput.Link(url)
+                            else -> ToolOutput.Text(item)
+                        })
+                    }
+                }
+            }
+            is String -> {
+                // Plain string
+                val (kind, url) = detectUrlKind(parsed)
+                list.add(when (kind) {
+                    "image" -> ToolOutput.Image(url)
+                    "video" -> ToolOutput.Video(url)
+                    "audio" -> ToolOutput.Audio(url)
+                    "link" -> ToolOutput.Link(url)
+                    else -> ToolOutput.Text(parsed)
+                })
+            }
+            else -> list.add(ToolOutput.Text(parsed.toString()))
+        }
+
+        if (list.isEmpty()) return listOf(ToolOutput.Raw(trimmed))
+        return list
+    } catch (e: Exception) {
+        // Bukan JSON — cek apakah URL image/video langsung
+        val (kind, url) = detectUrlKind(trimmed)
+        return when (kind) {
+            "image" -> listOf(ToolOutput.Image(url))
+            "video" -> listOf(ToolOutput.Video(url))
+            "audio" -> listOf(ToolOutput.Audio(url))
+            "link" -> listOf(ToolOutput.Link(url))
+            else -> listOf(ToolOutput.Text(trimmed))
+        }
+    }
+}
+
+// Deteksi jenis URL
+private fun detectUrlKind(s: String): Pair<String, String> {
+    val t = s.trim()
+    if (!t.startsWith("http")) return Pair("text", t)
+    val lower = t.lowercase()
+    return when {
+        lower.matches(Regex(".*\\.(jpg|jpeg|png|webp|gif|bmp|svg)(\\?.*)?$")) -> Pair("image", t)
+        lower.matches(Regex(".*\\.(mp4|webm|mov|mkv)(\\?.*)?$")) -> Pair("video", t)
+        lower.matches(Regex(".*\\.(mp3|m4a|wav|ogg|opus|aac)(\\?.*)?$")) -> Pair("audio", t)
+        lower.contains("/image") || lower.contains("/img") || lower.contains("image") -> Pair("image", t)
+        lower.contains("/video") || lower.contains("/vid") -> Pair("video", t)
+        else -> Pair("link", t)
+    }
+}
+
+// Walk JSON cari value menarik (image/url/text)
+private fun walkJson(obj: Map<*, *>, out: MutableList<ToolOutput>, depth: Int) {
+    if (depth > 3) return
+
+    obj.forEach { (k, v) ->
+        when (v) {
+            is String -> {
+                val key = k?.toString()?.lowercase() ?: ""
+                val (kind, url) = detectUrlKind(v)
+                val isImageKey = key.contains("image") || key.contains("avatar") ||
+                                key.contains("thumb") || key.contains("cover") ||
+                                key.contains("photo") || key.contains("artwork") ||
+                                key.contains("picture")
+                val isVideoKey = key.contains("video") || key.contains("mp4")
+                val isAudioKey = key.contains("audio") || key.contains("mp3") || key.contains("sound")
+                val isTextKey = key.contains("message") || key.contains("text") ||
+                                key.contains("response") || key.contains("result") ||
+                                key.contains("reply") || key.contains("answer") ||
+                                key.contains("caption") || key.contains("desc")
+
+                when {
+                    kind == "image" || (isImageKey && v.startsWith("http")) ->
+                        out.add(ToolOutput.Image(v))
+                    kind == "video" || (isVideoKey && v.startsWith("http")) ->
+                        out.add(ToolOutput.Video(v))
+                    kind == "audio" || (isAudioKey && v.startsWith("http")) ->
+                        out.add(ToolOutput.Audio(v))
+                    isTextKey && v.length > 3 && !v.startsWith("http") ->
+                        out.add(ToolOutput.Text(v))
+                    kind == "link" -> out.add(ToolOutput.Link(v, k?.toString() ?: ""))
+                }
+            }
+            is Map<*, *> -> walkJson(v, out, depth + 1)
+            is List<*> -> {
+                v.forEach { item ->
+                    if (item is Map<*, *>) walkJson(item, out, depth + 1)
+                    else if (item is String) {
+                        val (kind, url) = detectUrlKind(item)
+                        if (kind == "image") out.add(ToolOutput.Image(url))
+                        else if (kind == "video") out.add(ToolOutput.Video(url))
+                        else if (kind == "audio") out.add(ToolOutput.Audio(url))
+                        else if (url.startsWith("http")) out.add(ToolOutput.Link(url))
+                    }
+                }
+            }
+        }
+    }
+}
+
+// ============================================
+// RENDER OUTPUT
+// ============================================
+@Composable
+private fun RenderOutput(output: ToolOutput, clipboard: androidx.compose.ui.platform.ClipboardManager) {
+    when (output) {
+        is ToolOutput.Text -> {
+            Box(
+                modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp))
+                    .background(Color(0x14FFFFFF))
+                    .border(1.dp, Color(0x26FFFFFF), RoundedCornerShape(12.dp))
+                    .padding(14.dp)
+            ) {
+                Text(output.text, fontSize = 13.sp, color = Color.White.copy(alpha = 0.9f), lineHeight = 20.sp)
+            }
+        }
+        is ToolOutput.Image -> {
+            Column {
+                AsyncImage(
+                    model = output.url,
+                    contentDescription = null,
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp))
+                )
+                Spacer(Modifier.height(8.dp))
+                ActionChip(icon = Icons.Default.ContentCopy, label = "Copy Image URL") {
+                    clipboard.setText(AnnotatedString(output.url))
+                }
+            }
+        }
+        is ToolOutput.Video -> {
+            Column {
+                Box(
+                    modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp))
+                        .background(Color(0x1AFFFFFF))
+                        .padding(20.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Icon(Icons.Default.PlayCircle, null, tint = Color(0xFF4A9EFF), modifier = Modifier.size(56.dp))
+                        Spacer(Modifier.height(8.dp))
+                        Text("Video tersedia", fontSize = 13.sp, color = Color.White, fontWeight = FontWeight.Bold)
+                    }
+                }
+                Spacer(Modifier.height(8.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    ActionChip(icon = Icons.Default.ContentCopy, label = "Copy URL") {
+                        clipboard.setText(AnnotatedString(output.url))
+                    }
+                    ActionChip(icon = Icons.Default.Download, label = "Buka Link") { }
+                }
+            }
+        }
+        is ToolOutput.Audio -> {
+            Column {
+                Box(
+                    modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp))
+                        .background(Color(0x1AFFFFFF))
+                        .padding(16.dp)
+                ) {
+                    Text("🎵 Audio tersedia", fontSize = 13.sp, color = Color.White)
+                }
+                Spacer(Modifier.height(8.dp))
+                ActionChip(icon = Icons.Default.ContentCopy, label = "Copy Audio URL") {
+                    clipboard.setText(AnnotatedString(output.url))
+                }
+            }
+        }
+        is ToolOutput.Link -> {
+            Row(
+                modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp))
+                    .background(Color(0x14FFFFFF))
+                    .border(1.dp, Color(0x26FFFFFF), RoundedCornerShape(10.dp))
+                    .padding(12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    output.label.ifBlank { output.url },
+                    fontSize = 12.sp, color = Color.White.copy(alpha = 0.8f),
+                    maxLines = 2, overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f)
+                )
+                Spacer(Modifier.width(8.dp))
+                Box(
+                    modifier = Modifier.clip(RoundedCornerShape(6.dp))
+                        .background(Color(0x334A9EFF))
+                        .clickable { clipboard.setText(AnnotatedString(output.url)) }
+                        .padding(horizontal = 10.dp, vertical = 6.dp)
+                ) {
+                    Text("Copy", fontSize = 11.sp, color = Color.White, fontWeight = FontWeight.Bold)
+                }
+            }
+        }
+        is ToolOutput.ListItems -> {
+            output.items.forEach { RenderOutput(it, clipboard) }
+        }
+        is ToolOutput.Error -> {
+            Box(
+                modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp))
+                    .background(Color(0x33FF6B6B))
+                    .padding(12.dp)
+            ) {
+                Text(output.message, color = Color(0xFFFFB0B0), fontSize = 13.sp)
+            }
+        }
+        is ToolOutput.Raw -> {
+            Box(
+                modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp))
+                    .background(Color(0x0FFFFFFF))
+                    .padding(12.dp)
+            ) {
+                Text(output.json, fontSize = 11.sp, color = Color.White.copy(alpha = 0.7f))
+            }
+        }
+    }
+}
+
+@Composable
+private fun ActionChip(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, onClick: () -> Unit) {
+    Row(
+        modifier = Modifier.clip(RoundedCornerShape(8.dp))
+            .background(Color(0x334A9EFF))
+            .clickable(onClick = onClick)
+            .padding(horizontal = 12.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(icon, null, tint = Color.White, modifier = Modifier.size(14.dp))
+        Spacer(Modifier.width(6.dp))
+        Text(label, fontSize = 12.sp, color = Color.White, fontWeight = FontWeight.SemiBold)
     }
 }

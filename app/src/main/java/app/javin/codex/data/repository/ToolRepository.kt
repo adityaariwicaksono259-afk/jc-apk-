@@ -76,6 +76,28 @@ class ToolRepository(private val api: ApiService) {
     }
 
     // ============================================
+    // WORKING IDS — filter tools yang tested 200
+    // ============================================
+    private var cachedWorkingIds: Set<String>? = null
+
+    suspend fun getWorkingIds(forceRefresh: Boolean = false): Set<String> = withContext(Dispatchers.IO) {
+        if (!forceRefresh && cachedWorkingIds != null) return@withContext cachedWorkingIds!!
+        try {
+            val resp = api.getWorkingTools()
+            if (resp.isSuccessful && resp.body() != null) {
+                val text = resp.body()!!.string()
+                val gson = com.google.gson.Gson()
+                val map = gson.fromJson(text, Map::class.java) as Map<*, *>
+                val arr = map["ids"] as? List<*> ?: emptyList<Any>()
+                val ids = arr.mapNotNull { it?.toString() }.toSet()
+                cachedWorkingIds = ids
+                return@withContext ids
+            }
+        } catch (e: Exception) {}
+        emptySet()
+    }
+
+    // ============================================
     // CALL TOOL — hit /api/proxy-ext
     // ============================================
     suspend fun callTool(catalogId: String, query: String): Result<String> = withContext(Dispatchers.IO) {

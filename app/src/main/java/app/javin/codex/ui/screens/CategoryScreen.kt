@@ -51,15 +51,14 @@ fun CategoryScreen(
         val result = repo.getToolsByFolder(categoryName)
         loading = false
         result.onSuccess { allTools ->
-            // Filter AI: cuma yang tested works (exclude yang upstream 4xx/5xx)
-            val workingAi = setOf(
-                "ep002", "ep003", "ep005",
-                "ep119", "ep120",
-                "ep124", "ep125", "ep126", "ep127"
-            )
-            tools = if (categoryName.equals("AI", true)) {
-                allTools.filter { it.catalogId in workingAi }
-            } else allTools
+            // Filter pakai working IDs dari server (auto-update tanpa rebuild APK)
+            val workingIds = repo.getWorkingIds()
+            tools = if (workingIds.isNotEmpty()) {
+                allTools.filter { it.catalogId in workingIds }
+            } else {
+                // Fallback: kalau server gak balikin, tampil semua
+                allTools
+            }
         }.onFailure { errorMsg = it.message ?: "Gagal load" }
     }
 

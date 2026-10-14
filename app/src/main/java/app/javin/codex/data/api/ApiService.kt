@@ -125,4 +125,7 @@ interface ApiService {
     // ============================================
     @GET("endpoints.json")
     suspend fun getEndpoints(): Response<List<Map<String, Any>>>
+
+    @GET("api/tools/working")
+    suspend fun getWorkingTools(): Response<okhttp3.ResponseBody>
 }
