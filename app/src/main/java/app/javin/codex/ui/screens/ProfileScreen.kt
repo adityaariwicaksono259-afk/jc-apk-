@@ -34,6 +34,7 @@ fun ProfileScreen(
     onEditProfile: () -> Unit = {},
     onPrivacySettings: () -> Unit = {},
     onNotificationSettings: () -> Unit = {},
+    onSecuritySettings: () -> Unit = {},
     onAbout: () -> Unit = {}
 ) {
     val context = LocalContext.current
@@ -205,8 +206,8 @@ fun ProfileScreen(
         GlassMenuItem(
             icon = Icons.Default.Security,
             label = "Keamanan",
-            subtitle = "Password, kunci aplikasi",
-            onClick = { /* TODO */ }
+            subtitle = "PIN, biometrik, auto-lock",
+            onClick = onSecuritySettings
         )
 
         Spacer(Modifier.height(8.dp))

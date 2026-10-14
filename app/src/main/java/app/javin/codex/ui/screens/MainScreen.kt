@@ -31,6 +31,7 @@ sealed class ProfileSubScreen {
     object Edit : ProfileSubScreen()
     object Privacy : ProfileSubScreen()
     object Notification : ProfileSubScreen()
+    object Security : ProfileSubScreen()
     object About : ProfileSubScreen()
 }
 
@@ -46,11 +47,15 @@ fun MainScreen(
     var selectedTab by remember { mutableStateOf(NavTab.HOME) }
     var openChatWithTool by remember { mutableStateOf<Tool?>(null) }
     var openCategory by remember { mutableStateOf<String?>(null) }
+    var openAmScreen by remember { mutableStateOf<String?>(null) }
+    var openGenericTool by remember { mutableStateOf<Tool?>(null) }
     var profileSub by remember { mutableStateOf<ProfileSubScreen>(ProfileSubScreen.Main) }
 
     GlassBackground {
         val chatTool = openChatWithTool
         val category = openCategory
+        val amScreen = openAmScreen
+        val genericTool = openGenericTool
 
         when {
             // ==== AI CHAT ====
@@ -69,12 +74,32 @@ fun MainScreen(
                     categoryName = category,
                     onBack = { openCategory = null },
                     onToolClick = { tool ->
-                        // AI → chat, lainnya → belum diimplementasi
-                        if (tool.displayFolder.equals("AI", ignoreCase = true)) {
-                            openChatWithTool = tool
+                        when {
+                            tool.displayFolder.equals("AI", ignoreCase = true) -> openChatWithTool = tool
+                            tool.catalogId == "am-preset-search" -> openAmScreen = "search"
+                            tool.catalogId == "premium-amfinder" -> openAmScreen = "finder"
+                            tool.catalogId == "premium-amprem" -> openAmScreen = "prem"
+                            tool.catalogId == "ep267" -> openGenericTool = tool
+                            else -> openGenericTool = tool
                         }
-                        // TODO: kategori lain bikin ToolScreen masing-masing
                     }
+                )
+            }
+
+            // ==== AM CUSTOM SCREENS ====
+            amScreen != null -> {
+                when (amScreen) {
+                    "search" -> AmSearchScreen(onBack = { openAmScreen = null })
+                    "finder" -> AmFinderScreen(onBack = { openAmScreen = null })
+                    "prem" -> AmPremScreen(onBack = { openAmScreen = null })
+                }
+            }
+
+            // ==== GENERIC TOOL ====
+            genericTool != null -> {
+                GenericToolScreen(
+                    tool = genericTool,
+                    onBack = { openGenericTool = null }
                 )
             }
 
@@ -96,6 +121,12 @@ fun MainScreen(
 
             profileSub is ProfileSubScreen.Notification -> {
                 NotificationScreen(
+                    onBack = { profileSub = ProfileSubScreen.Main }
+                )
+            }
+
+            profileSub is ProfileSubScreen.Security -> {
+                PinSettingsScreen(
                     onBack = { profileSub = ProfileSubScreen.Main }
                 )
             }
@@ -151,6 +182,7 @@ fun MainScreen(
                                 onEditProfile = { profileSub = ProfileSubScreen.Edit },
                                 onPrivacySettings = { profileSub = ProfileSubScreen.Privacy },
                                 onNotificationSettings = { profileSub = ProfileSubScreen.Notification },
+                                onSecuritySettings = { profileSub = ProfileSubScreen.Security },
                                 onAbout = { profileSub = ProfileSubScreen.About }
                             )
                         }

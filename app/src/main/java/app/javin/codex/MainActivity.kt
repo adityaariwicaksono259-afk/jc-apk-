@@ -18,6 +18,11 @@ import app.javin.codex.data.repository.AuthRepository
 import app.javin.codex.data.update.NotificationHelper
 import app.javin.codex.data.repository.AuthResult
 import app.javin.codex.data.session.SessionManager
+import app.javin.codex.data.lock.LockManager
+import app.javin.codex.ui.screens.LockScreen
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import app.javin.codex.ui.components.GlassBackground
 import app.javin.codex.ui.components.VideoBackground
 import app.javin.codex.ui.screens.ForgotPasswordScreen
@@ -75,9 +80,41 @@ fun JavinAppRoot() {
 
     var screen by remember { mutableStateOf<Screen>(Screen.Splash) }
     var userName by remember { mutableStateOf<String?>(null) }
+    var isLocked by remember { mutableStateOf(false) }
 
     val session = remember { SessionManager.getInstance(context) }
     val authRepo = remember { AuthRepository(session) }
+    val lockManager = remember { LockManager.getInstance(context) }
+    val lifecycleOwner = LocalLifecycleOwner.current
+
+    // Cek lock state saat app dibuka / resume
+    LaunchedEffect(Unit) {
+        if (lockManager.isLockEnabled()) {
+            isLocked = lockManager.shouldLock()
+        }
+    }
+
+    // Auto-lock saat app ke background
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_PAUSE -> {
+                    scope.launch { lockManager.updateLastActive() }
+                }
+                Lifecycle.Event.ON_RESUME -> {
+                    scope.launch {
+                        if (lockManager.isLockEnabled()) {
+                            val shouldLock = lockManager.shouldLock()
+                            if (shouldLock) isLocked = true
+                        }
+                    }
+                }
+                else -> {}
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
 
     LaunchedEffect(MainActivity.pendingResetToken) {
         val token = MainActivity.pendingResetToken
@@ -88,6 +125,14 @@ fun JavinAppRoot() {
 
     JavinCodexTheme(darkTheme = true) {
         Surface(modifier = Modifier.fillMaxSize(), color = Color(0xFF0F0F1E)) {
+            if (isLocked) {
+                LockScreen(onUnlock = {
+                    isLocked = false
+                    scope.launch { lockManager.updateLastActive() }
+                })
+                return@Surface
+            }
+
             when (val current = screen) {
                 is Screen.Splash -> {
                     Box(Modifier.fillMaxSize().background(Color.Black)) {

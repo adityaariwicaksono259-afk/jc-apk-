@@ -103,6 +103,18 @@ interface ApiService {
     ): Response<okhttp3.ResponseBody>
 
     // ============================================
+    // TOOLS — AM (custom endpoints)
+    // ============================================
+    @GET("api/amfinder")
+    suspend fun amFinder(@Query("url") tiktokUrl: String): Response<okhttp3.ResponseBody>
+
+    @GET("api/amsearch")
+    suspend fun amSearch(@Query("q") query: String): Response<okhttp3.ResponseBody>
+
+    @POST("api/premium/amprem")
+    suspend fun amPrem(@Body body: okhttp3.RequestBody): Response<okhttp3.ResponseBody>
+
+    // ============================================
     // APP — VERSION CHECK (auto-update)
     // ============================================
     @GET("api/app/version")

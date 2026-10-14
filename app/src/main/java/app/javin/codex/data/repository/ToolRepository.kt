@@ -4,6 +4,8 @@ import app.javin.codex.data.api.ApiService
 import app.javin.codex.data.model.Tool
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.RequestBody.Companion.toRequestBody
 
 class ToolRepository(private val api: ApiService) {
 
@@ -117,6 +119,67 @@ class ToolRepository(private val api: ApiService) {
         } catch (e: Exception) {
             Result.failure(e)
         }
+    }
+
+    // ============================================
+    // AM FINDER — tiktok URL → preset links
+    // ============================================
+    suspend fun amFinder(tiktokUrl: String): Result<String> = withContext(Dispatchers.IO) {
+        try {
+            val resp = api.amFinder(tiktokUrl)
+            val text = resp.body()?.string() ?: ""
+            if (!resp.isSuccessful) {
+                val msg = extractErrorMsg(text) ?: "Gagal (HTTP ${resp.code()})"
+                return@withContext Result.failure(Exception(msg))
+            }
+            Result.success(text)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    // ============================================
+    // AM SEARCH — keyword → video list
+    // ============================================
+    suspend fun amSearch(query: String): Result<String> = withContext(Dispatchers.IO) {
+        try {
+            val resp = api.amSearch(query)
+            val text = resp.body()?.string() ?: ""
+            if (!resp.isSuccessful) {
+                val msg = extractErrorMsg(text) ?: "Gagal (HTTP ${resp.code()})"
+                return@withContext Result.failure(Exception(msg))
+            }
+            Result.success(text)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    // ============================================
+    // AM PREMIUM — POST with body
+    // ============================================
+    suspend fun amPrem(bodyJson: String): Result<String> = withContext(Dispatchers.IO) {
+        try {
+            val reqBody = bodyJson.toRequestBody("application/json".toMediaType())
+            val resp = api.amPrem(reqBody)
+            val text = resp.body()?.string() ?: ""
+            if (!resp.isSuccessful) {
+                val msg = extractErrorMsg(text) ?: "Gagal (HTTP ${resp.code()})"
+                return@withContext Result.failure(Exception(msg))
+            }
+            Result.success(text)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    private fun extractErrorMsg(json: String): String? {
+        if (json.isBlank()) return null
+        return try {
+            val gson = com.google.gson.Gson()
+            val map = gson.fromJson(json, Map::class.java) as Map<*, *>
+            (map["message"] as? String) ?: (map["error"] as? String)
+        } catch (e: Exception) { null }
     }
 
     // ============================================

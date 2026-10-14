@@ -40,10 +40,18 @@ data class CategoryInfo(
     val name: String,
     val icon: ImageVector,
     val desc: String,
-    val tag: String = ""
+    val tag: String = "",
+    val comingSoon: Boolean = false
 )
 
-private fun getCategoryInfo(name: String): CategoryInfo = when (name.lowercase()) {
+private val COMING_SOON = setOf("canvas", "anime", "downloader", "islami")
+
+private fun getCategoryInfo(name: String): CategoryInfo {
+    val base = getCategoryInfoBase(name)
+    return base.copy(comingSoon = name.lowercase() in COMING_SOON)
+}
+
+private fun getCategoryInfoBase(name: String): CategoryInfo = when (name.lowercase()) {
     "ai" -> CategoryInfo("AI", Icons.Default.SmartToy, "ChatGPT, Claude, Gemini, DeepSeek, dll", "Chat")
     "anime" -> CategoryInfo("Anime", Icons.Default.Movie, "Anime populer, detail, jadwal rilis")
     "canvas" -> CategoryInfo("Canvas", Icons.Default.Palette, "AI image generator, canvas editor", "AI")
@@ -309,11 +317,28 @@ private fun CategoryRow(info: CategoryInfo, onClick: () -> Unit) {
 
         Spacer(Modifier.width(8.dp))
 
-        Icon(
-            imageVector = Icons.Default.ChevronRight,
-            contentDescription = null,
-            tint = Color(0x66FFFFFF),
-            modifier = Modifier.size(20.dp)
-        )
+        if (info.comingSoon) {
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(Color(0x33FFB84D))
+                    .border(1.dp, Color(0x66FFB84D), RoundedCornerShape(8.dp))
+                    .padding(horizontal = 8.dp, vertical = 4.dp)
+            ) {
+                Text(
+                    "Segera",
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFFFFB84D)
+                )
+            }
+        } else {
+            Icon(
+                imageVector = Icons.Default.ChevronRight,
+                contentDescription = null,
+                tint = Color(0x66FFFFFF),
+                modifier = Modifier.size(20.dp)
+            )
+        }
     }
 }
