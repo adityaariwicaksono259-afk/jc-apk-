@@ -123,4 +123,41 @@ class ToolRepository(private val api: ApiService) {
             }
         }
     }
+    // Helper: extract text dari berbagai format response AI
+    private fun extractText(map: Map<*, *>, gson: com.google.gson.Gson): String? {
+        // 1. Direct string fields
+        (map["reply"] as? String)?.let { if (it.isNotBlank()) return it }
+        (map["result"] as? String)?.let { if (it.isNotBlank()) return it }
+        (map["text"] as? String)?.let { if (it.isNotBlank()) return it }
+        (map["message"] as? String)?.let { if (it.isNotBlank()) return it }
+        (map["response"] as? String)?.let { if (it.isNotBlank()) return it }
+
+        // 2. Nested object: data.message / data.response / data.text / data.result
+        val data = map["data"]
+        when (data) {
+            is String -> if (data.isNotBlank()) return data
+            is Map<*, *> -> {
+                (data["message"] as? String)?.let { if (it.isNotBlank()) return it }
+                (data["response"] as? String)?.let { if (it.isNotBlank()) return it }
+                (data["text"] as? String)?.let { if (it.isNotBlank()) return it }
+                (data["result"] as? String)?.let { if (it.isNotBlank()) return it }
+                (data["reply"] as? String)?.let { if (it.isNotBlank()) return it }
+                (data["answer"] as? String)?.let { if (it.isNotBlank()) return it }
+                (data["data"] as? String)?.let { if (it.isNotBlank()) return it }
+            }
+            is List<*> -> {
+                if (data.size == 1) {
+                    val first = data[0]
+                    if (first is String) return first
+                    if (first is Map<*, *>) {
+                        (first["message"] as? String)?.let { return it }
+                        (first["response"] as? String)?.let { return it }
+                        (first["text"] as? String)?.let { return it }
+                    }
+                }
+            }
+        }
+        return null
+    }
+
 }
