@@ -98,7 +98,7 @@ fun DeviceStatsHeader() {
             .fillMaxWidth()
             .clip(shape)
             .background(
-                if (t.isNeo) t.cardBg
+                if (t.isNeo) Brush.linearGradient(listOf(t.cardBg, t.cardBg))
                 else Brush.linearGradient(listOf(Color(0x1FFFFFFF), Color(0x0DFFFFFF)))
             )
             .border(
