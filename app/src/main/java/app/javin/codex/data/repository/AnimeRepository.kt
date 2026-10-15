@@ -7,6 +7,8 @@ import app.javin.codex.data.model.AnimeItem
 import app.javin.codex.data.model.AnimeStreamResult
 import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.withContext
 
 /**
@@ -86,24 +88,56 @@ class AnimeRepository(private val api: ApiService) {
     // LIST — ongoing / completed / popular
     // ============================================
     suspend fun listOngoing(): Result<List<AnimeItem>> = withContext(Dispatchers.IO) {
-        val animasu = fetchList(epAnimasuOngoing, mapOf("ongoing" to "1", "page" to "1"), "animasu")
-        if (animasu.isNotEmpty()) return@withContext Result.success(animasu)
-
-        val otakudesu = fetchList(epOtakudesuOngoing, emptyMap(), "otakudesu")
-        Result.success(otakudesu)
+        // Paralel: coba Animasu + Otakudesu + Samehadaku bareng
+        val jobs = listOf(
+            async { fetchList(epAnimasuOngoing, mapOf("ongoing" to "1", "page" to "1"), "animasu") },
+            async { fetchList(epOtakudesuOngoing, emptyMap(), "otakudesu") },
+            async { fetchList(epSamehadakuLatest, emptyMap(), "samehadaku") }
+        )
+        // Ambil yang pertama selesai + ada isinya
+        var result: List<AnimeItem> = emptyList()
+        for (job in jobs) {
+            try {
+                val r = job.await()
+                if (r.isNotEmpty()) { result = r; break }
+            } catch (e: Exception) {}
+        }
+        // Cancel sisanya
+        jobs.forEach { it.cancel() }
+        Result.success(result)
     }
 
     suspend fun listCompleted(): Result<List<AnimeItem>> = withContext(Dispatchers.IO) {
-        val animasu = fetchList(epAnimasuCompleted, mapOf("completed" to "1", "page" to "1"), "animasu")
-        if (animasu.isNotEmpty()) return@withContext Result.success(animasu)
-
-        val samehadaku = fetchList(epSamehadakuLatest, emptyMap(), "samehadaku")
-        Result.success(samehadaku)
+        val jobs = listOf(
+            async { fetchList(epAnimasuCompleted, mapOf("completed" to "1", "page" to "1"), "animasu") },
+            async { fetchList(epSamehadakuLatest, emptyMap(), "samehadaku") },
+            async { fetchList(epOtakudesuOngoing, emptyMap(), "otakudesu") }
+        )
+        var result: List<AnimeItem> = emptyList()
+        for (job in jobs) {
+            try {
+                val r = job.await()
+                if (r.isNotEmpty()) { result = r; break }
+            } catch (e: Exception) {}
+        }
+        jobs.forEach { it.cancel() }
+        Result.success(result)
     }
 
     suspend fun listPopular(): Result<List<AnimeItem>> = withContext(Dispatchers.IO) {
-        fetchList(epAnimasuPopular, mapOf("popular" to "1", "page" to "1"), "animasu")
-            .let { if (it.isNotEmpty()) Result.success(it) else Result.success(emptyList()) }
+        val jobs = listOf(
+            async { fetchList(epAnimasuPopular, mapOf("popular" to "1", "page" to "1"), "animasu") },
+            async { fetchList(epSamehadakuLatest, emptyMap(), "samehadaku") }
+        )
+        var result: List<AnimeItem> = emptyList()
+        for (job in jobs) {
+            try {
+                val r = job.await()
+                if (r.isNotEmpty()) { result = r; break }
+            } catch (e: Exception) {}
+        }
+        jobs.forEach { it.cancel() }
+        Result.success(result)
     }
 
     private suspend fun fetchList(epId: String, params: Map<String, String>, source: String): List<AnimeItem> {
