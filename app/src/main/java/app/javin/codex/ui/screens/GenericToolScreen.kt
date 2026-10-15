@@ -61,9 +61,10 @@ fun GenericToolScreen(
     val values = remember { mutableStateMapOf<String, String>() }
 
     LaunchedEffect(tool.catalogId) {
+        // JANGAN pre-fill dengan p.d (itu deskripsi, bukan value)
         params.forEach { p ->
             val key = p.n ?: return@forEach
-            values[key] = p.d ?: ""
+            if (!values.containsKey(key)) values[key] = ""
         }
     }
 
@@ -328,7 +329,9 @@ private fun walkJson(obj: Map<*, *>, out: MutableList<ToolOutput>, depth: Int) {
                         out.add(ToolOutput.Audio(v))
                     isTextKey && v.length > 3 && !v.startsWith("http") ->
                         out.add(ToolOutput.Text(v))
-                    kind == "link" -> out.add(ToolOutput.Link(v, k?.toString() ?: ""))
+                    kind == "link" && v.startsWith("http") -> out.add(ToolOutput.Link(v, k?.toString() ?: ""))
+                    !v.startsWith("http") && v.length > 8 && v.length < 500 ->
+                        out.add(ToolOutput.Text("${k}: $v"))
                 }
             }
             is Map<*, *> -> walkJson(v, out, depth + 1)
@@ -397,9 +400,7 @@ private fun RenderOutput(
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Icon(Icons.Default.PlayCircle, null, tint = Color(0xFF4A9EFF), modifier = Modifier.size(64.dp))
                         Spacer(Modifier.height(10.dp))
-                        Text("▶ Tonton Sekarang", fontSize = 15.sp, color = Color.White, fontWeight = FontWeight.Bold)
-                        Spacer(Modifier.height(4.dp))
-                        Text("Tap buat streaming di APK", fontSize = 11.sp, color = Color.White.copy(alpha = 0.6f))
+                        Text("Tonton Sekarang", fontSize = 16.sp, color = Color.White, fontWeight = FontWeight.Bold)
                     }
                 }
                 Spacer(Modifier.height(8.dp))
@@ -442,11 +443,11 @@ private fun RenderOutput(
                 Spacer(Modifier.width(8.dp))
                 Box(
                     modifier = Modifier.clip(RoundedCornerShape(6.dp))
-                        .background(Color(0x334A9EFF))
-                        .clickable { clipboard.setText(AnnotatedString(output.url)) }
-                        .padding(horizontal = 10.dp, vertical = 6.dp)
+                        .background(Color(0xFF4A9EFF))
+                        .clickable { onPlayVideo(output.url, title) }
+                        .padding(horizontal = 12.dp, vertical = 8.dp)
                 ) {
-                    Text("Copy", fontSize = 11.sp, color = Color.White, fontWeight = FontWeight.Bold)
+                    Text("Tonton", fontSize = 12.sp, color = Color.White, fontWeight = FontWeight.Bold)
                 }
             }
         }

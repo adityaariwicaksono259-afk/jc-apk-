@@ -181,14 +181,6 @@ fun MainScreen(
                     }
                 }
             }
-            // Anime Player (paling atas)
-            playerUrl?.let { url ->
-                AnimePlayerScreen(
-                    videoUrl = url,
-                    title = playerTitle,
-                    onBack = { playerUrl = null }
-                )
-            }
             openGenericTool?.let { tool ->
                 Box(
                     modifier = Modifier
@@ -204,6 +196,14 @@ fun MainScreen(
                         }
                     )
                 }
+            }
+            // Anime Player (paling atas)
+            playerUrl?.let { url ->
+                AnimePlayerScreen(
+                    videoUrl = url,
+                    title = playerTitle,
+                    onBack = { playerUrl = null }
+                )
             }
         }
     }
