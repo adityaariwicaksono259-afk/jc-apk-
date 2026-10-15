@@ -220,6 +220,7 @@ class AnimeRepository(private val api: ApiService) {
             when (g) {
                 is List<*> -> g.forEach { if (it is String) genres.add(it) }
                 is String -> genres.addAll(g.split(",").map { it.trim() })
+                else -> {}
             }
         }
 
