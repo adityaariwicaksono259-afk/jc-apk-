@@ -208,12 +208,8 @@ fun AnimeHomeScreen(
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    items(items, key = { it.title + it.url + it.poster.orEmpty() }) { item ->
-                        try {
-                            AnimePosterCard(item = item, onClick = { onAnimeClick(item) })
-                        } catch (e: Throwable) {
-                            app.javin.codex.JavinDebug.log("PosterCard ERROR: ${e.message}")
-                        }
+                    items(items, key = { it.title + it.poster.orEmpty() }) { item ->
+                        AnimePosterCard(item = item, onClick = { onAnimeClick(item) })
                     }
                     item { Spacer(Modifier.height(80.dp)) }
                 }
