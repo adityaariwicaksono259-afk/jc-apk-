@@ -128,11 +128,16 @@ class AnimeRepository(private val api: ApiService) {
                 "samehadaku" -> "link"
                 else -> "details"
             }
+            android.util.Log.d("AnimeRepo", "detail() -> epId=$epId, paramKey=$paramKey, url=$url")
             val r = api.callToolDynamic(epId, mapOf(paramKey to url))
+            android.util.Log.d("AnimeRepo", "detail() HTTP code=${r.code()}, success=${r.isSuccessful}")
             val body = r.body()?.string() ?: return@withContext Result.failure(Exception("Response kosong"))
+            android.util.Log.d("AnimeRepo", "detail() body=${body.take(500)}")
             val detail = parseDetail(body, url, source)
+            android.util.Log.d("AnimeRepo", "detail() parsed: title=${detail.title}, eps=${detail.episodes.size}")
             Result.success(detail)
         } catch (e: Exception) {
+            android.util.Log.e("AnimeRepo", "detail() ERROR: ${e.message}", e)
             Result.failure(e)
         }
     }

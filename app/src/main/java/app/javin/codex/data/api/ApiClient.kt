@@ -21,7 +21,7 @@ object ApiClient {
 
         // ==== Logging (debug) ====
         val logging = HttpLoggingInterceptor().apply {
-            level = HttpLoggingInterceptor.Level.BASIC
+            level = HttpLoggingInterceptor.Level.BODY
         }
 
         // ==== OkHttp with Bearer interceptor ====
