@@ -56,7 +56,7 @@ private fun getCategoryInfo(name: String): CategoryInfo {
 
 private fun getCategoryInfoBase(name: String): CategoryInfo = when (name.lowercase()) {
     "ai" -> CategoryInfo("AI", Icons.Default.SmartToy, "ChatGPT, Claude, Gemini, DeepSeek, dll", "Chat")
-    "anime" -> CategoryInfo("Anime", Icons.Default.Movie, "Anime populer, detail, jadwal rilis")
+    "anime" -> CategoryInfo("Streaming", Icons.Default.Movie, "Anime, drama pendek, film")
     "canvas" -> CategoryInfo("Canvas", Icons.Default.Palette, "AI image generator, canvas editor", "AI")
     "downloader" -> CategoryInfo("Downloader", Icons.Default.Download, "TikTok, YouTube, IG tanpa watermark", "No Watermark")
     "search" -> CategoryInfo("Search", Icons.Default.Search, "Search engine multi-source")
