@@ -128,16 +128,16 @@ class AnimeRepository(private val api: ApiService) {
                 "samehadaku" -> "link"
                 else -> "details"
             }
-            android.util.Log.d("AnimeRepo", "detail() -> epId=$epId, paramKey=$paramKey, url=$url")
+            dbgLog("detail() START epId=$epId paramKey=$paramKey url=$url")
             val r = api.callToolDynamic(epId, mapOf(paramKey to url))
-            android.util.Log.d("AnimeRepo", "detail() HTTP code=${r.code()}, success=${r.isSuccessful}")
+            dbgLog("detail() HTTP=${r.code()} success=${r.isSuccessful}")
             val body = r.body()?.string() ?: return@withContext Result.failure(Exception("Response kosong"))
-            android.util.Log.d("AnimeRepo", "detail() body=${body.take(500)}")
+            dbgLog("detail() body[0..500]=${body.take(500)}")
             val detail = parseDetail(body, url, source)
-            android.util.Log.d("AnimeRepo", "detail() parsed: title=${detail.title}, eps=${detail.episodes.size}")
+            dbgLog("detail() PARSED title=${detail.title} eps=${detail.episodes.size}")
             Result.success(detail)
         } catch (e: Exception) {
-            android.util.Log.e("AnimeRepo", "detail() ERROR: ${e.message}", e)
+            dbgLog("detail() ERROR: ${e.message}")
             Result.failure(e)
         }
     }
@@ -271,5 +271,22 @@ class AnimeRepository(private val api: ApiService) {
             episodes = episodes.reversed(),
             source = source
         )
+    }
+}
+
+/**
+ * Tulis log debug ke /sdcard/Download/anime_debug.log.
+ * Baca via file manager atau Termux: cat /sdcard/Download/anime_debug.log
+ */
+private fun dbgLog(msg: String) {
+    android.util.Log.d("AnimeRepo", msg)
+    try {
+        val ts = java.text.SimpleDateFormat("HH:mm:ss", java.util.Locale.US).format(java.util.Date())
+        val dir = java.io.File("/sdcard/Download")
+        if (!dir.exists()) dir.mkdirs()
+        val file = java.io.File(dir, "anime_debug.log")
+        file.appendText("[$ts] $msg\n")
+    } catch (e: Exception) {
+        android.util.Log.e("AnimeRepo", "dbgLog write error: ${e.message}")
     }
 }
