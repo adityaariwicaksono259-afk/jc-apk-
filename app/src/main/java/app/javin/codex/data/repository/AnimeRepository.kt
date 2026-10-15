@@ -209,10 +209,17 @@ class AnimeRepository(private val api: ApiService) {
         )
 
         val title = (data["title"] ?: data["judul"] ?: data["name"]) as? String ?: "Unknown"
-        val poster = (data["poster"] ?: data["thumbnail"] ?: data["image"]) as? String
-        val synopsis = (data["synopsis"] ?: data["description"] ?: data["desc"]) as? String
-        val status = (data["status"] ?: data["state"]) as? String
-        val totalEp = (data["totalEpisode"] ?: data["total_episode"] ?: data["episodes_count"]) as? String
+        val poster = (data["image"] ?: data["poster"] ?: data["thumbnail"]) as? String
+        val synopsis = (data["sinopsis"] ?: data["synopsis"] ?: data["description"] ?: data["desc"]) as? String
+        // status dari info.Status
+        val info = data["info"] as? Map<*, *>
+        val status = (info?.get("Status") ?: data["status"] ?: data["state"]) as? String
+        // totalEpisodes (bukan totalEpisode)
+        val totalEpNum = (data["totalEpisodes"] ?: data["totalEpisode"]) as? Number
+        val totalEpStr = (data["totalEpisodes"] ?: data["totalEpisode"]) as? String
+        val totalEp = totalEpStr ?: totalEpNum?.toString()
+        // Rating
+        val rating = (data["rating"] as? Number)?.toDouble()
 
         // Genres
         val genres = mutableListOf<String>()
@@ -231,14 +238,16 @@ class AnimeRepository(private val api: ApiService) {
             epsRaw.forEachIndexed { idx, e ->
                 if (e is Map<*, *>) {
                     val epTitle = (e["title"] ?: e["judul"] ?: e["name"]) as? String ?: "Episode ${idx + 1}"
-                    val epUrl = (e["url"] ?: e["link"] ?: e["episodeUrl"]) as? String ?: ""
-                    val epNum = (e["number"] ?: e["episode"] ?: e["eps"]) as? String
+                    val epUrl = (e["episodeUrl"] ?: e["url"] ?: e["link"]) as? String ?: ""
+                    val epNum = (e["episode"] ?: e["number"] ?: e["eps"]) as? String
                     val epDate = (e["date"] ?: e["released"]) as? String
                     if (epUrl.isNotBlank()) {
+                        // Extract nomor dari title (contoh "Episode 24" -> 24)
+                        val numFromTitle = Regex("Episode\\s+(\\d+)").find(epTitle)?.groupValues?.get(1)?.toIntOrNull()
                         episodes.add(AnimeEpisode(
                             title = epTitle,
                             url = epUrl,
-                            number = epNum?.toIntOrNull() ?: (idx + 1),
+                            number = numFromTitle ?: epNum?.toIntOrNull() ?: (idx + 1),
                             date = epDate
                         ))
                     }
