@@ -42,6 +42,25 @@ class AnimeRepository(private val api: ApiService) {
     // ============================================
     // SEARCH — multi-source fallback
     // ============================================
+
+    /**
+     * Search anime by title, per specific source.
+     */
+    suspend fun searchByTitle(query: String, source: String): List<AnimeItem> = withContext(Dispatchers.IO) {
+        try {
+            val (epId, paramKey) = when (source) {
+                "samehadaku" -> epSamehadakuSearch to "query"
+                "otakudesu" -> epOtakudesuSearch to "s"
+                else -> epAnimasuSearch to "search"
+            }
+            val r = api.callToolDynamic(epId, mapOf(paramKey to query))
+            val body = r.body()?.string() ?: return@withContext emptyList()
+            parseAnimeList(body, source)
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
+
     suspend fun search(query: String): Result<List<AnimeItem>> = withContext(Dispatchers.IO) {
         if (query.isBlank()) return@withContext Result.success(emptyList())
 

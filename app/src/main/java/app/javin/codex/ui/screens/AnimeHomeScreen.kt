@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.javin.codex.data.api.ApiClient
 import app.javin.codex.data.model.AnimeItem
+import app.javin.codex.data.repository.AniListRepository
 import app.javin.codex.data.repository.AnimeRepository
 import app.javin.codex.ui.theme.LocalThemeTokens
 import coil.compose.AsyncImage
@@ -54,14 +55,22 @@ fun AnimeHomeScreen(
     LaunchedEffect(selectedTab) {
         loading = true
         errorMsg = null
-        val result = when (selectedTab) {
-            AnimeListTab.ONGOING -> repo.listOngoing()
-            AnimeListTab.COMPLETED -> repo.listCompleted()
-            AnimeListTab.POPULAR -> repo.listPopular()
+        val list = when (selectedTab) {
+            AnimeListTab.ONGOING -> AniListRepository.trending()
+            AnimeListTab.COMPLETED -> AniListRepository.popular(2)
+            AnimeListTab.POPULAR -> AniListRepository.popular(1)
+        }
+        // Convert AnimeMeta -> AnimeItem
+        items = list.map { meta ->
+            AnimeItem(
+                title = meta.title,
+                url = "",  // belum ada slug Animasu
+                poster = meta.cover,
+                source = "anilist",
+                episode = "${meta.episodes ?: "?"} eps · ${meta.status ?: ""}"
+            )
         }
         loading = false
-        result.onSuccess { items = it }
-            .onFailure { errorMsg = it.message ?: "Gagal load" }
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
@@ -109,12 +118,18 @@ fun AnimeHomeScreen(
                 if (searchQuery.length >= 3) {
                     loading = true
                     errorMsg = null
-                    val r = repo.search(searchQuery)
+                    val list = AniListRepository.search(searchQuery)
+                    items = list.map { meta ->
+                        AnimeItem(
+                            title = meta.title,
+                            url = "",
+                            poster = meta.cover,
+                            source = "anilist",
+                            episode = "${meta.episodes ?: "?"} eps · ${meta.status ?: ""}"
+                        )
+                    }
                     loading = false
-                    r.onSuccess { items = it }
-                        .onFailure { errorMsg = it.message }
                 } else if (searchQuery.isBlank()) {
-                    // Balik ke tab list kalau search dikosongin
                     selectedTab = selectedTab
                 }
             }

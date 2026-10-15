@@ -30,6 +30,7 @@ import app.javin.codex.data.api.ApiClient
 import app.javin.codex.data.model.AnimeDetail
 import app.javin.codex.data.model.AnimeEpisode
 import app.javin.codex.data.model.AnimeItem
+import app.javin.codex.data.repository.AniListRepository
 import app.javin.codex.data.repository.AnimeRepository
 import app.javin.codex.data.session.AnimeHistoryManager
 import app.javin.codex.ui.theme.LocalThemeTokens
@@ -59,15 +60,39 @@ fun AnimeDetailScreen(
     }
 
     // Load detail
-    LaunchedEffect(item.url) {
+    LaunchedEffect(item.url, item.title) {
         loading = true
         errorMsg = null
-        val r = repo.detail(item.url, item.source)
-        loading = false
-        r.onSuccess { detail = it }
-            .onFailure { errorMsg = it.message ?: "Gagal load detail" }
 
-        // Update history (user buka anime)
+        try {
+            if (item.source == "anilist" || item.url.isBlank()) {
+                // Source AniList: cari di Animasu, terus Samehadaku, terus Otakudesu
+                var found = false
+                for (source in listOf("animasu", "samehadaku", "otakudesu")) {
+                    val searchResult = repo.searchByTitle(item.title, source)
+                    if (searchResult.isNotEmpty()) {
+                        val url = searchResult.first().url
+                        val r = repo.detail(url, source)
+                        r.onSuccess {
+                            detail = it
+                            found = true
+                        }
+                        if (found) break
+                    }
+                }
+                if (!found) {
+                    errorMsg = "Hasil \"${item.title}\" tidak ditemukan, tunggu next update"
+                }
+            } else {
+                // Source langsung (animasu/samehadaku/otakudesu)
+                val r = repo.detail(item.url, item.source)
+                r.onSuccess { detail = it }
+                    .onFailure { errorMsg = it.message ?: "Gagal load detail" }
+            }
+        } catch (e: Exception) {
+            errorMsg = e.message ?: "Error"
+        }
+        loading = false
         history.updateHistory(item)
     }
 
