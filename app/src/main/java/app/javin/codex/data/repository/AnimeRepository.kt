@@ -53,10 +53,21 @@ class AnimeRepository(private val api: ApiService) {
                 "otakudesu" -> epOtakudesuSearch to "s"
                 else -> epAnimasuSearch to "search"
             }
+            android.util.Log.d("AnimeRepo", "searchByTitle($query, $source) -> $epId")
             val r = api.callToolDynamic(epId, mapOf(paramKey to query))
+            if (!r.isSuccessful) {
+                android.util.Log.w("AnimeRepo", "searchByTitle HTTP ${r.code()}")
+                return@withContext emptyList()
+            }
             val body = r.body()?.string() ?: return@withContext emptyList()
+            // Skip kalau HTML error (bukan JSON)
+            if (body.trimStart().startsWith("<")) {
+                android.util.Log.w("AnimeRepo", "searchByTitle HTML error dari upstream")
+                return@withContext emptyList()
+            }
             parseAnimeList(body, source)
         } catch (e: Exception) {
+            android.util.Log.e("AnimeRepo", "searchByTitle error: ${e.message}")
             emptyList()
         }
     }

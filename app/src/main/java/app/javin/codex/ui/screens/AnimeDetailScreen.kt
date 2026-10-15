@@ -63,8 +63,9 @@ fun AnimeDetailScreen(
     LaunchedEffect(item.url, item.title) {
         loading = true
         errorMsg = null
-
         try {
+            android.util.Log.d("AnimeDetail", "load: ${item.title} (${item.source})")
+
             if (item.source == "anilist" || item.url.isBlank()) {
                 // Source AniList: cari di Animasu, terus Samehadaku, terus Otakudesu
                 var found = false
