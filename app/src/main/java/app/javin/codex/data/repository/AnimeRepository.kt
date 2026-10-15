@@ -195,6 +195,7 @@ class AnimeRepository(private val api: ApiService) {
                 obj.values.forEach { walkList(it, out, source, depth + 1) }
             }
             is List<*> -> obj.forEach { walkList(it, out, source, depth + 1) }
+            else -> {}
         }
     }
 
