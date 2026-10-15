@@ -121,7 +121,7 @@ fun AnimeHomeScreen(
                 if (searchQuery.length >= 3) {
                     loading = true
                     errorMsg = null
-                    val list = AniListRepository.search(searchQuery)
+                    val list = AniListRepository.get().search(searchQuery)
                     items = list.map { meta ->
                         AnimeItem(
                             title = meta.title,

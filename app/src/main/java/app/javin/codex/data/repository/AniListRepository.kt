@@ -14,7 +14,7 @@ import java.util.concurrent.TimeUnit
  */
 class AniListRepository {
 
-    private const val ENDPOINT = "https://graphql.anilist.co"
+    private val ENDPOINT = "https://graphql.anilist.co"
 
     companion object {
         @Volatile
