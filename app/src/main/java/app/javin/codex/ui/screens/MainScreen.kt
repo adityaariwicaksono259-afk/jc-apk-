@@ -60,11 +60,14 @@ fun MainScreen(
     var profileSub by remember { mutableStateOf<ProfileSubScreen>(ProfileSubScreen.Main) }
     var playerUrl by remember { mutableStateOf<String?>(null) }
     var playerTitle by remember { mutableStateOf("Streaming") }
+    var openAnimeHub by remember { mutableStateOf(false) }
     val t = LocalThemeTokens.current
 
     // ==== BackHandler Global — layered back navigation ====
     BackHandler(enabled = true) {
         when {
+            // 0. Anime Hub kebuka → tutup Anime Hub
+            openAnimeHub -> openAnimeHub = false
             // 1. Player kebuka → tutup player
             playerUrl != null -> playerUrl = null
             // 2. Chat AI kebuka → tutup chat
@@ -144,11 +147,15 @@ fun MainScreen(
                         when (selectedTab) {
                             NavTab.HOME -> HomeScreen(
                                 userName = userName,
-                                onCategoryClick = {
-                                    openCategory = it
-                                    openGenericTool = null
-                                    openAmScreen = null
-                                    openChatWithTool = null
+                                onCategoryClick = { cat ->
+                                    if (cat.equals("Anime", ignoreCase = true)) {
+                                        openAnimeHub = true
+                                    } else {
+                                        openCategory = cat
+                                        openGenericTool = null
+                                        openAmScreen = null
+                                        openChatWithTool = null
+                                    }
                                 }
                             )
                             NavTab.CHAT -> PlaceholderTab(
@@ -223,6 +230,22 @@ fun MainScreen(
                     )
                 }
             }
+            // Anime Hub (full screen)
+            if (openAnimeHub) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(t.bg)
+                ) {
+                    AnimeHubScreen(
+                        onBack = { openAnimeHub = false },
+                        onAnimeClick = { item ->
+                            // TODO: navigate ke detail anime
+                        }
+                    )
+                }
+            }
+
             // Anime Player (paling atas)
             playerUrl?.let { url ->
                 AnimePlayerScreen(
