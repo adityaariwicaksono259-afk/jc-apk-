@@ -209,9 +209,17 @@ class AnimeRepository(private val api: ApiService) {
     // ============================================
     private fun parseDetail(body: String, url: String, source: String): AnimeDetail {
         val root = gson.fromJson(body, Map::class.java) as Map<*, *>
-        val data = (root["data"] ?: root) as? Map<*, *> ?: return AnimeDetail(
+
+        // Handle nested: root -> data -> data (backend proxy wrap sekali)
+        var data = (root["data"] ?: root) as? Map<*, *> ?: return AnimeDetail(
             title = "Unknown", url = url, source = source
         )
+
+        // Kalau data.data masih ada dan lebih dalam, pakai yang lebih dalam
+        val inner = data["data"]
+        if (inner is Map<*, *> && (inner["title"] != null || inner["episodes"] != null)) {
+            data = inner
+        }
 
         val title = (data["title"] ?: data["judul"] ?: data["name"]) as? String ?: "Unknown"
         val poster = (data["image"] ?: data["poster"] ?: data["thumbnail"]) as? String
