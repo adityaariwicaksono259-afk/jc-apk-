@@ -69,16 +69,22 @@ fun AnimeDetailScreen(
             if (item.source == "anilist" || item.url.isBlank()) {
                 // Source AniList: cari di Animasu, terus Samehadaku, terus Otakudesu
                 var found = false
-                for (source in listOf("animasu", "samehadaku", "otakudesu")) {
-                    val searchResult = repo.searchByTitle(item.title, source)
-                    if (searchResult.isNotEmpty()) {
-                        val url = searchResult.first().url
-                        val r = repo.detail(url, source)
-                        r.onSuccess {
-                            detail = it
-                            found = true
+                val sources = listOf("animasu", "samehadaku", "otakudesu")
+                for (source in sources) {
+                    try {
+                        val searchResult = repo.searchByTitle(item.title, source)
+                        if (searchResult.isNotEmpty()) {
+                            val url = searchResult.first().url
+                            val r = repo.detail(url, source)
+                            r.onSuccess {
+                                detail = it
+                                found = true
+                            }
+                            if (found) break
                         }
-                        if (found) break
+                    } catch (e: Exception) {
+                        android.util.Log.e("AnimeDetail", "source $source failed: ${e.message}")
+                        // Lanjut ke source berikutnya
                     }
                 }
                 if (!found) {

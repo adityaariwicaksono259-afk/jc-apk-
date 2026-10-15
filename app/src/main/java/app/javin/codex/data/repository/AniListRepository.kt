@@ -12,14 +12,26 @@ import java.util.concurrent.TimeUnit
 /**
  * AniList GraphQL API — metadata anime (search, detail, trending, popular).
  */
-object AniListRepository {
+class AniListRepository {
 
     private const val ENDPOINT = "https://graphql.anilist.co"
 
-    private val client = OkHttpClient.Builder()
-        .connectTimeout(15, TimeUnit.SECONDS)
-        .readTimeout(20, TimeUnit.SECONDS)
-        .build()
+    companion object {
+        @Volatile
+        private var INSTANCE: AniListRepository? = null
+        fun get(): AniListRepository {
+            return INSTANCE ?: synchronized(this) {
+                INSTANCE ?: AniListRepository().also { INSTANCE = it }
+            }
+        }
+    }
+
+    private val client: OkHttpClient by lazy {
+        OkHttpClient.Builder()
+            .connectTimeout(15, TimeUnit.SECONDS)
+            .readTimeout(20, TimeUnit.SECONDS)
+            .build()
+    }
 
     private val gson = Gson()
 
@@ -158,7 +170,8 @@ object AniListRepository {
 
             val resp = client.newCall(req).execute()
             val text = resp.body?.string() ?: return emptyList()
-            android.util.Log.d("AniListRepo", "response=${text.take(300)}")
+            // Log hanya di debug — pindah ke try biar gak crash
+            app.javin.codex.JavinDebug.log("AniList resp len=${text.length}")
 
             val root = gson.fromJson(text, Map::class.java) as Map<*, *>
             val data = root["data"] as? Map<*, *> ?: return emptyList()
@@ -184,8 +197,8 @@ object AniListRepository {
                     season = m["season"] as? String
                 )
             }
-        } catch (e: Exception) {
-            android.util.Log.e("AniListRepo", "error: ${e.message}", e)
+        } catch (e: Throwable) {
+            app.javin.codex.JavinDebug.log("AniList ERROR: ${e.javaClass.simpleName}: ${e.message}")
             return emptyList()
         }
     }

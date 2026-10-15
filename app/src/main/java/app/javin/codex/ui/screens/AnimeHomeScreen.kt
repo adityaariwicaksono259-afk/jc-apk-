@@ -44,6 +44,7 @@ fun AnimeHomeScreen(
     val t = LocalThemeTokens.current
     val scope = rememberCoroutineScope()
     val repo = remember { AnimeRepository(ApiClient.get()) }
+    app.javin.codex.JavinDebug.log("AnimeHomeScreen COMPOSE")
 
     var searchQuery by remember { mutableStateOf("") }
     var selectedTab by remember { mutableStateOf(AnimeListTab.ONGOING) }
@@ -55,11 +56,13 @@ fun AnimeHomeScreen(
     LaunchedEffect(selectedTab) {
         loading = true
         errorMsg = null
+        app.javin.codex.JavinDebug.log("AniList load: tab=$selectedTab")
         val list = when (selectedTab) {
-            AnimeListTab.ONGOING -> AniListRepository.trending()
-            AnimeListTab.COMPLETED -> AniListRepository.popular(2)
-            AnimeListTab.POPULAR -> AniListRepository.popular(1)
+            AnimeListTab.ONGOING -> AniListRepository.get().trending()
+            AnimeListTab.COMPLETED -> AniListRepository.get().popular(2)
+            AnimeListTab.POPULAR -> AniListRepository.get().popular(1)
         }
+        app.javin.codex.JavinDebug.log("AniList loaded: ${list.size} items")
         // Convert AnimeMeta -> AnimeItem
         items = list.map { meta ->
             AnimeItem(
