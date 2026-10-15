@@ -1,5 +1,6 @@
 package app.javin.codex.ui.screens
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -60,6 +61,31 @@ fun MainScreen(
     var playerUrl by remember { mutableStateOf<String?>(null) }
     var playerTitle by remember { mutableStateOf("Streaming") }
     val t = LocalThemeTokens.current
+
+    // ==== BackHandler Global — layered back navigation ====
+    BackHandler(enabled = true) {
+        when {
+            // 1. Player kebuka → tutup player
+            playerUrl != null -> playerUrl = null
+            // 2. Chat AI kebuka → tutup chat
+            openChatWithTool != null -> openChatWithTool = null
+            // 3. AM screen kebuka → tutup AM
+            openAmScreen != null -> openAmScreen = null
+            // 4. Generic tool kebuka → tutup tool
+            openGenericTool != null -> openGenericTool = null
+            // 5. Sub-screen profil → balik ke profil main
+            profileSub !is ProfileSubScreen.Main -> profileSub = ProfileSubScreen.Main
+            // 6. Kategori anime kebuka → tutup kategori
+            openCategory != null -> openCategory = null
+            // 7. Bukan di Home tab → pindah ke Home
+            selectedTab != NavTab.HOME -> selectedTab = NavTab.HOME
+            // 8. Di Home → biarin default (keluar APK)
+            else -> {
+                // Do nothing → sistem handle (keluar APK)
+                // Panggil activity.finish() kalau perlu
+            }
+        }
+    }
 
     AppBackground {
         Box(modifier = Modifier.fillMaxSize()) {
