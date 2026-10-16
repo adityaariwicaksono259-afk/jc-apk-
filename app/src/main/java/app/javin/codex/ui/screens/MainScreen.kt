@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -265,7 +266,7 @@ fun MainScreen(
             }
 
             // Liquid nav bar (floating, di atas konten)
-            if (!openAnimeHub && !openDramaHub && !openStreamingHub &&
+            if (!openAnimeHub && !openDramaHub &&
                 openCategory == null && openGenericTool == null &&
                 openChatWithTool == null && openAmScreen == null &&
                 playerUrl == null && profileSub is ProfileSubScreen.Main) {

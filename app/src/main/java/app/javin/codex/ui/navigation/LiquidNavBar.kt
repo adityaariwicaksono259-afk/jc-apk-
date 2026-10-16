@@ -72,7 +72,7 @@ fun LiquidNavBar(
 }
 
 @Composable
-private fun LiquidNavItem(
+private fun androidx.compose.foundation.layout.RowScope.LiquidNavItem(
     tab: NavTab,
     selected: Boolean,
     onClick: () -> Unit
