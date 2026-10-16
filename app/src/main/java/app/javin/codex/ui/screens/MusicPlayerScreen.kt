@@ -394,7 +394,7 @@ private suspend fun downloadTrack(context: android.content.Context, track: Music
     return withContext(Dispatchers.IO) {
         try {
             val url = track.downloadUrl ?: track.streamUrl ?: return@withContext "URL download gak ada"
-            val fileName = "${track.title} - ${track.artist}.mp3".replace(Regex("[^a-zA-Z0-9 .\-]"), "_")
+            val fileName = "${track.title} - ${track.artist}.mp3".replace(Regex("[^a-zA-Z0-9 .-]"), "_")
 
             val dir = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC), "JavinCodex")
             if (!dir.exists()) dir.mkdirs()
