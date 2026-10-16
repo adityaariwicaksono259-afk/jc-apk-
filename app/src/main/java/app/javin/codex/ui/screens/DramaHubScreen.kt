@@ -191,22 +191,12 @@ fun DramaHubScreen(
                         poster = item["cover"] ?: item["image"] ?: item["poster"],
                         onClick = {
                             val dramaUrl = item["url"] ?: ""
-                            if (dramaUrl.isNotBlank()) {
-                                // Fetch detail dulu (butuh list episode), terus buka Melolo
-                                onDramaClick(
-                                    item["title"] ?: "",
-                                    item["cover"] ?: item["image"] ?: item["poster"],
-                                    dramaUrl,
-                                    currentProvider
-                                )
-                            } else {
-                                onDramaClick(
-                                    item["title"] ?: "",
-                                    item["cover"] ?: item["image"] ?: item["poster"],
-                                    dramaUrl,
-                                    currentProvider
-                                )
-                            }
+                            // Langsung buka Melolo (yang di dalam fetch detail + episode)
+                            onPlayDrama(
+                                item["title"] ?: "",
+                                dramaUrl,
+                                currentProvider
+                            )
                         }
                     )
                 }

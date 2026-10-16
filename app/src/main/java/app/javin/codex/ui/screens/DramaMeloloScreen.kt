@@ -21,6 +21,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -43,24 +44,52 @@ import app.javin.codex.ui.theme.LocalThemeTokens
 fun DramaMeloloScreen(
     title: String,
     episodes: List<Map<String, String>>,
+    detailUrl: String? = null,
+    provider: String = "dramabox",
     onBack: () -> Unit = {},
     onEpisodesLoaded: (List<String>, List<String>) -> Unit = { _, _ -> }
 ) {
     val t = LocalThemeTokens.current
     val listState = rememberLazyListState()
+    val scope = rememberCoroutineScope()
+    val repo = remember { AnimeRepository(ApiClient.get()) }
     var currentIndex by remember { mutableStateOf(0) }
+    var localEpisodes by remember { mutableStateOf(episodes) }
+    var loadingDetail by remember { mutableStateOf(false) }
 
     BackHandler(enabled = true) { onBack() }
 
-    LaunchedEffect(episodes) {
-        onEpisodesLoaded(
-            episodes.map { it["url"] ?: "" },
-            episodes.map { it["title"] ?: "" }
-        )
+    // Auto-fetch episode kalau kosong + ada detailUrl
+    LaunchedEffect(detailUrl, episodes) {
+        if (localEpisodes.isEmpty() && !detailUrl.isNullOrBlank()) {
+            loadingDetail = true
+            try {
+                val epId = when (provider) {
+                    "reelshort" -> "ep073"
+                    else -> "ep061"
+                }
+                val r = repo.callRawEndpoint(epId, mapOf("url" to detailUrl))
+                // Parse episode
+                val parsed = parseEpisodesFromJson(r)
+                localEpisodes = parsed
+                onEpisodesLoaded(
+                    parsed.map { it["url"] ?: "" },
+                    parsed.map { it["title"] ?: "" }
+                )
+            } catch (e: Exception) {
+                // ignore
+            }
+            loadingDetail = false
+        } else if (localEpisodes.isNotEmpty()) {
+            onEpisodesLoaded(
+                localEpisodes.map { it["url"] ?: "" },
+                localEpisodes.map { it["title"] ?: "" }
+            )
+        }
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        if (episodes.isEmpty()) {
+        if (loadingDetail || localEpisodes.isEmpty()) {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator(color = t.accent, strokeWidth = 3.dp)
             }
@@ -69,7 +98,7 @@ fun DramaMeloloScreen(
                 state = listState,
                 modifier = Modifier.fillMaxSize()
             ) {
-                itemsIndexed(episodes, key = { _, ep -> ep["url"] ?: "ep" }) { idx, ep ->
+                itemsIndexed(localEpisodes, key = { _, ep -> ep["url"] ?: "ep" }) { idx, ep ->
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -125,7 +154,7 @@ fun DramaMeloloScreen(
                     maxLines = 1
                 )
                 Text(
-                    text = "Episode ${currentIndex + 1}/${episodes.size}",
+                    text = "Episode ${currentIndex + 1}/${localEpisodes.size}",
                     fontSize = 11.sp,
                     color = Color.White.copy(alpha = 0.7f)
                 )

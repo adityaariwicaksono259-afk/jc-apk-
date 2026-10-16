@@ -46,7 +46,7 @@ fun ProfileScreen(
     val session = remember { SessionManager.getInstance(context) }
     val t = LocalThemeTokens.current
     val themeManager = remember { ThemeManager.getInstance(context) }
-    var currentTheme by remember { mutableStateOf(ThemeMode.SKELMORPHISM) }
+    var currentTheme by remember { mutableStateOf(ThemeMode.NEOBRUTALISM) }
     var showThemeDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
@@ -135,7 +135,7 @@ fun ProfileScreen(
                     Icon(
                         imageVector = Icons.Default.Edit,
                         contentDescription = "Edit",
-                        tint = Color.White,
+                        tint = t.textPrimary,
                         modifier = Modifier.size(16.dp)
                     )
                 }
@@ -158,7 +158,7 @@ fun ProfileScreen(
                 Text(
                     text = "@$userCode",
                     fontSize = 13.sp,
-                    color = Color.White.copy(alpha = 0.5f)
+                    color = t.textMuted
                 )
                 Spacer(Modifier.height(8.dp))
             }
@@ -167,7 +167,7 @@ fun ProfileScreen(
             Text(
                 text = userBio.ifBlank { "Belum ada bio" },
                 fontSize = 14.sp,
-                color = Color.White.copy(alpha = 0.7f),
+                color = t.textSecondary,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(horizontal = 40.dp)
             )
@@ -186,14 +186,14 @@ fun ProfileScreen(
                 Icon(
                     imageVector = Icons.Default.DateRange,
                     contentDescription = null,
-                    tint = Color.White.copy(alpha = 0.6f),
+                    tint = t.textMuted,
                     modifier = Modifier.size(14.dp)
                 )
                 Spacer(Modifier.width(6.dp))
                 Text(
                     text = "Bergabung ${userJoined.ifBlank { "baru-baru ini" }}",
                     fontSize = 12.sp,
-                    color = Color.White.copy(alpha = 0.7f)
+                    color = t.textSecondary
                 )
             }
         }
@@ -208,7 +208,7 @@ fun ProfileScreen(
             label = "Tema",
             subtitle = when (currentTheme) {
                 ThemeMode.NEOBRUTALISM -> "NeoBrutalism (soft)"
-                ThemeMode.SKELMORPHISM -> "Skeuomorphism (default)"
+                ThemeMode.NEOBRUTALISM -> "Skeuomorphism (default)"
             },
             onClick = { showThemeDialog = true }
         )
@@ -256,72 +256,6 @@ fun ProfileScreen(
     // ============================================
     // THEME DIALOG
     // ============================================
-    if (showThemeDialog) {
-        AlertDialog(
-            onDismissRequest = { showThemeDialog = false },
-            title = { Text("Pilih Tema", fontWeight = FontWeight.Bold) },
-            text = {
-                Column {
-
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable {
-                                scope.launch { themeManager.setTheme(ThemeMode.NEOBRUTALISM) }
-                                currentTheme = ThemeMode.NEOBRUTALISM
-                                showThemeDialog = false
-                            }
-                            .padding(vertical = 12.dp, horizontal = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        RadioButton(
-                            selected = currentTheme == ThemeMode.NEOBRUTALISM,
-                            onClick = {
-                                scope.launch { themeManager.setTheme(ThemeMode.NEOBRUTALISM) }
-                                currentTheme = ThemeMode.NEOBRUTALISM
-                                showThemeDialog = false
-                            }
-                        )
-                        Spacer(Modifier.width(8.dp))
-                        Column {
-                            Text("NeoBrutalism", fontWeight = if (currentTheme == ThemeMode.NEOBRUTALISM) FontWeight.Bold else FontWeight.Normal)
-                            Text("Cream + border tebal (soft)", fontSize = 11.sp, color = Color.Gray)
-                        }
-                    }
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable {
-                                scope.launch { themeManager.setTheme(ThemeMode.SKELMORPHISM) }
-                                currentTheme = ThemeMode.SKELMORPHISM
-                                showThemeDialog = false
-                            }
-                            .padding(vertical = 12.dp, horizontal = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        RadioButton(
-                            selected = currentTheme == ThemeMode.SKELMORPHISM,
-                            onClick = {
-                                scope.launch { themeManager.setTheme(ThemeMode.SKELMORPHISM) }
-                                currentTheme = ThemeMode.SKELMORPHISM
-                                showThemeDialog = false
-                            }
-                        )
-                        Spacer(Modifier.width(8.dp))
-                        Column {
-                            Text("Skeuomorphism", fontWeight = if (currentTheme == ThemeMode.SKELMORPHISM) FontWeight.Bold else FontWeight.Normal)
-                            Text("Soft gradient + shadow", fontSize = 11.sp, color = Color.Gray)
-                        }
-                    }
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = { showThemeDialog = false }) {
-                    Text("Tutup")
-                }
-            }
-        )
-    }
 
         // ============================================
         // LOGOUT BUTTON
@@ -392,7 +326,7 @@ private fun SectionTitle(text: String) {
             text = text.uppercase(),
             fontSize = 11.sp,
             fontWeight = FontWeight.Bold,
-            color = Color.White.copy(alpha = 0.6f),
+            color = t.textMuted,
             letterSpacing = 1.5.sp
         )
     }
@@ -408,7 +342,7 @@ private fun GlassMenuItem(
     val t = LocalThemeTokens.current
 
     // Skeuomorphism: pakai SkeuCard
-    if (t.mode == app.javin.codex.data.session.ThemeMode.SKELMORPHISM) {
+    if (t.mode == app.javin.codex.data.session.ThemeMode.NEOBRUTALISM) {
         SkeuCard(
             modifier = Modifier.padding(horizontal = 20.dp, vertical = 5.dp),
             onClick = onClick,
@@ -492,12 +426,12 @@ private fun GlassMenuItem(
                 text = label,
                 fontSize = 15.sp,
                 fontWeight = FontWeight.SemiBold,
-                color = Color(0xFFF0F0F5)
+                color = t.textPrimary
             )
             Text(
                 text = subtitle,
                 fontSize = 12.sp,
-                color = Color.White.copy(alpha = 0.5f)
+                color = t.textMuted
             )
         }
 

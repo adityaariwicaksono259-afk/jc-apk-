@@ -238,7 +238,7 @@ fun HomeScreen(
                                 }
                             },
                             colors = ButtonDefaults.buttonColors(containerColor = t.accentSoft)
-                        ) { Text("Coba Lagi", color = Color.White) }
+                        ) { Text("Coba Lagi", color = t.textPrimary) }
                     }
                 }
             }
@@ -343,7 +343,7 @@ private fun CategoryRow(info: CategoryInfo, onClick: () -> Unit) {
     }
 
     // ===== Wrapper: SkeuCard atau Row =====
-    if (t.mode == app.javin.codex.data.session.ThemeMode.SKELMORPHISM) {
+    if (false) {
         SkeuCard(
             modifier = Modifier.padding(horizontal = 4.dp, vertical = 6.dp),
             onClick = onClick,

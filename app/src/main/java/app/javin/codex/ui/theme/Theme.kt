@@ -63,20 +63,6 @@ private val GlassScheme = darkColorScheme(
     outline = Color(0x26FFFFFF)
 )
 
-private val SkelScheme = darkColorScheme(
-    primary = Color(0xFF5B8DEF),
-    onPrimary = Color.White,
-    secondary = Color(0xFF8DB4F0),
-    onSecondary = Color(0xFF1A1F2E),
-    tertiary = Color(0xFFB895F0),
-    onTertiary = Color.White,
-    background = Color(0xFF1E2230),
-    onBackground = Color(0xFFE8EAF0),
-    surface = Color(0xFF2A2F40),
-    onSurface = Color(0xFFE8EAF0),
-    outline = Color(0xFF3A4154)
-)
-
 private val NeoScheme = lightColorScheme(
     primary = Color(0xFFFFD166),
     onPrimary = Color(0xFF1A1A1A),
@@ -92,7 +78,7 @@ private val NeoScheme = lightColorScheme(
 )
 
 val LegacyGlassTokens = ThemeTokens(
-    mode = ThemeMode.SKELMORPHISM, isNeo = false,
+    mode = ThemeMode.NEOBRUTALISM, isNeo = true,
     bg = Color(0xFF0F0F1E),
     bgGradient = listOf(Color(0xFF0F0F1E), Color(0xFF1A1A2E), Color(0xFF16213E), Color(0xFF0F0F1E)),
     bokeh = true,
@@ -138,8 +124,8 @@ val NeoTokens = ThemeTokens(
     scheme = NeoScheme
 )
 
-val SkelTokens = ThemeTokens(
-    mode = ThemeMode.SKELMORPHISM, isNeo = false,
+val NeoTokens = ThemeTokens(
+    mode = ThemeMode.NEOBRUTALISM, isNeo = true,
     bg = Color(0xFF1E2230),
     bgGradient = listOf(Color(0xFF232838), Color(0xFF1A1F2E), Color(0xFF141825)),
     bokeh = false,
@@ -165,7 +151,7 @@ fun JavinCodexTheme(
 ) {
     val tokens = when (mode) {
         ThemeMode.NEOBRUTALISM -> NeoTokens
-        else -> SkelTokens
+        else -> NeoTokens
     }
     val isDark = mode != ThemeMode.NEOBRUTALISM
     val view = LocalView.current

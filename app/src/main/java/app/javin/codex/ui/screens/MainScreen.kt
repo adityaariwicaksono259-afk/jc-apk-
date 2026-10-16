@@ -69,6 +69,8 @@ fun MainScreen(
     var dramaUrl by remember { mutableStateOf<String?>(null) }
     var meloloTitle by remember { mutableStateOf<String?>(null) }
     var meloloEpisodes by remember { mutableStateOf<List<Map<String, String>>>(emptyList()) }
+    var meloloDetailUrl by remember { mutableStateOf<String?>(null) }
+    var meloloProvider by remember { mutableStateOf("dramabox") }
     var dramaProvider by remember { mutableStateOf("dramabox") }
     var dramaPlayerUrl by remember { mutableStateOf<String?>(null) }
     var dramaPlayerTitle by remember { mutableStateOf("Episode") }
@@ -88,7 +90,10 @@ fun MainScreen(
                 dramaPlayerUrl = null
                 dramaEpisodeIndex = -1
             }
-            meloloTitle != null -> meloloTitle = null
+            meloloTitle != null -> {
+                meloloTitle = null
+                meloloDetailUrl = null
+            }
             dramaUrl != null -> dramaUrl = null
             openDramaHub -> openDramaHub = false
             // 1. Player kebuka → tutup player
@@ -270,13 +275,11 @@ fun MainScreen(
                             dramaProvider = provider
                         },
                         onPlayDrama = { title, url, provider ->
-                            dramaTitle = title
-                            dramaUrl = url
-                            dramaProvider = provider
-                            // Skip detail — langsung ke Melolo
+                            // Langsung ke Melolo mode (fetch episode di dalam DramaMeloloLoader)
                             meloloTitle = title
                             meloloEpisodes = emptyList()
-                            // Trigger load di belakang
+                            meloloDetailUrl = url
+                            meloloProvider = provider
                         }
                     )
                 }
@@ -287,7 +290,12 @@ fun MainScreen(
                 DramaMeloloScreen(
                     title = title,
                     episodes = meloloEpisodes,
-                    onBack = { meloloTitle = null }
+                    detailUrl = meloloDetailUrl,
+                    provider = meloloProvider,
+                    onBack = {
+                        meloloTitle = null
+                        meloloDetailUrl = null
+                    }
                 )
             }
 

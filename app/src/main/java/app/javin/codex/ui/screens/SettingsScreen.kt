@@ -40,7 +40,7 @@ fun SettingsScreen(
     val themeManager = remember { ThemeManager.getInstance(context) }
     val t = LocalThemeTokens.current
 
-    var currentTheme by remember { mutableStateOf(ThemeMode.SKELMORPHISM) }
+    var currentTheme by remember { mutableStateOf(ThemeMode.NEOBRUTALISM) }
     var isOnline by remember { mutableStateOf(checkInternet(context)) }
     var showThemeDialog by remember { mutableStateOf(false) }
     var showAboutDialog by remember { mutableStateOf(false) }
@@ -116,10 +116,7 @@ fun SettingsScreen(
         SettingsItem(
             icon = Icons.Default.DarkMode,
             label = "Tema",
-            subtitle = when (currentTheme) {
-                ThemeMode.NEOBRUTALISM -> "NeoBrutalism (soft)"
-                ThemeMode.SKELMORPHISM -> "Skeuomorphism (default)"
-            },
+            subtitle = "NeoBrutalism",
             onClick = { showThemeDialog = true }
         )
 
