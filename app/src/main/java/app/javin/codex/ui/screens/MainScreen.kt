@@ -64,6 +64,15 @@ fun MainScreen(
     var playerUrl by remember { mutableStateOf<String?>(null) }
     var playerTitle by remember { mutableStateOf("Streaming") }
     var openDramaHub by remember { mutableStateOf(false) }
+    var dramaTitle by remember { mutableStateOf<String?>(null) }
+    var dramaPoster by remember { mutableStateOf<String?>(null) }
+    var dramaUrl by remember { mutableStateOf<String?>(null) }
+    var dramaProvider by remember { mutableStateOf("dramabox") }
+    var dramaPlayerUrl by remember { mutableStateOf<String?>(null) }
+    var dramaPlayerTitle by remember { mutableStateOf("Episode") }
+    var dramaEpisodeUrls by remember { mutableStateOf<List<String>>(emptyList()) }
+    var dramaEpisodeTitles by remember { mutableStateOf<List<String>>(emptyList()) }
+    var dramaEpisodeIndex by remember { mutableStateOf(-1) }
     var openAnimeHub by remember { mutableStateOf(false) }
     val t = LocalThemeTokens.current
 
@@ -73,6 +82,11 @@ fun MainScreen(
             // 0. Anime Hub kebuka → tutup Anime Hub
             openAnimeHub -> openAnimeHub = false
             // 0b. Streaming Hub kebuka → tutup Streaming Hub
+            dramaPlayerUrl != null -> {
+                dramaPlayerUrl = null
+                dramaEpisodeIndex = -1
+            }
+            dramaUrl != null -> dramaUrl = null
             openDramaHub -> openDramaHub = false
             // 1. Player kebuka → tutup player
             playerUrl != null -> playerUrl = null
@@ -245,9 +259,58 @@ fun MainScreen(
                         .background(t.bg)
                 ) {
                     DramaHubScreen(
-                        onBack = { openDramaHub = false }
+                        onBack = { openDramaHub = false },
+                        onDramaClick = { title, poster, url, provider ->
+                            dramaTitle = title
+                            dramaPoster = poster
+                            dramaUrl = url
+                            dramaProvider = provider
+                        }
                     )
                 }
+            }
+
+            // Drama Detail (full screen)
+            dramaUrl?.let { url ->
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(t.bg)
+                ) {
+                    DramaDetailScreen(
+                        title = dramaTitle ?: "",
+                        poster = dramaPoster,
+                        url = url,
+                        provider = dramaProvider,
+                        onBack = { dramaUrl = null },
+                        onPlayEpisode = { epUrl, epTitle, idx ->
+                            dramaPlayerUrl = epUrl
+                            dramaPlayerTitle = epTitle
+                            dramaEpisodeIndex = idx
+                        },
+                        onEpisodesLoaded = { urls, titles ->
+                            dramaEpisodeUrls = urls
+                            dramaEpisodeTitles = titles
+                        }
+                    )
+                }
+            }
+
+            // Drama Player
+            dramaPlayerUrl?.let { url ->
+                AnimePlayerScreen(
+                    videoUrl = url,
+                    title = dramaPlayerTitle,
+                    onBack = { dramaPlayerUrl = null },
+                    onNextEpisode = {
+                        val nextIdx = dramaEpisodeIndex + 1
+                        if (nextIdx < dramaEpisodeUrls.size) {
+                            dramaEpisodeIndex = nextIdx
+                            dramaPlayerUrl = dramaEpisodeUrls[nextIdx]
+                            dramaPlayerTitle = dramaEpisodeTitles.getOrNull(nextIdx) ?: "Episode ${nextIdx + 1}"
+                        }
+                    }
+                )
             }
 
             // Anime Hub (full screen)

@@ -38,20 +38,21 @@ fun LiquidNavBar(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 12.dp),
+            .padding(horizontal = 20.dp, vertical = 4.dp)
+            .padding(bottom = 8.dp),
         contentAlignment = Alignment.Center
     ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(70.dp)
+                .height(62.dp)
                 .shadow(
                     elevation = 12.dp,
-                    shape = RoundedCornerShape(35.dp),
+                    shape = RoundedCornerShape(31.dp),
                     ambientColor = Color.Black.copy(alpha = 0.5f),
                     spotColor = Color.Black.copy(alpha = 0.6f)
                 )
-                .clip(RoundedCornerShape(35.dp))
+                .clip(RoundedCornerShape(31.dp))
                 .background(t.cardBg.copy(alpha = 0.98f))
         ) {
             Row(
@@ -82,7 +83,7 @@ private fun androidx.compose.foundation.layout.RowScope.LiquidNavItem(
 
     // Animasi: icon naik + background pill
     val offsetY by animateDpAsState(
-        targetValue = if (selected) (-24).dp else 0.dp,
+        targetValue = if (selected) (-20).dp else 0.dp,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioMediumBouncy,
             stiffness = Spring.StiffnessLow
@@ -126,7 +127,7 @@ private fun androidx.compose.foundation.layout.RowScope.LiquidNavItem(
         ) {
             Box(
                 modifier = Modifier
-                    .size(if (selected) 48.dp else 40.dp)
+                    .size(if (selected) 44.dp else 38.dp)
                     .clip(CircleShape)
                     .background(pillColor),
                 contentAlignment = Alignment.Center

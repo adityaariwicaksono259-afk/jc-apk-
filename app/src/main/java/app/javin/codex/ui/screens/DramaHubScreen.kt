@@ -37,7 +37,8 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun DramaHubScreen(
-    onBack: () -> Unit = {}
+    onBack: () -> Unit = {},
+    onDramaClick: (title: String, poster: String?, url: String, provider: String) -> Unit = { _, _, _, _ -> }
 ) {
     val t = LocalThemeTokens.current
     val scope = rememberCoroutineScope()
@@ -51,22 +52,32 @@ fun DramaHubScreen(
 
     BackHandler(enabled = true) { onBack() }
 
-    // Load home drama
+    // Load home drama (hanya kalau search kosong atau >= 3 karakter)
     LaunchedEffect(currentProvider, searchQuery) {
+        val query = searchQuery.trim()
+        if (query.isNotEmpty() && query.length < 3) return@LaunchedEffect
+
         loading = true
         errorMsg = null
         try {
             val epId = when (currentProvider) {
-                "reelshort" -> if (searchQuery.isBlank()) "ep074" else "ep075"
-                else -> if (searchQuery.isBlank()) "ep062" else "ep063"
+                "reelshort" -> if (query.isBlank()) "ep074" else "ep075"
+                else -> if (query.isBlank()) "ep062" else "ep063"
             }
-            val params = if (searchQuery.isBlank()) emptyMap()
-                else mapOf("q" to searchQuery)
+            val params = if (query.isBlank()) emptyMap()
+                else mapOf("q" to query)
 
             val r = repo.callRawEndpoint(epId, params)
             items = parseDramaItems(r)
+
+            if (items.isEmpty() && query.isNotBlank()) {
+                errorMsg = "Hasil \"$query\" tidak ditemukan"
+            }
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            // Ignore: user lagi ngetik cepet
+            throw e
         } catch (e: Exception) {
-            errorMsg = e.message
+            errorMsg = e.message ?: "Gagal load"
         }
         loading = false
     }
@@ -177,7 +188,14 @@ fun DramaHubScreen(
                     DramaPosterCard(
                         title = item["title"] ?: "",
                         poster = item["cover"] ?: item["image"] ?: item["poster"],
-                        onClick = { /* TODO: detail */ }
+                        onClick = {
+                            onDramaClick(
+                                item["title"] ?: "",
+                                item["cover"] ?: item["image"] ?: item["poster"],
+                                item["url"] ?: "",
+                                currentProvider
+                            )
+                        }
                     )
                 }
             }
