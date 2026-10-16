@@ -35,11 +35,11 @@ class ThemeManager(private val context: Context) {
         cachedMode?.let { return it }
         return try {
             val prefs = context.themeDataStore.data.first()
-            val raw = prefs[KEY_THEME] ?: "SKELMORPHISM"
-            val mode = try { ThemeMode.valueOf(raw) } catch (e: Exception) { ThemeMode.SKELMORPHISM }
+            val raw = prefs[KEY_THEME] ?: "NEOBRUTALISM"
+            val mode = try { ThemeMode.valueOf(raw) } catch (e: Exception) { ThemeMode.NEOBRUTALISM }
             cachedMode = mode
             mode
-        } catch (e: Exception) { ThemeMode.SKELMORPHISM }
+        } catch (e: Exception) { ThemeMode.NEOBRUTALISM }
     }
 
     fun getThemeSync(): ThemeMode {
@@ -53,7 +53,7 @@ class ThemeManager(private val context: Context) {
     }
 
     val themeFlow: Flow<ThemeMode> = context.themeDataStore.data.map { prefs ->
-        val raw = prefs[KEY_THEME] ?: "SKELMORPHISM"
-        try { ThemeMode.valueOf(raw) } catch (e: Exception) { ThemeMode.SKELMORPHISM }
+        val raw = prefs[KEY_THEME] ?: "NEOBRUTALISM"
+        try { ThemeMode.valueOf(raw) } catch (e: Exception) { ThemeMode.NEOBRUTALISM }
     }
 }

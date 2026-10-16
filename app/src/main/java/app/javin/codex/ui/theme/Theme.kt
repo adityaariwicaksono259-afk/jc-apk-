@@ -110,25 +110,30 @@ val LegacyGlassTokens = ThemeTokens(
 
 val NeoTokens = ThemeTokens(
     mode = ThemeMode.NEOBRUTALISM, isNeo = true,
-    bg = Color(0xFFF5F0E8),
+    bg = Color(0xFFFDF6E3),                       // cream lembut
     bgGradient = null,
     bokeh = false,
-    cardBg = Color.White, cardBorder = Color(0xFF1A1A1A), cardBorderWidth = 2.5.dp,
-    cornerRadius = 14.dp, hasShadow = true, shadowColor = Color(0xFF1A1A1A), shadowOffset = 4.dp,
-    textPrimary = Color(0xFF1A1A1A), textSecondary = Color(0xFF3A3A3A), textMuted = Color(0xFF6A6A6A),
-    accent = Color(0xFFFFD166), accentOn = Color(0xFF1A1A1A), accentSoft = Color(0xFFFFE9A8),
-    iconBg = Color(0xFFA0D8B3), iconTint = Color(0xFF1A1A1A),
-    divider = Color(0xFFE0D8C8),
-    searchBg = Color.White, searchBorder = Color(0xFF1A1A1A),
-    searchText = Color(0xFF1A1A1A), searchPlaceholder = Color(0xFF8A8A8A),
-    success = Color(0xFF4CAF50), danger = Color(0xFFE76F51),
+    cardBg = Color.White, cardBorder = Color(0xFF0A0A0A), cardBorderWidth = 3.dp,
+    cornerRadius = 12.dp, hasShadow = true, shadowColor = Color(0xFF0A0A0A), shadowOffset = 5.dp,
+    textPrimary = Color(0xFF0A0A0A), textSecondary = Color(0xFF2A2A2A), textMuted = Color(0xFF5A5A5A),
+    accent = Color(0xFF00D9D9),                   // cyan utama
+    accentOn = Color(0xFF0A0A0A),
+    accentSoft = Color(0xFFB3F5F5),
+    iconBg = Color(0xFFFFD166),                   // kuning cerah
+    iconTint = Color(0xFF0A0A0A),
+    divider = Color(0xFF0A0A0A).copy(alpha = 0.15f),
+    searchBg = Color.White, searchBorder = Color(0xFF0A0A0A),
+    searchText = Color(0xFF0A0A0A), searchPlaceholder = Color(0xFF6A6A6A),
+    success = Color(0xFF22C55E), danger = Color(0xFFEF4444),
     neoPalette = listOf(
+        Color(0xFF00D9D9),   // cyan
+        Color(0xFFFF5252),   // merah cerah
         Color(0xFFFFD166),   // kuning
-        Color(0xFFFF8FA3),   // pink
-        Color(0xFF7BC9FF),   // biru langit
-        Color(0xFFA8E6A1),   // lime
-        Color(0xFFFFA552),   // orange
-        Color(0xFFC9A7FF)    // lavender
+        Color(0xFF22C55E),   // hijau
+        Color(0xFFFF8FB1),   // pink
+        Color(0xFF9D7BFF),   // ungu
+        Color(0xFFFF9F43),   // orange
+        Color(0xFF5B9BFF)    // biru
     ),
     scheme = NeoScheme
 )
@@ -151,11 +156,11 @@ val SkelTokens = ThemeTokens(
     scheme = SkelScheme
 )
 
-val LocalThemeTokens = staticCompositionLocalOf { SkelTokens }
+val LocalThemeTokens = staticCompositionLocalOf { NeoTokens }
 
 @Composable
 fun JavinCodexTheme(
-    mode: ThemeMode = ThemeMode.SKELMORPHISM,
+    mode: ThemeMode = ThemeMode.NEOBRUTALISM,
     content: @Composable () -> Unit
 ) {
     val tokens = when (mode) {
