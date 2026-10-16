@@ -41,7 +41,9 @@ fun DramaDetailScreen(
     provider: String,
     onBack: () -> Unit = {},
     onPlayEpisode: (url: String, title: String, index: Int) -> Unit = { _, _, _ -> },
-    onEpisodesLoaded: (List<String>, List<String>) -> Unit = { _, _ -> }
+    onEpisodesLoaded: (List<String>, List<String>) -> Unit = { _, _ -> },
+    onMeloloMode: (title: String, episodes: List<Map<String, String>>) -> Unit = { _, _ -> },
+    autoMelolo: Boolean = true
 ) {
     val t = LocalThemeTokens.current
     val scope = rememberCoroutineScope()
@@ -69,6 +71,10 @@ fun DramaDetailScreen(
                 parsed.first.map { it["url"] ?: "" },
                 parsed.first.map { it["title"] ?: "" }
             )
+            // Auto masuk Melolo kalau dipanggil dari Hub
+            if (autoMelolo && parsed.first.isNotEmpty()) {
+                onMeloloMode(title, parsed.first)
+            }
         } catch (e: Exception) {
             errorMsg = e.message ?: "Gagal load"
         }
@@ -176,12 +182,7 @@ fun DramaDetailScreen(
                                     .clip(RoundedCornerShape(12.dp))
                                     .background(t.accent)
                                     .clickable {
-                                        val ep = episodes.first()
-                                        onPlayEpisode(
-                                            ep["url"] ?: "",
-                                            ep["title"] ?: "Episode 1",
-                                            0
-                                        )
+                                        onMeloloMode(title, episodes)
                                     },
                                 contentAlignment = Alignment.Center
                             ) {
@@ -194,7 +195,7 @@ fun DramaDetailScreen(
                                     )
                                     Spacer(Modifier.width(8.dp))
                                     Text(
-                                        text = "Tonton Episode 1",
+                                        text = "Tonton (Melolo Mode)",
                                         color = t.accentOn,
                                         fontSize = 15.sp,
                                         fontWeight = FontWeight.Bold

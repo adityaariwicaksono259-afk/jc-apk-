@@ -67,6 +67,8 @@ fun MainScreen(
     var dramaTitle by remember { mutableStateOf<String?>(null) }
     var dramaPoster by remember { mutableStateOf<String?>(null) }
     var dramaUrl by remember { mutableStateOf<String?>(null) }
+    var meloloTitle by remember { mutableStateOf<String?>(null) }
+    var meloloEpisodes by remember { mutableStateOf<List<Map<String, String>>>(emptyList()) }
     var dramaProvider by remember { mutableStateOf("dramabox") }
     var dramaPlayerUrl by remember { mutableStateOf<String?>(null) }
     var dramaPlayerTitle by remember { mutableStateOf("Episode") }
@@ -86,6 +88,7 @@ fun MainScreen(
                 dramaPlayerUrl = null
                 dramaEpisodeIndex = -1
             }
+            meloloTitle != null -> meloloTitle = null
             dramaUrl != null -> dramaUrl = null
             openDramaHub -> openDramaHub = false
             // 1. Player kebuka → tutup player
@@ -265,9 +268,27 @@ fun MainScreen(
                             dramaPoster = poster
                             dramaUrl = url
                             dramaProvider = provider
+                        },
+                        onPlayDrama = { title, url, provider ->
+                            dramaTitle = title
+                            dramaUrl = url
+                            dramaProvider = provider
+                            // Skip detail — langsung ke Melolo
+                            meloloTitle = title
+                            meloloEpisodes = emptyList()
+                            // Trigger load di belakang
                         }
                     )
                 }
+            }
+
+            // Drama Melolo Mode
+            meloloTitle?.let { title ->
+                DramaMeloloScreen(
+                    title = title,
+                    episodes = meloloEpisodes,
+                    onBack = { meloloTitle = null }
+                )
             }
 
             // Drama Detail (full screen)
@@ -291,7 +312,12 @@ fun MainScreen(
                         onEpisodesLoaded = { urls, titles ->
                             dramaEpisodeUrls = urls
                             dramaEpisodeTitles = titles
-                        }
+                        },
+                        onMeloloMode = { t, eps ->
+                            meloloTitle = t
+                            meloloEpisodes = eps
+                        },
+                        autoMelolo = true
                     )
                 }
             }

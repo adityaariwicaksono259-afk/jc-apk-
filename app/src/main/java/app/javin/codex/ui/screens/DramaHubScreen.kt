@@ -38,7 +38,8 @@ import kotlinx.coroutines.launch
 @Composable
 fun DramaHubScreen(
     onBack: () -> Unit = {},
-    onDramaClick: (title: String, poster: String?, url: String, provider: String) -> Unit = { _, _, _, _ -> }
+    onDramaClick: (title: String, poster: String?, url: String, provider: String) -> Unit = { _, _, _, _ -> },
+    onPlayDrama: (title: String, url: String, provider: String) -> Unit = { _, _, _ -> }
 ) {
     val t = LocalThemeTokens.current
     val scope = rememberCoroutineScope()
@@ -189,12 +190,23 @@ fun DramaHubScreen(
                         title = item["title"] ?: "",
                         poster = item["cover"] ?: item["image"] ?: item["poster"],
                         onClick = {
-                            onDramaClick(
-                                item["title"] ?: "",
-                                item["cover"] ?: item["image"] ?: item["poster"],
-                                item["url"] ?: "",
-                                currentProvider
-                            )
+                            val dramaUrl = item["url"] ?: ""
+                            if (dramaUrl.isNotBlank()) {
+                                // Fetch detail dulu (butuh list episode), terus buka Melolo
+                                onDramaClick(
+                                    item["title"] ?: "",
+                                    item["cover"] ?: item["image"] ?: item["poster"],
+                                    dramaUrl,
+                                    currentProvider
+                                )
+                            } else {
+                                onDramaClick(
+                                    item["title"] ?: "",
+                                    item["cover"] ?: item["image"] ?: item["poster"],
+                                    dramaUrl,
+                                    currentProvider
+                                )
+                            }
                         }
                     )
                 }
