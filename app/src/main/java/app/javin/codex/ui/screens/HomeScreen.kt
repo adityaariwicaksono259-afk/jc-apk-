@@ -56,7 +56,8 @@ private fun getCategoryInfo(name: String): CategoryInfo {
 
 private fun getCategoryInfoBase(name: String): CategoryInfo = when (name.lowercase()) {
     "ai" -> CategoryInfo("AI", Icons.Default.SmartToy, "ChatGPT, Claude, Gemini, DeepSeek, dll", "Chat")
-    "anime" -> CategoryInfo("Streaming", Icons.Default.Movie, "Anime, drama pendek, film")
+    "anime" -> CategoryInfo("Anime", Icons.Default.Movie, "Nonton anime sub Indo")
+    "drama" -> CategoryInfo("Drama", Icons.Default.Tv, "Drama pendek, Reelshort, Dramabox")
     "canvas" -> CategoryInfo("Canvas", Icons.Default.Palette, "AI image generator, canvas editor", "AI")
     "downloader" -> CategoryInfo("Downloader", Icons.Default.Download, "TikTok, YouTube, IG tanpa watermark", "No Watermark")
     "search" -> CategoryInfo("Search", Icons.Default.Search, "Search engine multi-source")
@@ -269,19 +270,19 @@ private fun CategoryRow(info: CategoryInfo, onClick: () -> Unit) {
         Box(
             modifier = Modifier
                 .size(46.dp)
-                .clip(RoundedCornerShape(if (t.isNeo) 10.dp else 13.dp))
-                .background(if (t.isNeo) accent else Color(0x14FFFFFF))
+                .clip(RoundedCornerShape(if (t.isNeo) 10.dp else 14.dp))
+                .background(if (t.isNeo) accent else t.accentSoft)
                 .then(
                     if (t.isNeo) Modifier.border(2.dp, t.cardBorder, RoundedCornerShape(10.dp))
                     else Modifier
                 ),
             contentAlignment = Alignment.Center
         ) {
-            Icon(
-                imageVector = info.icon,
-                contentDescription = info.name,
-                tint = if (t.isNeo) t.iconTint else Color.White.copy(alpha = 0.85f),
-                modifier = Modifier.size(22.dp)
+            Text(
+                text = info.name.take(2).uppercase(),
+                fontSize = 14.sp,
+                fontWeight = if (t.isNeo) FontWeight.Black else FontWeight.Bold,
+                color = if (t.isNeo) t.accentOn else t.accent
             )
         }
 

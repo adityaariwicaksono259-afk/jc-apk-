@@ -35,13 +35,16 @@ fun SkeuCard(
             .shadow(
                 elevation = 8.dp,
                 shape = shape,
-                ambientColor = Color(0x40A3B1C6),
-                spotColor = Color(0x40A3B1C6)
+                ambientColor = Color(0x80000000),
+                spotColor = Color(0x80000000)
             )
             .clip(shape)
             .background(
                 Brush.verticalGradient(
-                    colors = listOf(Color(0xFFFFFFFF), Color(0xFFECEEF2))
+                    colors = listOf(
+                        t.cardBg,
+                        androidx.compose.ui.graphics.lerp(t.cardBg, Color.Black, 0.15f)
+                    )
                 )
             )
             .then(

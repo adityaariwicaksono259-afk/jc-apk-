@@ -60,7 +60,7 @@ fun MainScreen(
     var profileSub by remember { mutableStateOf<ProfileSubScreen>(ProfileSubScreen.Main) }
     var playerUrl by remember { mutableStateOf<String?>(null) }
     var playerTitle by remember { mutableStateOf("Streaming") }
-    var openStreamingHub by remember { mutableStateOf(false) }
+    var openDramaHub by remember { mutableStateOf(false) }
     var openAnimeHub by remember { mutableStateOf(false) }
     val t = LocalThemeTokens.current
 
@@ -70,7 +70,7 @@ fun MainScreen(
             // 0. Anime Hub kebuka → tutup Anime Hub
             openAnimeHub -> openAnimeHub = false
             // 0b. Streaming Hub kebuka → tutup Streaming Hub
-            openStreamingHub -> openStreamingHub = false
+            openDramaHub -> openDramaHub = false
             // 1. Player kebuka → tutup player
             playerUrl != null -> playerUrl = null
             // 2. Chat AI kebuka → tutup chat
@@ -151,13 +151,19 @@ fun MainScreen(
                             NavTab.HOME -> HomeScreen(
                                 userName = userName,
                                 onCategoryClick = { cat ->
-                                    if (cat.equals("Streaming", ignoreCase = true)) {
-                                        openStreamingHub = true
-                                    } else {
-                                        openCategory = cat
-                                        openGenericTool = null
-                                        openAmScreen = null
-                                        openChatWithTool = null
+                                    when {
+                                        cat.equals("Anime", ignoreCase = true) -> {
+                                            openAnimeHub = true
+                                        }
+                                        cat.equals("Drama", ignoreCase = true) -> {
+                                            openDramaHub = true
+                                        }
+                                        else -> {
+                                            openCategory = cat
+                                            openGenericTool = null
+                                            openAmScreen = null
+                                            openChatWithTool = null
+                                        }
                                     }
                                 }
                             )
@@ -233,21 +239,15 @@ fun MainScreen(
                     )
                 }
             }
-            // Streaming Hub (pilih Anime/Drama)
-            if (openStreamingHub) {
+            // Drama Hub
+            if (openDramaHub) {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
                         .background(t.bg)
                 ) {
-                    StreamingHubScreen(
-                        onBack = { openStreamingHub = false },
-                        onAnimeClick = {
-                            openAnimeHub = true
-                        },
-                        onDramaClick = {
-                            // TODO: DramaHubScreen
-                        }
+                    DramaHubScreen(
+                        onBack = { openDramaHub = false }
                     )
                 }
             }

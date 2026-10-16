@@ -46,6 +46,19 @@ class AnimeRepository(private val api: ApiService) {
     /**
      * Search anime by title, per specific source.
      */
+
+    /**
+     * Raw endpoint call — return body string (buat drama).
+     */
+    suspend fun callRawEndpoint(epId: String, params: Map<String, String>): String = withContext(Dispatchers.IO) {
+        try {
+            val r = api.callToolDynamic(epId, params)
+            r.body()?.string() ?: ""
+        } catch (e: Exception) {
+            ""
+        }
+    }
+
     suspend fun searchByTitle(query: String, source: String): List<AnimeItem> = withContext(Dispatchers.IO) {
         try {
             val (epId, paramKey) = when (source) {
