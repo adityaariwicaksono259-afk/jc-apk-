@@ -25,6 +25,7 @@ import app.javin.codex.ui.theme.LocalThemeTokens
 
 @Composable
 fun AboutScreen(onBack: () -> Unit = {}) {
+    val t = LocalThemeTokens.current
     Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
         // HEADER
         Row(
@@ -38,15 +39,15 @@ fun AboutScreen(onBack: () -> Unit = {}) {
                 modifier = Modifier
                     .size(40.dp)
                     .clip(CircleShape)
-                    .background(Color(0x1AFFFFFF))
-                    .border(1.dp, Color(0x26FFFFFF), CircleShape)
+                    .background(t.iconBg)
+                    .border(1.dp, t.cardBorder, CircleShape)
                     .clickable(onClick = onBack),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(Icons.Default.ArrowBack, null, tint = Color.White, modifier = Modifier.size(20.dp))
+                Icon(Icons.Default.ArrowBack, null, tint = t.textPrimary, modifier = Modifier.size(20.dp))
             }
             Spacer(Modifier.width(12.dp))
-            Text("Tentang", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Color.White)
+            Text("Tentang", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = t.textPrimary)
         }
 
         Column(
@@ -62,7 +63,7 @@ fun AboutScreen(onBack: () -> Unit = {}) {
                     .clip(RoundedCornerShape(24.dp))
                     .background(
                         Brush.linearGradient(
-                            colors = listOf(Color(0xFF4A9EFF), Color(0xFF7F5AF0))
+                            colors = listOf(t.accent, Color(0xFF7F5AF0))
                         )
                     ),
                 contentAlignment = Alignment.Center
@@ -71,7 +72,7 @@ fun AboutScreen(onBack: () -> Unit = {}) {
                     text = "JC",
                     fontSize = 36.sp,
                     fontWeight = FontWeight.Black,
-                    color = Color.White
+                    color = t.textPrimary
                 )
             }
 
@@ -81,13 +82,13 @@ fun AboutScreen(onBack: () -> Unit = {}) {
                 text = "Javin Codex",
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Black,
-                color = Color.White
+                color = t.textPrimary
             )
             Spacer(Modifier.height(4.dp))
             Text(
                 text = "Versi 1.0.0 (Build 1)",
                 fontSize = 13.sp,
-                color = Color.White.copy(alpha = 0.8f)
+                color = t.textPrimary
             )
 
             Spacer(Modifier.height(32.dp))
@@ -97,14 +98,14 @@ fun AboutScreen(onBack: () -> Unit = {}) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(16.dp))
-                    .background(Color(0x14FFFFFF))
-                    .border(1.dp, Color(0x26FFFFFF), RoundedCornerShape(16.dp))
+                    .background(t.cardBg)
+                    .border(1.dp, t.cardBorder, RoundedCornerShape(16.dp))
                     .padding(20.dp)
             ) {
                 Text(
                     text = "Javin Codex adalah aplikasi all-in-one yang menyediakan akses ke berbagai AI, tools, downloader, dan utilitas lainnya dalam satu aplikasi.",
                     fontSize = 14.sp,
-                    color = Color.White,
+                    color = t.textPrimary,
                     lineHeight = 20.sp,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth()
@@ -124,7 +125,7 @@ fun AboutScreen(onBack: () -> Unit = {}) {
             Text(
                 text = "© 2026 Javin Codex. All rights reserved.",
                 fontSize = 11.sp,
-                color = Color.White.copy(alpha = 0.8f),
+                color = t.textPrimary,
                 textAlign = TextAlign.Center
             )
 
@@ -135,16 +136,17 @@ fun AboutScreen(onBack: () -> Unit = {}) {
 
 @Composable
 private fun InfoRow(label: String, value: String) {
+    val t = LocalThemeTokens.current
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 6.dp)
             .clip(RoundedCornerShape(12.dp))
-            .background(Color(0x0FFFFFFF))
+            .background(t.searchBg)
             .padding(horizontal = 16.dp, vertical = 12.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Text(label, fontSize = 13.sp, color = Color.White.copy(alpha = 0.8f))
-        Text(value, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = Color.White)
+        Text(label, fontSize = 13.sp, color = t.textPrimary)
+        Text(value, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = t.textPrimary)
     }
 }

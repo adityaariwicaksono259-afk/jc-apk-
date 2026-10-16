@@ -32,6 +32,7 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun PinSettingsScreen(onBack: () -> Unit = {}) {
+    val t = LocalThemeTokens.current
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val lockManager = remember { LockManager.getInstance(context) }
@@ -65,15 +66,15 @@ fun PinSettingsScreen(onBack: () -> Unit = {}) {
         ) {
             Box(
                 modifier = Modifier.size(40.dp).clip(CircleShape)
-                    .background(Color(0x1AFFFFFF))
-                    .border(1.dp, Color(0x26FFFFFF), CircleShape)
+                    .background(t.iconBg)
+                    .border(1.dp, t.cardBorder, CircleShape)
                     .clickable(onClick = onBack),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(Icons.Default.ArrowBack, null, tint = Color.White, modifier = Modifier.size(20.dp))
+                Icon(Icons.Default.ArrowBack, null, tint = t.textPrimary, modifier = Modifier.size(20.dp))
             }
             Spacer(Modifier.width(12.dp))
-            Text("Kunci Aplikasi", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Color.White)
+            Text("Kunci Aplikasi", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = t.textPrimary)
         }
 
         Column(modifier = Modifier.padding(horizontal = 20.dp)) {
@@ -262,10 +263,11 @@ fun PinSettingsScreen(onBack: () -> Unit = {}) {
 
 @Composable
 private fun SectionTitle(text: String) {
+    val t = LocalThemeTokens.current
     Text(
         text.uppercase(),
         fontSize = 11.sp, fontWeight = FontWeight.Bold,
-        color = Color.White.copy(alpha = 0.8f), letterSpacing = 1.5.sp,
+        color = t.textPrimary, letterSpacing = 1.5.sp,
         modifier = Modifier.padding(vertical = 8.dp)
     )
 }
@@ -279,28 +281,29 @@ private fun PinRow(
     enabled: Boolean = true,
     onClick: () -> Unit
 ) {
+    val t = LocalThemeTokens.current
     Row(
         modifier = Modifier.fillMaxWidth()
             .clip(RoundedCornerShape(14.dp))
-            .background(Color(0x14FFFFFF))
-            .border(1.dp, Color(0x26FFFFFF), RoundedCornerShape(14.dp))
+            .background(t.cardBg)
+            .border(1.dp, t.cardBorder, RoundedCornerShape(14.dp))
             .clickable(enabled = enabled, onClick = onClick)
             .padding(14.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(modifier = Modifier.weight(1f)) {
             Text(label, fontSize = 15.sp, fontWeight = FontWeight.SemiBold,
-                color = if (enabled) Color.White else Color.White.copy(alpha = 0.8f))
-            Text(subtitle, fontSize = 12.sp, color = Color.White.copy(alpha = 0.8f))
+                color = if (enabled) t.textPrimary else t.textPrimary)
+            Text(subtitle, fontSize = 12.sp, color = t.textPrimary)
         }
         Text(
             action,
             fontSize = 13.sp,
             fontWeight = FontWeight.SemiBold,
             color = when {
-                !enabled -> Color.White.copy(alpha = 0.6f)
+                !enabled -> t.textSecondary
                 actionColor != null -> actionColor
-                else -> Color(0xFF4A9EFF)
+                else -> t.accent
             }
         )
     }
@@ -314,6 +317,7 @@ private fun PinInputDialog(
     onSubmit: (String, String) -> Unit,
     errorMsg: String?
 ) {
+    val t = LocalThemeTokens.current
     var pin by remember { mutableStateOf("") }
     var confirm by remember { mutableStateOf("") }
 

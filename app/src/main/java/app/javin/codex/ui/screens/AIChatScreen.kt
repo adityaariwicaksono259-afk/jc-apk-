@@ -50,6 +50,7 @@ fun AIChatScreen(
     catalogId: String?,
     onBack: () -> Unit = {}
 ) {
+    val t = LocalThemeTokens.current
     val scope = rememberCoroutineScope()
     val listState = rememberLazyListState()
 
@@ -129,15 +130,15 @@ fun AIChatScreen(
                 modifier = Modifier
                     .size(40.dp)
                     .clip(CircleShape)
-                    .background(Color(0x1AFFFFFF))
-                    .border(1.dp, Color(0x26FFFFFF), CircleShape)
+                    .background(t.iconBg)
+                    .border(1.dp, t.cardBorder, CircleShape)
                     .clickable(onClick = onBack),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = Icons.Default.ArrowBack,
                     contentDescription = "Back",
-                    tint = Color.White,
+                    tint = t.textPrimary,
                     modifier = Modifier.size(20.dp)
                 )
             }
@@ -148,8 +149,8 @@ fun AIChatScreen(
                 modifier = Modifier
                     .size(42.dp)
                     .clip(RoundedCornerShape(12.dp))
-                    .background(Color(0x1AFFFFFF))
-                    .border(1.dp, Color(0x26FFFFFF), RoundedCornerShape(12.dp)),
+                    .background(t.iconBg)
+                    .border(1.dp, t.cardBorder, RoundedCornerShape(12.dp)),
                 contentAlignment = Alignment.Center
             ) {
                 if (!toolIconUrl.isNullOrBlank()) {
@@ -160,7 +161,7 @@ fun AIChatScreen(
                         modifier = Modifier.size(28.dp).clip(RoundedCornerShape(8.dp))
                     )
                 } else {
-                    Text(toolName.take(1).uppercase(), fontSize = 20.sp, fontWeight = FontWeight.Black, color = Color.White)
+                    Text(toolName.take(1).uppercase(), fontSize = 20.sp, fontWeight = FontWeight.Black, color = t.textPrimary)
                 }
             }
 
@@ -171,12 +172,12 @@ fun AIChatScreen(
                     text = toolName,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.White
+                    color = t.textPrimary
                 )
                 Text(
                     text = if (isTyping) "Mengetik..." else "Online",
                     fontSize = 11.sp,
-                    color = if (isTyping) Color(0xFF7FFFA0) else Color.White.copy(alpha = 0.8f)
+                    color = if (isTyping) Color(0xFF7FFFA0) else t.textPrimary
                 )
             }
 
@@ -198,13 +199,13 @@ fun AIChatScreen(
                 Icon(
                     imageVector = Icons.Default.Delete,
                     contentDescription = "Clear chat",
-                    tint = Color.White.copy(alpha = 0.8f),
+                    tint = t.textPrimary,
                     modifier = Modifier.size(20.dp)
                 )
             }
         }
 
-        HorizontalDivider(color = Color(0x1AFFFFFF))
+        HorizontalDivider(color = t.iconBg)
 
         // ============================================
         // CHAT LIST
@@ -230,11 +231,11 @@ fun AIChatScreen(
                         Box(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(16.dp, 16.dp, 16.dp, 4.dp))
-                                .background(Color(0x1AFFFFFF))
-                                .border(1.dp, Color(0x26FFFFFF), RoundedCornerShape(16.dp, 16.dp, 16.dp, 4.dp))
+                                .background(t.iconBg)
+                                .border(1.dp, t.cardBorder, RoundedCornerShape(16.dp, 16.dp, 16.dp, 4.dp))
                                 .padding(horizontal = 16.dp, vertical = 10.dp)
                         ) {
-                            Text("● ● ●", fontSize = 12.sp, color = Color.White.copy(alpha = 0.8f))
+                            Text("● ● ●", fontSize = 12.sp, color = t.textPrimary)
                         }
                     }
                 }
@@ -254,7 +255,7 @@ fun AIChatScreen(
                 value = inputText,
                 onValueChange = { inputText = it },
                 placeholder = {
-                    Text("Ketik pesan...", fontSize = 14.sp, color = Color.White.copy(alpha = 0.8f))
+                    Text("Ketik pesan...", fontSize = 14.sp, color = t.textPrimary)
                 },
                 modifier = Modifier
                     .weight(1f)
@@ -264,13 +265,13 @@ fun AIChatScreen(
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
                 keyboardActions = KeyboardActions(onSend = { sendMessage() }),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = Color(0x1AFFFFFF),
-                    unfocusedContainerColor = Color(0x1AFFFFFF),
-                    focusedBorderColor = Color(0x26FFFFFF),
-                    unfocusedBorderColor = Color(0x26FFFFFF),
-                    focusedTextColor = Color.White,
-                    unfocusedTextColor = Color.White,
-                    cursorColor = Color(0xFF4A9EFF)
+                    focusedContainerColor = t.iconBg,
+                    unfocusedContainerColor = t.iconBg,
+                    focusedBorderColor = t.cardBorder,
+                    unfocusedBorderColor = t.cardBorder,
+                    focusedTextColor = t.textPrimary,
+                    unfocusedTextColor = t.textPrimary,
+                    cursorColor = t.accent
                 )
             )
 
@@ -282,7 +283,7 @@ fun AIChatScreen(
                     .clip(CircleShape)
                     .background(
                         Brush.linearGradient(
-                            colors = listOf(Color(0xFF4A9EFF), Color(0xFF7F5AF0))
+                            colors = listOf(t.accent, Color(0xFF7F5AF0))
                         )
                     )
                     .clickable(enabled = inputText.isNotBlank() && !isTyping) {
@@ -293,7 +294,7 @@ fun AIChatScreen(
                 Icon(
                     imageVector = Icons.Default.Send,
                     contentDescription = "Send",
-                    tint = Color.White,
+                    tint = t.textPrimary,
                     modifier = Modifier.size(20.dp)
                 )
             }
@@ -303,6 +304,7 @@ fun AIChatScreen(
 
 @Composable
 private fun ChatBubble(message: ChatMessage) {
+    val t = LocalThemeTokens.current
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = if (message.fromUser) Arrangement.End else Arrangement.Start
@@ -319,16 +321,16 @@ private fun ChatBubble(message: ChatMessage) {
                 .background(
                     if (message.fromUser)
                         Brush.linearGradient(
-                            colors = listOf(Color(0xFF4A9EFF), Color(0xFF7F5AF0))
+                            colors = listOf(t.accent, Color(0xFF7F5AF0))
                         )
                     else
                         Brush.linearGradient(
-                            colors = listOf(Color(0x1AFFFFFF), Color(0x14FFFFFF))
+                            colors = listOf(t.iconBg, t.cardBg)
                         )
                 )
                 .then(
                     if (!message.fromUser)
-                        Modifier.border(1.dp, Color(0x26FFFFFF), RoundedCornerShape(16.dp, 16.dp, 16.dp, 4.dp))
+                        Modifier.border(1.dp, t.cardBorder, RoundedCornerShape(16.dp, 16.dp, 16.dp, 4.dp))
                     else Modifier
                 )
                 .padding(horizontal = 14.dp, vertical = 10.dp)
@@ -337,14 +339,14 @@ private fun ChatBubble(message: ChatMessage) {
                 Text(
                     text = message.text,
                     fontSize = 14.sp,
-                    color = Color.White,
+                    color = t.textPrimary,
                     lineHeight = 20.sp
                 )
                 Spacer(Modifier.height(4.dp))
                 Text(
                     text = formatChatTime(message.timestamp),
                     fontSize = 10.sp,
-                    color = Color.White.copy(alpha = 0.8f),
+                    color = t.textPrimary,
                     modifier = Modifier.align(Alignment.End)
                 )
             }

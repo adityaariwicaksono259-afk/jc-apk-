@@ -32,6 +32,7 @@ private val Context.notifDataStore by preferencesDataStore(name = "javin_notif")
 
 @Composable
 fun NotificationScreen(onBack: () -> Unit = {}) {
+    val t = LocalThemeTokens.current
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
@@ -89,20 +90,20 @@ fun NotificationScreen(onBack: () -> Unit = {}) {
                 modifier = Modifier
                     .size(40.dp)
                     .clip(CircleShape)
-                    .background(Color(0x1AFFFFFF))
-                    .border(1.dp, Color(0x26FFFFFF), CircleShape)
+                    .background(t.iconBg)
+                    .border(1.dp, t.cardBorder, CircleShape)
                     .clickable(onClick = onBack),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(Icons.Default.ArrowBack, null, tint = Color.White, modifier = Modifier.size(20.dp))
+                Icon(Icons.Default.ArrowBack, null, tint = t.textPrimary, modifier = Modifier.size(20.dp))
             }
             Spacer(Modifier.width(12.dp))
-            Text("Notifikasi", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Color.White)
+            Text("Notifikasi", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = t.textPrimary)
         }
 
         if (loading) {
             Box(Modifier.fillMaxWidth().padding(40.dp), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(color = Color(0xFF4A9EFF))
+                CircularProgressIndicator(color = t.accent)
             }
             return@Column
         }
@@ -124,11 +125,12 @@ fun NotificationScreen(onBack: () -> Unit = {}) {
 
 @Composable
 private fun SectionHeader(text: String) {
+    val t = LocalThemeTokens.current
     Text(
         text = text.uppercase(),
         fontSize = 11.sp,
         fontWeight = FontWeight.Bold,
-        color = Color.White.copy(alpha = 0.8f),
+        color = t.textPrimary,
         letterSpacing = 1.5.sp,
         modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp)
     )
@@ -141,26 +143,27 @@ private fun NotifToggle(
     checked: Boolean,
     onChange: (Boolean) -> Unit
 ) {
+    val t = LocalThemeTokens.current
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 20.dp, vertical = 4.dp)
             .clip(RoundedCornerShape(14.dp))
-            .background(Color(0x14FFFFFF))
-            .border(1.dp, Color(0x26FFFFFF), RoundedCornerShape(14.dp))
+            .background(t.cardBg)
+            .border(1.dp, t.cardBorder, RoundedCornerShape(14.dp))
             .padding(14.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(modifier = Modifier.weight(1f)) {
-            Text(label, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = Color.White)
-            Text(subtitle, fontSize = 12.sp, color = Color.White.copy(alpha = 0.8f))
+            Text(label, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = t.textPrimary)
+            Text(subtitle, fontSize = 12.sp, color = t.textPrimary)
         }
         Switch(
             checked = checked,
             onCheckedChange = onChange,
             colors = SwitchDefaults.colors(
-                checkedThumbColor = Color.White,
-                checkedTrackColor = Color(0xFF4A9EFF)
+                checkedThumbColor = t.textPrimary,
+                checkedTrackColor = t.accent
             )
         )
     }
