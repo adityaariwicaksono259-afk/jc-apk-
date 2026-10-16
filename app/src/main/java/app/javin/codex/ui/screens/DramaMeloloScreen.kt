@@ -286,3 +286,30 @@ private fun MeloloEpisodeView(
         )
     }
 }
+
+/**
+ * Parse episode dari response detail drama.
+ */
+private fun parseEpisodesFromJson(body: String): List<Map<String, String>> {
+    val out = mutableListOf<Map<String, String>>()
+    try {
+        val gson = com.google.gson.Gson()
+        val root = gson.fromJson(body, Any::class.java)
+        fun walk(obj: Any?, depth: Int = 0) {
+            if (depth > 7) return
+            when (obj) {
+                is Map<*, *> -> {
+                    val title = (obj["title"] ?: obj["name"] ?: obj["episodeName"]) as? String
+                    val url = (obj["url"] ?: obj["link"] ?: obj["episodeUrl"] ?: obj["videoUrl"] ?: obj["playUrl"]) as? String
+                    if (title != null && url != null && url.startsWith("http")) {
+                        out.add(mapOf("title" to title, "url" to url))
+                    }
+                    obj.values.forEach { walk(it, depth + 1) }
+                }
+                is List<*> -> obj.forEach { walk(it, depth + 1) }
+            }
+        }
+        walk(root)
+    } catch (e: Exception) { /* ignore */ }
+    return out.distinctBy { it["url"] }
+}

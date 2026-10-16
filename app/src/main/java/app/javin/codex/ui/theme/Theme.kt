@@ -110,7 +110,7 @@ val NeoTokens = ThemeTokens(
     searchBg = Color(0xFF232838), searchBorder = Color(0xFF3A4154),
     searchText = Color(0xFFE8EAF0), searchPlaceholder = Color(0xFF8A90A0),
     success = Color(0xFF5DC787), danger = Color(0xFFE57B7B),
-    scheme = SkelScheme
+    scheme = NeoScheme
 )
 
 val LocalThemeTokens = staticCompositionLocalOf { NeoTokens }
