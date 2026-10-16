@@ -32,6 +32,7 @@ import app.javin.codex.ui.components.AppBackground
 import app.javin.codex.ui.components.getToolIconUrl
 import app.javin.codex.ui.theme.LocalThemeTokens
 import app.javin.codex.ui.navigation.JavinBottomNav
+import app.javin.codex.ui.navigation.LiquidNavBar
 import app.javin.codex.ui.navigation.NavTab
 
 sealed class ProfileSubScreen {
@@ -134,12 +135,7 @@ fun MainScreen(
 
                 // Main tabs
                 else -> Scaffold(
-                    bottomBar = {
-                        JavinBottomNav(
-                            selectedTab = selectedTab,
-                            onTabSelected = { selectedTab = it }
-                        )
-                    },
+                    bottomBar = {},
                     containerColor = Color.Transparent
                 ) { padding ->
                     Box(
@@ -264,6 +260,23 @@ fun MainScreen(
                         onAnimeClick = { item ->
                             // TODO: navigate ke detail anime
                         }
+                    )
+                }
+            }
+
+            // Liquid nav bar (floating, di atas konten)
+            if (!openAnimeHub && !openDramaHub && !openStreamingHub &&
+                openCategory == null && openGenericTool == null &&
+                openChatWithTool == null && openAmScreen == null &&
+                playerUrl == null && profileSub is ProfileSubScreen.Main) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .align(androidx.compose.ui.Alignment.BottomCenter)
+                ) {
+                    LiquidNavBar(
+                        selectedTab = selectedTab,
+                        onTabSelected = { selectedTab = it }
                     )
                 }
             }

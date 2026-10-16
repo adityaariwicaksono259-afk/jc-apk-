@@ -91,7 +91,7 @@ fun readDeviceInfo(context: Context): DeviceInfo {
 fun DeviceStatsHeader() {
     val info by rememberDeviceInfo()
     val t = LocalThemeTokens.current
-    val shape = RoundedCornerShape(if (t.isNeo) 14.dp else 20.dp)
+    val shape = RoundedCornerShape(if (t.isNeo) 12.dp else 16.dp)
 
     Column(
         modifier = Modifier
@@ -106,7 +106,7 @@ fun DeviceStatsHeader() {
                 if (t.isNeo) t.cardBorder else Color(0x26FFFFFF),
                 shape
             )
-            .padding(16.dp)
+            .padding(horizontal = 14.dp, vertical = 10.dp)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -115,7 +115,7 @@ fun DeviceStatsHeader() {
         ) {
             Text(
                 text = info.time,
-                fontSize = 32.sp,
+                fontSize = 26.sp,
                 fontWeight = if (t.isNeo) FontWeight.Black else FontWeight.Bold,
                 color = t.textPrimary
             )
@@ -127,7 +127,7 @@ fun DeviceStatsHeader() {
             )
         }
 
-        Spacer(Modifier.height(12.dp))
+        Spacer(Modifier.height(8.dp))
 
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -174,7 +174,7 @@ private fun StatChip(
             imageVector = icon,
             contentDescription = null,
             tint = if (t.isNeo) t.iconTint else Color.White.copy(alpha = 0.85f),
-            modifier = Modifier.size(18.dp)
+            modifier = Modifier.size(14.dp)
         )
         Spacer(Modifier.width(8.dp))
         Column(modifier = Modifier.weight(1f)) {
@@ -186,7 +186,7 @@ private fun StatChip(
             )
             Text(
                 text = value,
-                fontSize = 11.sp,
+                fontSize = 10.sp,
                 color = t.textPrimary,
                 fontWeight = FontWeight.Bold,
                 maxLines = 1
