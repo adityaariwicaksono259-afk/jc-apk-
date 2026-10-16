@@ -269,7 +269,7 @@ fun MusicPlayerScreen(
             Slider(
                 value = position.toFloat(),
                 onValueChange = { newPos ->
-                    exoPlayer.seekTo(newPos.toLong())
+                    // Seek via service (belum diimplement, placeholder)
                     position = newPos.toLong()
                 },
                 valueRange = 0f..(if (duration > 0) duration.toFloat() else 100f),
@@ -378,17 +378,8 @@ fun MusicPlayerScreen(
 
         Spacer(Modifier.weight(1f))
 
-        // ExoPlayer (hidden — audio only)
-        Box(modifier = Modifier.size(0.dp)) {
-            AndroidView(
-                factory = { ctx ->
-                    PlayerView(ctx).apply {
-                        player = exoPlayer
-                        useController = false
-                    }
-                }
-            )
-        }
+        // ExoPlayer dipindah ke MusicService (background)
+        Spacer(Modifier.height(1.dp))
     }
 }
 

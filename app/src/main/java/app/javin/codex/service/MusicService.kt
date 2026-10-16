@@ -11,6 +11,7 @@ import android.graphics.BitmapFactory
 import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
+import androidx.media.app.NotificationCompat as MediaNotificationCompat
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
@@ -37,7 +38,7 @@ class MusicService : Service() {
         var currentTitle: String = ""
         var currentArtist: String = ""
         var currentCoverUrl: String? = null
-        var isPlaying: Boolean = false
+        @Volatile var isPlaying: Boolean = false
 
         @Volatile
         var instance: MusicService? = null
@@ -61,7 +62,7 @@ class MusicService : Service() {
                     updateNotification()
                 }
                 override fun onIsPlayingChanged(playing: Boolean) {
-                    isPlaying = playing
+                    setPlayingState(playing)
                     updateNotification()
                 }
             })
@@ -182,7 +183,7 @@ class MusicService : Service() {
             )
             .addAction(android.R.drawable.ic_media_next, "Next", nextIntent)
             .addAction(android.R.drawable.ic_menu_close_clear_cancel, "Stop", stopIntent)
-            .setStyle(androidx.media.app.NotificationCompat.MediaStyle()
+            .setStyle(MediaNotificationCompat.MediaStyle()
                 .setShowActionsInCompactView(0, 1, 2)
             )
 
@@ -216,6 +217,10 @@ class MusicService : Service() {
     fun resume() { player.play() }
 
     override fun onBind(intent: Intent?): IBinder? = null
+
+    private fun setPlayingState(playing: Boolean) {
+        isPlaying = playing
+    }
 
     override fun onDestroy() {
         super.onDestroy()
