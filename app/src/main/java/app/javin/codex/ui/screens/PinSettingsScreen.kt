@@ -69,10 +69,10 @@ fun PinSettingsScreen(onBack: () -> Unit = {}) {
                     .clickable(onClick = onBack),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(Icons.Default.ArrowBack, null, tint = Color.White, modifier = Modifier.size(20.dp))
+                Icon(Icons.Default.ArrowBack, null, tint = t.textPrimary, modifier = Modifier.size(20.dp))
             }
             Spacer(Modifier.width(12.dp))
-            Text("Kunci Aplikasi", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Color.White)
+            Text("Kunci Aplikasi", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = t.textPrimary)
         }
 
         Column(modifier = Modifier.padding(horizontal = 20.dp)) {
@@ -264,7 +264,7 @@ private fun SectionTitle(text: String) {
     Text(
         text.uppercase(),
         fontSize = 11.sp, fontWeight = FontWeight.Bold,
-        color = Color.White.copy(alpha = 0.5f), letterSpacing = 1.5.sp,
+        color = t.textMuted, letterSpacing = 1.5.sp,
         modifier = Modifier.padding(vertical = 8.dp)
     )
 }
@@ -289,8 +289,8 @@ private fun PinRow(
     ) {
         Column(modifier = Modifier.weight(1f)) {
             Text(label, fontSize = 15.sp, fontWeight = FontWeight.SemiBold,
-                color = if (enabled) Color.White else Color.White.copy(alpha = 0.5f))
-            Text(subtitle, fontSize = 12.sp, color = Color.White.copy(alpha = 0.5f))
+                color = if (enabled) t.textPrimary else Color.White.copy(alpha = 0.5f))
+            Text(subtitle, fontSize = 12.sp, color = t.textMuted)
         }
         Text(
             action,

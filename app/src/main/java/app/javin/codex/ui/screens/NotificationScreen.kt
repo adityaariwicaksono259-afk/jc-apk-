@@ -93,10 +93,10 @@ fun NotificationScreen(onBack: () -> Unit = {}) {
                     .clickable(onClick = onBack),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(Icons.Default.ArrowBack, null, tint = Color.White, modifier = Modifier.size(20.dp))
+                Icon(Icons.Default.ArrowBack, null, tint = t.textPrimary, modifier = Modifier.size(20.dp))
             }
             Spacer(Modifier.width(12.dp))
-            Text("Notifikasi", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Color.White)
+            Text("Notifikasi", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = t.textPrimary)
         }
 
         if (loading) {
@@ -127,7 +127,7 @@ private fun SectionHeader(text: String) {
         text = text.uppercase(),
         fontSize = 11.sp,
         fontWeight = FontWeight.Bold,
-        color = Color.White.copy(alpha = 0.5f),
+        color = t.textMuted,
         letterSpacing = 1.5.sp,
         modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp)
     )
@@ -151,14 +151,14 @@ private fun NotifToggle(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(modifier = Modifier.weight(1f)) {
-            Text(label, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = Color.White)
-            Text(subtitle, fontSize = 12.sp, color = Color.White.copy(alpha = 0.5f))
+            Text(label, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = t.textPrimary)
+            Text(subtitle, fontSize = 12.sp, color = t.textMuted)
         }
         Switch(
             checked = checked,
             onCheckedChange = onChange,
             colors = SwitchDefaults.colors(
-                checkedThumbColor = Color.White,
+                checkedThumbColor = t.textPrimary,
                 checkedTrackColor = Color(0xFF4A9EFF)
             )
         )
