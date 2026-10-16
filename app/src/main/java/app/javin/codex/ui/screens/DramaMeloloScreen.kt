@@ -65,12 +65,12 @@ fun DramaMeloloScreen(
             loadingDetail = true
             try {
                 val epId = when (provider) {
-                    "reelshort" -> "ep073"
-                    else -> "ep061"
+                    "reelshort" -> "ep076"
+                    else -> "ep064"
                 }
                 val r = repo.callRawEndpoint(epId, mapOf("url" to detailUrl))
                 // Parse episode
-                val parsed = parseEpisodesFromJson(r)
+                val parsed = parseDramaEpisodesV2(r)
                 localEpisodes = parsed
                 onEpisodesLoaded(
                     parsed.map { it["url"] ?: "" },
@@ -290,26 +290,36 @@ private fun MeloloEpisodeView(
 /**
  * Parse episode dari response detail drama.
  */
-private fun parseEpisodesFromJson(body: String): List<Map<String, String>> {
+/**
+ * Parse response ep064 (Dramabox Video).
+ * Format: { data: { episodes: [ { mp4, name, index, unlock } ] } }
+ */
+private fun parseDramaEpisodesV2(body: String): List<Map<String, String>> {
     val out = mutableListOf<Map<String, String>>()
     try {
         val gson = com.google.gson.Gson()
-        val root = gson.fromJson(body, Any::class.java)
-        fun walk(obj: Any?, depth: Int = 0) {
-            if (depth > 7) return
-            when (obj) {
-                is Map<*, *> -> {
-                    val title = (obj["title"] ?: obj["name"] ?: obj["episodeName"]) as? String
-                    val url = (obj["url"] ?: obj["link"] ?: obj["episodeUrl"] ?: obj["videoUrl"] ?: obj["playUrl"]) as? String
-                    if (title != null && url != null && url.startsWith("http")) {
-                        out.add(mapOf("title" to title, "url" to url))
-                    }
-                    obj.values.forEach { walk(it, depth + 1) }
+        val root = gson.fromJson(body, Map::class.java) as Map<*, *>
+        val data = root["data"] as? Map<*, *> ?: return emptyList()
+        val episodes = data["episodes"] as? List<*> ?: return emptyList()
+
+        episodes.forEach { ep ->
+            if (ep is Map<*, *>) {
+                val mp4 = ep["mp4"] as? String
+                val name = ep["name"] as? String ?: "Episode"
+                val idx = (ep["index"] as? Number)?.toInt() ?: 0
+                val unlock = ep["unlock"] as? Boolean ?: false
+                if (!mp4.isNullOrBlank()) {
+                    out.add(mapOf(
+                        "title" to name,
+                        "url" to mp4,
+                        "index" to idx.toString(),
+                        "unlock" to unlock.toString()
+                    ))
                 }
-                is List<*> -> obj.forEach { walk(it, depth + 1) }
             }
         }
-        walk(root)
-    } catch (e: Exception) { /* ignore */ }
-    return out.distinctBy { it["url"] }
+    } catch (e: Exception) {
+        app.javin.codex.JavinDebug.log("parseDramaV2 error: ${e.message}")
+    }
+    return out
 }
