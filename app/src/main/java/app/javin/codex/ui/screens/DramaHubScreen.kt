@@ -13,6 +13,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -46,14 +47,23 @@ fun DramaHubScreen(
     var items by remember { mutableStateOf<List<Map<String, String>>>(emptyList()) }
     var loading by remember { mutableStateOf(false) }
     var errorMsg by remember { mutableStateOf<String?>(null) }
+    var currentProvider by remember { mutableStateOf("dramabox") }
 
     BackHandler(enabled = true) { onBack() }
 
-    // Load home Dramabox
-    LaunchedEffect(Unit) {
+    // Load home drama
+    LaunchedEffect(currentProvider, searchQuery) {
         loading = true
+        errorMsg = null
         try {
-            val r = repo.callRawEndpoint("ep062", emptyMap())
+            val epId = when (currentProvider) {
+                "reelshort" -> if (searchQuery.isBlank()) "ep074" else "ep075"
+                else -> if (searchQuery.isBlank()) "ep062" else "ep063"
+            }
+            val params = if (searchQuery.isBlank()) emptyMap()
+                else mapOf("q" to searchQuery)
+
+            val r = repo.callRawEndpoint(epId, params)
             items = parseDramaItems(r)
         } catch (e: Exception) {
             errorMsg = e.message
@@ -95,6 +105,49 @@ fun DramaHubScreen(
             color = t.textMuted,
             modifier = Modifier.padding(horizontal = 20.dp)
         )
+
+        Spacer(Modifier.height(12.dp))
+
+        // ===== SEARCH BAR =====
+        androidx.compose.material3.OutlinedTextField(
+            value = searchQuery,
+            onValueChange = { searchQuery = it },
+            placeholder = { Text("Cari drama...", fontSize = 14.sp, color = t.textMuted) },
+            leadingIcon = { Icon(Icons.Default.Search, null, tint = t.textMuted) },
+            singleLine = true,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp),
+            shape = RoundedCornerShape(12.dp),
+            colors = androidx.compose.material3.OutlinedTextFieldDefaults.colors(
+                focusedTextColor = t.textPrimary,
+                unfocusedTextColor = t.textPrimary,
+                focusedBorderColor = t.accent,
+                unfocusedBorderColor = t.cardBorder,
+                cursorColor = t.accent
+            )
+        )
+
+        Spacer(Modifier.height(12.dp))
+
+        // ===== TAB PROVIDER =====
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            DramaProviderChip(
+                label = "Dramabox",
+                selected = currentProvider == "dramabox",
+                onClick = { currentProvider = "dramabox"; searchQuery = "" }
+            )
+            DramaProviderChip(
+                label = "Reelshort",
+                selected = currentProvider == "reelshort",
+                onClick = { currentProvider = "reelshort"; searchQuery = "" }
+            )
+        }
 
         Spacer(Modifier.height(12.dp))
 
@@ -220,4 +273,27 @@ private fun parseDramaItems(body: String): List<Map<String, String>> {
         walk(root)
     } catch (e: Exception) { /* ignore */ }
     return out.distinctBy { it["url"] }
+}
+
+@Composable
+private fun DramaProviderChip(
+    label: String,
+    selected: Boolean,
+    onClick: () -> Unit
+) {
+    val t = LocalThemeTokens.current
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(20.dp))
+            .background(if (selected) t.accent else t.cardBg)
+            .clickable(onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+    ) {
+        Text(
+            text = label,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Bold,
+            color = if (selected) t.accentOn else t.textPrimary
+        )
+    }
 }
