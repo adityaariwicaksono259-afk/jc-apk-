@@ -41,21 +41,21 @@ fun LiquidNavBar(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 12.dp)
-            .padding(bottom = 10.dp)
+            .padding(bottom = 30.dp)
             .navigationBarsPadding(),
         contentAlignment = Alignment.BottomCenter
     ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(72.dp)
+                .height(64.dp)
                 .shadow(
                     elevation = 16.dp,
-                    shape = RoundedCornerShape(36.dp),
+                    shape = RoundedCornerShape(32.dp),
                     ambientColor = Color.Black.copy(alpha = 0.3f),
                     spotColor = Color.Black.copy(alpha = 0.4f)
                 )
-                .clip(RoundedCornerShape(36.dp))
+                .clip(RoundedCornerShape(32.dp))
                 .background(Color.White)
         ) {
             Row(

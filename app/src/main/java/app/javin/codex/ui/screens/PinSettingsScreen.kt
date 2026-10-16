@@ -27,6 +27,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.javin.codex.data.lock.LockManager
+import app.javin.codex.ui.theme.LocalThemeTokens
 import kotlinx.coroutines.launch
 
 @Composable
@@ -264,7 +265,7 @@ private fun SectionTitle(text: String) {
     Text(
         text.uppercase(),
         fontSize = 11.sp, fontWeight = FontWeight.Bold,
-        color = Color.White.copy(alpha = 0.6f), letterSpacing = 1.5.sp,
+        color = Color.White.copy(alpha = 0.8f), letterSpacing = 1.5.sp,
         modifier = Modifier.padding(vertical = 8.dp)
     )
 }
@@ -289,15 +290,15 @@ private fun PinRow(
     ) {
         Column(modifier = Modifier.weight(1f)) {
             Text(label, fontSize = 15.sp, fontWeight = FontWeight.SemiBold,
-                color = if (enabled) Color.White else Color.White.copy(alpha = 0.5f))
-            Text(subtitle, fontSize = 12.sp, color = Color.White.copy(alpha = 0.6f))
+                color = if (enabled) Color.White else Color.White.copy(alpha = 0.8f))
+            Text(subtitle, fontSize = 12.sp, color = Color.White.copy(alpha = 0.8f))
         }
         Text(
             action,
             fontSize = 13.sp,
             fontWeight = FontWeight.SemiBold,
             color = when {
-                !enabled -> Color.White.copy(alpha = 0.3f)
+                !enabled -> Color.White.copy(alpha = 0.6f)
                 actionColor != null -> actionColor
                 else -> Color(0xFF4A9EFF)
             }

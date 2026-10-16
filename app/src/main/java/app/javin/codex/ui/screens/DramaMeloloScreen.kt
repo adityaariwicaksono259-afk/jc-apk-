@@ -102,7 +102,7 @@ fun DramaMeloloScreen(
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .fillMaxHeight()  // full screen per episode
+                            .fillParentMaxHeight()  // full screen per episode (LazyColumn)
                     ) {
                         MeloloEpisodeView(
                             episodeUrl = ep["url"] ?: "",

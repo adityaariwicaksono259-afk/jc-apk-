@@ -21,6 +21,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import app.javin.codex.ui.theme.LocalThemeTokens
 
 @Composable
 fun AboutScreen(onBack: () -> Unit = {}) {
@@ -86,7 +87,7 @@ fun AboutScreen(onBack: () -> Unit = {}) {
             Text(
                 text = "Versi 1.0.0 (Build 1)",
                 fontSize = 13.sp,
-                color = Color.White.copy(alpha = 0.6f)
+                color = Color.White.copy(alpha = 0.8f)
             )
 
             Spacer(Modifier.height(32.dp))
@@ -103,7 +104,7 @@ fun AboutScreen(onBack: () -> Unit = {}) {
                 Text(
                     text = "Javin Codex adalah aplikasi all-in-one yang menyediakan akses ke berbagai AI, tools, downloader, dan utilitas lainnya dalam satu aplikasi.",
                     fontSize = 14.sp,
-                    color = Color.White.copy(alpha = 0.8f),
+                    color = Color.White,
                     lineHeight = 20.sp,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth()
@@ -123,7 +124,7 @@ fun AboutScreen(onBack: () -> Unit = {}) {
             Text(
                 text = "© 2026 Javin Codex. All rights reserved.",
                 fontSize = 11.sp,
-                color = Color.White.copy(alpha = 0.6f),
+                color = Color.White.copy(alpha = 0.8f),
                 textAlign = TextAlign.Center
             )
 
@@ -143,7 +144,7 @@ private fun InfoRow(label: String, value: String) {
             .padding(horizontal = 16.dp, vertical = 12.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Text(label, fontSize = 13.sp, color = Color.White.copy(alpha = 0.6f))
+        Text(label, fontSize = 13.sp, color = Color.White.copy(alpha = 0.8f))
         Text(value, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = Color.White)
     }
 }

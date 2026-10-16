@@ -18,6 +18,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.ui.platform.LocalContext
 import app.javin.codex.data.session.ChatHistoryManager
+import app.javin.codex.ui.theme.LocalThemeTokens
 import app.javin.codex.data.session.ChatHistoryItem
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -175,7 +176,7 @@ fun AIChatScreen(
                 Text(
                     text = if (isTyping) "Mengetik..." else "Online",
                     fontSize = 11.sp,
-                    color = if (isTyping) Color(0xFF7FFFA0) else Color.White.copy(alpha = 0.5f)
+                    color = if (isTyping) Color(0xFF7FFFA0) else Color.White.copy(alpha = 0.8f)
                 )
             }
 
@@ -197,7 +198,7 @@ fun AIChatScreen(
                 Icon(
                     imageVector = Icons.Default.Delete,
                     contentDescription = "Clear chat",
-                    tint = Color.White.copy(alpha = 0.6f),
+                    tint = Color.White.copy(alpha = 0.8f),
                     modifier = Modifier.size(20.dp)
                 )
             }
@@ -233,7 +234,7 @@ fun AIChatScreen(
                                 .border(1.dp, Color(0x26FFFFFF), RoundedCornerShape(16.dp, 16.dp, 16.dp, 4.dp))
                                 .padding(horizontal = 16.dp, vertical = 10.dp)
                         ) {
-                            Text("● ● ●", fontSize = 12.sp, color = Color.White.copy(alpha = 0.6f))
+                            Text("● ● ●", fontSize = 12.sp, color = Color.White.copy(alpha = 0.8f))
                         }
                     }
                 }
@@ -253,7 +254,7 @@ fun AIChatScreen(
                 value = inputText,
                 onValueChange = { inputText = it },
                 placeholder = {
-                    Text("Ketik pesan...", fontSize = 14.sp, color = Color.White.copy(alpha = 0.6f))
+                    Text("Ketik pesan...", fontSize = 14.sp, color = Color.White.copy(alpha = 0.8f))
                 },
                 modifier = Modifier
                     .weight(1f)
@@ -343,7 +344,7 @@ private fun ChatBubble(message: ChatMessage) {
                 Text(
                     text = formatChatTime(message.timestamp),
                     fontSize = 10.sp,
-                    color = Color.White.copy(alpha = 0.6f),
+                    color = Color.White.copy(alpha = 0.8f),
                     modifier = Modifier.align(Alignment.End)
                 )
             }

@@ -21,6 +21,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.javin.codex.data.repository.AuthRepository
+import app.javin.codex.ui.theme.LocalThemeTokens
 import app.javin.codex.data.repository.AuthResult
 import app.javin.codex.data.session.SessionManager
 import kotlinx.coroutines.launch
@@ -118,7 +119,7 @@ fun EditProfileScreen(
             Text(
                 text = "Tap untuk ganti foto (coming soon)",
                 fontSize = 11.sp,
-                color = Color.White.copy(alpha = 0.6f),
+                color = Color.White.copy(alpha = 0.8f),
                 modifier = Modifier.align(Alignment.CenterHorizontally)
             )
 
@@ -129,14 +130,14 @@ fun EditProfileScreen(
                 text = "NAMA",
                 fontSize = 11.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color.White.copy(alpha = 0.6f),
+                color = Color.White.copy(alpha = 0.8f),
                 letterSpacing = 1.5.sp
             )
             Spacer(Modifier.height(8.dp))
             OutlinedTextField(
                 value = name,
                 onValueChange = { name = it.take(60); errorMsg = null; successMsg = null },
-                placeholder = { Text("Nama kamu", color = Color.White.copy(alpha = 0.6f)) },
+                placeholder = { Text("Nama kamu", color = Color.White.copy(alpha = 0.8f)) },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
@@ -158,14 +159,14 @@ fun EditProfileScreen(
                 text = "BIO",
                 fontSize = 11.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color.White.copy(alpha = 0.6f),
+                color = Color.White.copy(alpha = 0.8f),
                 letterSpacing = 1.5.sp
             )
             Spacer(Modifier.height(8.dp))
             OutlinedTextField(
                 value = bio,
                 onValueChange = { bio = it.take(200); errorMsg = null; successMsg = null },
-                placeholder = { Text("Ceritain tentang kamu...", color = Color.White.copy(alpha = 0.6f)) },
+                placeholder = { Text("Ceritain tentang kamu...", color = Color.White.copy(alpha = 0.8f)) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(min = 100.dp),
@@ -186,7 +187,7 @@ fun EditProfileScreen(
             Text(
                 text = "${bio.length}/200",
                 fontSize = 10.sp,
-                color = Color.White.copy(alpha = 0.6f),
+                color = Color.White.copy(alpha = 0.8f),
                 modifier = Modifier.align(Alignment.End)
             )
 
@@ -220,8 +221,8 @@ fun EditProfileScreen(
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFF4A9EFF),
                     contentColor = Color.White,
-                    disabledContainerColor = Color(0x334A9EFF),
-                    disabledContentColor = Color.White.copy(alpha = 0.5f)
+                    disabledContainerColor = Color(0xFF4A9EFF)Soft,
+                    disabledContentColor = Color.White.copy(alpha = 0.8f)
                 )
             ) {
                 if (loading) {

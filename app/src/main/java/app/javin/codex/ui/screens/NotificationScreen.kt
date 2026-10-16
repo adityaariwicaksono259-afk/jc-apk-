@@ -26,6 +26,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import app.javin.codex.ui.theme.LocalThemeTokens
 
 private val Context.notifDataStore by preferencesDataStore(name = "javin_notif")
 
@@ -127,7 +128,7 @@ private fun SectionHeader(text: String) {
         text = text.uppercase(),
         fontSize = 11.sp,
         fontWeight = FontWeight.Bold,
-        color = Color.White.copy(alpha = 0.6f),
+        color = Color.White.copy(alpha = 0.8f),
         letterSpacing = 1.5.sp,
         modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp)
     )
@@ -152,7 +153,7 @@ private fun NotifToggle(
     ) {
         Column(modifier = Modifier.weight(1f)) {
             Text(label, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = Color.White)
-            Text(subtitle, fontSize = 12.sp, color = Color.White.copy(alpha = 0.6f))
+            Text(subtitle, fontSize = 12.sp, color = Color.White.copy(alpha = 0.8f))
         }
         Switch(
             checked = checked,

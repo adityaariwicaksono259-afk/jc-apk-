@@ -20,6 +20,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.javin.codex.data.model.PrivacySettings
+import app.javin.codex.ui.theme.LocalThemeTokens
 import app.javin.codex.data.model.PrivacyUpdateRequest
 import app.javin.codex.data.repository.AuthRepository
 import app.javin.codex.data.repository.AuthResult
@@ -130,7 +131,7 @@ fun PrivacyScreen(
                 Text("Laporan dibaca", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = Color.White)
                 Text(
                     if (readReceipts) "Aktif — kirim centang biru" else "Nonaktif",
-                    fontSize = 12.sp, color = Color.White.copy(alpha = 0.6f)
+                    fontSize = 12.sp, color = Color.White.copy(alpha = 0.8f)
                 )
             }
             Switch(
@@ -222,7 +223,7 @@ private fun SectionHeader(text: String) {
         text = text.uppercase(),
         fontSize = 11.sp,
         fontWeight = FontWeight.Bold,
-        color = Color.White.copy(alpha = 0.6f),
+        color = Color.White.copy(alpha = 0.8f),
         letterSpacing = 1.5.sp,
         modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp)
     )
@@ -243,7 +244,7 @@ private fun PrivacyItem(label: String, subtitle: String, onClick: () -> Unit) {
     ) {
         Column(modifier = Modifier.weight(1f)) {
             Text(label, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = Color.White)
-            Text(subtitle, fontSize = 12.sp, color = Color.White.copy(alpha = 0.6f))
+            Text(subtitle, fontSize = 12.sp, color = Color.White.copy(alpha = 0.8f))
         }
         Text("Ubah", fontSize = 12.sp, color = Color(0xFF4A9EFF), fontWeight = FontWeight.SemiBold)
     }
