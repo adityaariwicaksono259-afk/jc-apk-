@@ -1,9 +1,11 @@
 package app.javin.codex.ui.screens
 
 import android.annotation.SuppressLint
+import android.content.Intent
 import android.os.Environment
 import android.view.ViewGroup
 import androidx.activity.compose.BackHandler
+import androidx.core.content.ContextCompat
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -69,14 +71,7 @@ fun MusicPlayerScreen(
 
     BackHandler(enabled = true) { onBack() }
 
-    // ExoPlayer
-    val exoPlayer = remember {
-        ExoPlayer.Builder(context).build().apply {
-            playWhenReady = true
-        }
-    }
-
-    // Load track tiap ganti
+    // Start background service
     LaunchedEffect(currentTrack) {
         val url = currentTrack.streamUrl
         if (url.isNullOrBlank()) {
@@ -84,43 +79,60 @@ fun MusicPlayerScreen(
             return@LaunchedEffect
         }
         try {
-            exoPlayer.setMediaItem(MediaItem.fromUri(url))
-            exoPlayer.prepare()
-            exoPlayer.play()
+            val svcIntent = Intent(context, app.javin.codex.service.MusicService::class.java).apply {
+                action = app.javin.codex.service.MusicService.ACTION_PLAY
+                putExtra("url", url)
+                putExtra("title", currentTrack.title)
+                putExtra("artist", currentTrack.artist)
+                putExtra("cover", currentTrack.artwork)
+            }
+            ContextCompat.startForegroundService(context, svcIntent)
             isPlaying = true
         } catch (e: Exception) {
             downloadMsg = "Gagal play: ${e.message}"
         }
     }
 
-    // Update position tiap 500ms
-    LaunchedEffect(Unit) {
-        while (true) {
-            position = exoPlayer.currentPosition
-            duration = exoPlayer.duration.coerceAtLeast(0)
-            isPlaying = exoPlayer.isPlaying
-            kotlinx.coroutines.delay(500)
-        }
-    }
-
+    // Auto-next listener via BroadcastReceiver
     DisposableEffect(Unit) {
-        onDispose {
-            exoPlayer.stop()
-            exoPlayer.release()
-        }
-    }
-
-    // Auto-next kalau track selesai
-    LaunchedEffect(Unit) {
-        // Polling state
-        while (true) {
-            if (exoPlayer.playbackState == ExoPlayer.STATE_ENDED) {
-                if (currentIndex < playlist.size - 1) {
-                    currentIndex++
-                    currentTrack = playlist[currentIndex]
+        val receiver = object : android.content.BroadcastReceiver() {
+            override fun onReceive(ctx: android.content.Context?, intent: Intent?) {
+                when (intent?.action) {
+                    "javin.music.TRACK_ENDED" -> {
+                        if (currentIndex < playlist.size - 1) {
+                            currentIndex++
+                            currentTrack = playlist[currentIndex]
+                        }
+                    }
                 }
             }
-            kotlinx.coroutines.delay(1000)
+        }
+        val filter = android.content.IntentFilter().apply {
+            addAction("javin.music.TRACK_ENDED")
+            addAction("javin.music.NEXT")
+            addAction("javin.music.PREV")
+        }
+        try {
+            if (android.os.Build.VERSION.SDK_INT >= 33) {
+                context.registerReceiver(receiver, filter, android.content.Context.RECEIVER_NOT_EXPORTED)
+            } else {
+                context.registerReceiver(receiver, filter)
+            }
+        } catch (_: Exception) {}
+
+        onDispose {
+            try { context.unregisterReceiver(receiver) } catch (_: Exception) {}
+        }
+    }
+
+    // Sync UI state dari service
+    LaunchedEffect(Unit) {
+        while (true) {
+            val svc = app.javin.codex.service.MusicService.instance
+            if (svc != null) {
+                isPlaying = app.javin.codex.service.MusicService.isPlaying
+            }
+            kotlinx.coroutines.delay(500)
         }
     }
 
@@ -312,11 +324,11 @@ fun MusicPlayerScreen(
                     .background(Color(0xFFFF3B5C))
                     .border(3.dp, Color(0xFF0A0A0A), CircleShape)
                     .clickable {
-                        if (isPlaying) {
-                            exoPlayer.pause()
-                        } else {
-                            exoPlayer.play()
+                        val svcIntent = Intent(context, app.javin.codex.service.MusicService::class.java).apply {
+                            action = if (isPlaying) app.javin.codex.service.MusicService.ACTION_PAUSE
+                                     else app.javin.codex.service.MusicService.ACTION_PLAY
                         }
+                        context.startService(svcIntent)
                     },
                 contentAlignment = Alignment.Center
             ) {
