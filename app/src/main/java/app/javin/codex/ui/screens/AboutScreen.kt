@@ -42,10 +42,10 @@ fun AboutScreen(onBack: () -> Unit = {}) {
                     .clickable(onClick = onBack),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(Icons.Default.ArrowBack, null, tint = t.textPrimary, modifier = Modifier.size(20.dp))
+                Icon(Icons.Default.ArrowBack, null, tint = Color.White, modifier = Modifier.size(20.dp))
             }
             Spacer(Modifier.width(12.dp))
-            Text("Tentang", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = t.textPrimary)
+            Text("Tentang", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Color.White)
         }
 
         Column(
@@ -70,7 +70,7 @@ fun AboutScreen(onBack: () -> Unit = {}) {
                     text = "JC",
                     fontSize = 36.sp,
                     fontWeight = FontWeight.Black,
-                    color = t.textPrimary
+                    color = Color.White
                 )
             }
 
@@ -80,13 +80,13 @@ fun AboutScreen(onBack: () -> Unit = {}) {
                 text = "Javin Codex",
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Black,
-                color = t.textPrimary
+                color = Color.White
             )
             Spacer(Modifier.height(4.dp))
             Text(
                 text = "Versi 1.0.0 (Build 1)",
                 fontSize = 13.sp,
-                color = t.textMuted
+                color = Color.White.copy(alpha = 0.6f)
             )
 
             Spacer(Modifier.height(32.dp))
@@ -103,7 +103,7 @@ fun AboutScreen(onBack: () -> Unit = {}) {
                 Text(
                     text = "Javin Codex adalah aplikasi all-in-one yang menyediakan akses ke berbagai AI, tools, downloader, dan utilitas lainnya dalam satu aplikasi.",
                     fontSize = 14.sp,
-                    color = t.textSecondary,
+                    color = Color.White.copy(alpha = 0.8f),
                     lineHeight = 20.sp,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth()
@@ -123,7 +123,7 @@ fun AboutScreen(onBack: () -> Unit = {}) {
             Text(
                 text = "© 2026 Javin Codex. All rights reserved.",
                 fontSize = 11.sp,
-                color = t.textMuted,
+                color = Color.White.copy(alpha = 0.6f),
                 textAlign = TextAlign.Center
             )
 
@@ -143,7 +143,7 @@ private fun InfoRow(label: String, value: String) {
             .padding(horizontal = 16.dp, vertical = 12.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Text(label, fontSize = 13.sp, color = t.textMuted)
-        Text(value, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = t.textPrimary)
+        Text(label, fontSize = 13.sp, color = Color.White.copy(alpha = 0.6f))
+        Text(value, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = Color.White)
     }
 }

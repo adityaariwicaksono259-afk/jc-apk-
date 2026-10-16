@@ -136,7 +136,7 @@ fun AIChatScreen(
                 Icon(
                     imageVector = Icons.Default.ArrowBack,
                     contentDescription = "Back",
-                    tint = t.textPrimary,
+                    tint = Color.White,
                     modifier = Modifier.size(20.dp)
                 )
             }
@@ -159,7 +159,7 @@ fun AIChatScreen(
                         modifier = Modifier.size(28.dp).clip(RoundedCornerShape(8.dp))
                     )
                 } else {
-                    Text(toolName.take(1).uppercase(), fontSize = 20.sp, fontWeight = FontWeight.Black, color = t.textPrimary)
+                    Text(toolName.take(1).uppercase(), fontSize = 20.sp, fontWeight = FontWeight.Black, color = Color.White)
                 }
             }
 
@@ -170,7 +170,7 @@ fun AIChatScreen(
                     text = toolName,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
-                    color = t.textPrimary
+                    color = Color.White
                 )
                 Text(
                     text = if (isTyping) "Mengetik..." else "Online",
@@ -197,7 +197,7 @@ fun AIChatScreen(
                 Icon(
                     imageVector = Icons.Default.Delete,
                     contentDescription = "Clear chat",
-                    tint = t.textMuted,
+                    tint = Color.White.copy(alpha = 0.6f),
                     modifier = Modifier.size(20.dp)
                 )
             }
@@ -233,7 +233,7 @@ fun AIChatScreen(
                                 .border(1.dp, Color(0x26FFFFFF), RoundedCornerShape(16.dp, 16.dp, 16.dp, 4.dp))
                                 .padding(horizontal = 16.dp, vertical = 10.dp)
                         ) {
-                            Text("● ● ●", fontSize = 12.sp, color = t.textMuted)
+                            Text("● ● ●", fontSize = 12.sp, color = Color.White.copy(alpha = 0.6f))
                         }
                     }
                 }
@@ -253,7 +253,7 @@ fun AIChatScreen(
                 value = inputText,
                 onValueChange = { inputText = it },
                 placeholder = {
-                    Text("Ketik pesan...", fontSize = 14.sp, color = t.textMuted)
+                    Text("Ketik pesan...", fontSize = 14.sp, color = Color.White.copy(alpha = 0.6f))
                 },
                 modifier = Modifier
                     .weight(1f)
@@ -267,8 +267,8 @@ fun AIChatScreen(
                     unfocusedContainerColor = Color(0x1AFFFFFF),
                     focusedBorderColor = Color(0x26FFFFFF),
                     unfocusedBorderColor = Color(0x26FFFFFF),
-                    focusedTextColor = t.textPrimary,
-                    unfocusedTextColor = t.textPrimary,
+                    focusedTextColor = Color.White,
+                    unfocusedTextColor = Color.White,
                     cursorColor = Color(0xFF4A9EFF)
                 )
             )
@@ -292,7 +292,7 @@ fun AIChatScreen(
                 Icon(
                     imageVector = Icons.Default.Send,
                     contentDescription = "Send",
-                    tint = t.textPrimary,
+                    tint = Color.White,
                     modifier = Modifier.size(20.dp)
                 )
             }
@@ -336,14 +336,14 @@ private fun ChatBubble(message: ChatMessage) {
                 Text(
                     text = message.text,
                     fontSize = 14.sp,
-                    color = t.textPrimary,
+                    color = Color.White,
                     lineHeight = 20.sp
                 )
                 Spacer(Modifier.height(4.dp))
                 Text(
                     text = formatChatTime(message.timestamp),
                     fontSize = 10.sp,
-                    color = t.textMuted,
+                    color = Color.White.copy(alpha = 0.6f),
                     modifier = Modifier.align(Alignment.End)
                 )
             }

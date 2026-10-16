@@ -81,10 +81,10 @@ fun PrivacyScreen(
                     .clickable(onClick = onBack),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(Icons.Default.ArrowBack, null, tint = t.textPrimary, modifier = Modifier.size(20.dp))
+                Icon(Icons.Default.ArrowBack, null, tint = Color.White, modifier = Modifier.size(20.dp))
             }
             Spacer(Modifier.width(12.dp))
-            Text("Privasi", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = t.textPrimary)
+            Text("Privasi", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Color.White)
         }
 
         if (loading) {
@@ -127,10 +127,10 @@ fun PrivacyScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Text("Laporan dibaca", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = t.textPrimary)
+                Text("Laporan dibaca", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = Color.White)
                 Text(
                     if (readReceipts) "Aktif — kirim centang biru" else "Nonaktif",
-                    fontSize = 12.sp, color = t.textMuted
+                    fontSize = 12.sp, color = Color.White.copy(alpha = 0.6f)
                 )
             }
             Switch(
@@ -140,7 +140,7 @@ fun PrivacyScreen(
                     savePrivacy()
                 },
                 colors = SwitchDefaults.colors(
-                    checkedThumbColor = t.textPrimary,
+                    checkedThumbColor = Color.White,
                     checkedTrackColor = Color(0xFF4A9EFF)
                 )
             )
@@ -222,7 +222,7 @@ private fun SectionHeader(text: String) {
         text = text.uppercase(),
         fontSize = 11.sp,
         fontWeight = FontWeight.Bold,
-        color = t.textMuted,
+        color = Color.White.copy(alpha = 0.6f),
         letterSpacing = 1.5.sp,
         modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp)
     )
@@ -242,8 +242,8 @@ private fun PrivacyItem(label: String, subtitle: String, onClick: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(modifier = Modifier.weight(1f)) {
-            Text(label, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = t.textPrimary)
-            Text(subtitle, fontSize = 12.sp, color = t.textMuted)
+            Text(label, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = Color.White)
+            Text(subtitle, fontSize = 12.sp, color = Color.White.copy(alpha = 0.6f))
         }
         Text("Ubah", fontSize = 12.sp, color = Color(0xFF4A9EFF), fontWeight = FontWeight.SemiBold)
     }

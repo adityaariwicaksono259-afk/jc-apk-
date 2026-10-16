@@ -74,7 +74,7 @@ fun EditProfileScreen(
                 Icon(
                     imageVector = Icons.Default.ArrowBack,
                     contentDescription = "Back",
-                    tint = t.textPrimary,
+                    tint = Color.White,
                     modifier = Modifier.size(20.dp)
                 )
             }
@@ -83,7 +83,7 @@ fun EditProfileScreen(
                 text = "Edit Profil",
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Bold,
-                color = t.textPrimary
+                color = Color.White
             )
         }
 
@@ -109,7 +109,7 @@ fun EditProfileScreen(
                     text = name.take(1).ifBlank { "?" }.uppercase(),
                     fontSize = 40.sp,
                     fontWeight = FontWeight.Black,
-                    color = t.textPrimary
+                    color = Color.White
                 )
             }
 
@@ -118,7 +118,7 @@ fun EditProfileScreen(
             Text(
                 text = "Tap untuk ganti foto (coming soon)",
                 fontSize = 11.sp,
-                color = t.textMuted,
+                color = Color.White.copy(alpha = 0.6f),
                 modifier = Modifier.align(Alignment.CenterHorizontally)
             )
 
@@ -129,14 +129,14 @@ fun EditProfileScreen(
                 text = "NAMA",
                 fontSize = 11.sp,
                 fontWeight = FontWeight.Bold,
-                color = t.textMuted,
+                color = Color.White.copy(alpha = 0.6f),
                 letterSpacing = 1.5.sp
             )
             Spacer(Modifier.height(8.dp))
             OutlinedTextField(
                 value = name,
                 onValueChange = { name = it.take(60); errorMsg = null; successMsg = null },
-                placeholder = { Text("Nama kamu", color = t.textMuted) },
+                placeholder = { Text("Nama kamu", color = Color.White.copy(alpha = 0.6f)) },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
@@ -145,8 +145,8 @@ fun EditProfileScreen(
                     unfocusedContainerColor = Color(0x0FFFFFFF),
                     focusedBorderColor = Color(0xFF4A9EFF),
                     unfocusedBorderColor = Color(0x1AFFFFFF),
-                    focusedTextColor = t.textPrimary,
-                    unfocusedTextColor = t.textPrimary,
+                    focusedTextColor = Color.White,
+                    unfocusedTextColor = Color.White,
                     cursorColor = Color(0xFF4A9EFF)
                 )
             )
@@ -158,14 +158,14 @@ fun EditProfileScreen(
                 text = "BIO",
                 fontSize = 11.sp,
                 fontWeight = FontWeight.Bold,
-                color = t.textMuted,
+                color = Color.White.copy(alpha = 0.6f),
                 letterSpacing = 1.5.sp
             )
             Spacer(Modifier.height(8.dp))
             OutlinedTextField(
                 value = bio,
                 onValueChange = { bio = it.take(200); errorMsg = null; successMsg = null },
-                placeholder = { Text("Ceritain tentang kamu...", color = t.textMuted) },
+                placeholder = { Text("Ceritain tentang kamu...", color = Color.White.copy(alpha = 0.6f)) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(min = 100.dp),
@@ -176,8 +176,8 @@ fun EditProfileScreen(
                     unfocusedContainerColor = Color(0x0FFFFFFF),
                     focusedBorderColor = Color(0xFF4A9EFF),
                     unfocusedBorderColor = Color(0x1AFFFFFF),
-                    focusedTextColor = t.textPrimary,
-                    unfocusedTextColor = t.textPrimary,
+                    focusedTextColor = Color.White,
+                    unfocusedTextColor = Color.White,
                     cursorColor = Color(0xFF4A9EFF)
                 )
             )
@@ -186,7 +186,7 @@ fun EditProfileScreen(
             Text(
                 text = "${bio.length}/200",
                 fontSize = 10.sp,
-                color = t.textMuted,
+                color = Color.White.copy(alpha = 0.6f),
                 modifier = Modifier.align(Alignment.End)
             )
 
@@ -219,14 +219,14 @@ fun EditProfileScreen(
                 shape = RoundedCornerShape(14.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFF4A9EFF),
-                    contentColor = t.textPrimary,
+                    contentColor = Color.White,
                     disabledContainerColor = Color(0x334A9EFF),
                     disabledContentColor = Color.White.copy(alpha = 0.5f)
                 )
             ) {
                 if (loading) {
                     CircularProgressIndicator(
-                        color = t.textPrimary,
+                        color = Color.White,
                         modifier = Modifier.size(20.dp),
                         strokeWidth = 2.dp
                     )
