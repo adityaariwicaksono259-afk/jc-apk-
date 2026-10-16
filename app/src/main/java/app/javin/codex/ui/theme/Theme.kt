@@ -63,6 +63,20 @@ private val GlassScheme = darkColorScheme(
     outline = Color(0x26FFFFFF)
 )
 
+private val SkelScheme = lightColorScheme(
+    primary = Color(0xFF4A6FA5),
+    onPrimary = Color.White,
+    secondary = Color(0xFF6C8EBF),
+    onSecondary = Color.White,
+    tertiary = Color(0xFFE8B4B8),
+    onTertiary = Color(0xFF1A1A1A),
+    background = Color(0xFFEEF0F3),
+    onBackground = Color(0xFF1A1A1A),
+    surface = Color(0xFFF5F6F8),
+    onSurface = Color(0xFF1A1A1A),
+    outline = Color(0xFFD1D5DB)
+)
+
 private val NeoScheme = lightColorScheme(
     primary = Color(0xFFFFD166),
     onPrimary = Color(0xFF1A1A1A),
@@ -119,6 +133,24 @@ val NeoTokens = ThemeTokens(
     scheme = NeoScheme
 )
 
+val SkelTokens = ThemeTokens(
+    mode = ThemeMode.SKELMORPHISM, isNeo = false,
+    bg = Color(0xFFEEF0F3),
+    bgGradient = listOf(Color(0xFFF5F6F8), Color(0xFFE0E5EC), Color(0xFFD9DEE7)),
+    bokeh = false,
+    cardBg = Color(0xFFF5F6F8), cardBorder = Color(0xFFFFFFFF), cardBorderWidth = 1.dp,
+    cornerRadius = 20.dp,
+    hasShadow = true, shadowColor = Color(0xFFA3B1C6), shadowOffset = 6.dp,
+    textPrimary = Color(0xFF2D3748), textSecondary = Color(0xFF4A5568), textMuted = Color(0xFF718096),
+    accent = Color(0xFF4A6FA5), accentOn = Color.White, accentSoft = Color(0xFFB8C9E0),
+    iconBg = Color(0xFFF5F6F8), iconTint = Color(0xFF4A6FA5),
+    divider = Color(0xFFD1D5DB),
+    searchBg = Color(0xFFEEF0F3), searchBorder = Color(0xFFD1D5DB),
+    searchText = Color(0xFF2D3748), searchPlaceholder = Color(0xFFA0AEC0),
+    success = Color(0xFF38A169), danger = Color(0xFFE53E3E),
+    scheme = SkelScheme
+)
+
 val LocalThemeTokens = staticCompositionLocalOf { GlassTokens }
 
 @Composable
@@ -126,8 +158,12 @@ fun JavinCodexTheme(
     mode: ThemeMode = ThemeMode.GLASS,
     content: @Composable () -> Unit
 ) {
-    val tokens = if (mode == ThemeMode.NEOBRUTALISM) NeoTokens else GlassTokens
-    val isDark = !tokens.isNeo
+    val tokens = when (mode) {
+        ThemeMode.NEOBRUTALISM -> NeoTokens
+        ThemeMode.SKELMORPHISM -> SkelTokens
+        else -> GlassTokens
+    }
+    val isDark = mode == ThemeMode.GLASS
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {

@@ -141,31 +141,30 @@ fun AnimeHomeScreen(
                 if (searchQuery.length >= 3) {
                     loading = true
                     errorMsg = null
-                    val list = AniListRepository.get().search(searchQuery)
-                    items = list.map { meta ->
-                        val epsText = when {
-                            meta.episodes != null && meta.episodes > 0 -> "${meta.episodes} eps"
-                            meta.status == "RELEASING" -> "Ongoing"
-                            meta.status == "FINISHED" -> "Tamat"
-                            else -> ""
+                    // Search Animasu DULU (biar hasil pasti ada stream-nya)
+                    val animasuResult = repo.searchByTitle(searchQuery, "animasu")
+                    if (animasuResult.isNotEmpty()) {
+                        items = animasuResult
+                    } else {
+                        // Fallback ke AniList kalau Animasu kosong (biar user tetap liat)
+                        val metaList = AniListRepository.get().search(searchQuery)
+                        items = metaList.map { meta ->
+                            val eps = meta.episodes
+                            val stat = meta.status
+                            val epsText = when {
+                                eps != null && eps > 0 -> "$eps eps"
+                                stat == "RELEASING" -> "Ongoing"
+                                stat == "FINISHED" -> "Tamat"
+                                else -> ""
+                            }
+                            AnimeItem(
+                                title = meta.title,
+                                url = "",
+                                poster = meta.cover,
+                                source = "anilist",
+                                episode = epsText
+                            )
                         }
-                        val statusText = when (meta.status) {
-                            "RELEASING" -> "Ongoing"
-                            "FINISHED" -> "Tamat"
-                            "NOT_YET_RELEASED" -> "Coming Soon"
-                            else -> meta.status ?: ""
-                        }
-                        val subtitle = listOfNotNull(
-                            epsText.takeIf { it.isNotBlank() },
-                            statusText.takeIf { it.isNotBlank() && it != epsText }
-                        ).joinToString(" · ")
-                        AnimeItem(
-                            title = meta.title,
-                            url = "",
-                            poster = meta.cover,
-                            source = "anilist",
-                            episode = subtitle
-                        )
                     }
                     loading = false
                 } else if (searchQuery.isBlank()) {

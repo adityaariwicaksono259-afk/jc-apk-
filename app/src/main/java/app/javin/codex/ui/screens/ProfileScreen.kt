@@ -28,6 +28,7 @@ import app.javin.codex.ui.theme.LocalThemeTokens
 import app.javin.codex.data.session.SessionManager
 import app.javin.codex.data.session.ThemeManager
 import app.javin.codex.data.session.ThemeMode
+import app.javin.codex.ui.components.SkeuCard
 import coil.compose.AsyncImage
 import kotlinx.coroutines.launch
 
@@ -208,6 +209,7 @@ fun ProfileScreen(
             subtitle = when (currentTheme) {
                 ThemeMode.GLASS -> "Glassmorphism (default)"
                 ThemeMode.NEOBRUTALISM -> "NeoBrutalism (soft)"
+                ThemeMode.SKELMORPHISM -> "Skeuomorphism (3D)"
             },
             onClick = { showThemeDialog = true }
         )
@@ -311,6 +313,31 @@ fun ProfileScreen(
                             Text("Cream + border tebal (soft)", fontSize = 11.sp, color = Color.Gray)
                         }
                     }
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                scope.launch { themeManager.setTheme(ThemeMode.SKELMORPHISM) }
+                                currentTheme = ThemeMode.SKELMORPHISM
+                                showThemeDialog = false
+                            }
+                            .padding(vertical = 12.dp, horizontal = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        RadioButton(
+                            selected = currentTheme == ThemeMode.SKELMORPHISM,
+                            onClick = {
+                                scope.launch { themeManager.setTheme(ThemeMode.SKELMORPHISM) }
+                                currentTheme = ThemeMode.SKELMORPHISM
+                                showThemeDialog = false
+                            }
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Column {
+                            Text("Skeuomorphism", fontWeight = if (currentTheme == ThemeMode.SKELMORPHISM) FontWeight.Bold else FontWeight.Normal)
+                            Text("3D shadow + gradient (iOS-like)", fontSize = 11.sp, color = Color.Gray)
+                        }
+                    }
                 }
             },
             confirmButton = {
@@ -404,6 +431,55 @@ private fun GlassMenuItem(
     onClick: () -> Unit
 ) {
     val t = LocalThemeTokens.current
+
+    // Skeuomorphism: pakai SkeuCard
+    if (t.mode == app.javin.codex.data.session.ThemeMode.SKELMORPHISM) {
+        SkeuCard(
+            modifier = Modifier.padding(horizontal = 20.dp, vertical = 5.dp),
+            onClick = onClick,
+            cornerRadius = 18.dp
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    modifier = Modifier
+                        .size(42.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(t.accent),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = null,
+                        tint = t.accentOn,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+                Spacer(Modifier.width(14.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = label,
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = t.textPrimary
+                    )
+                    Text(
+                        text = subtitle,
+                        fontSize = 12.sp,
+                        color = t.textMuted
+                    )
+                }
+                Icon(
+                    imageVector = Icons.Default.ChevronRight,
+                    contentDescription = null,
+                    tint = t.textMuted,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+        }
+        return
+    }
+
+    // Non-Skeu: seperti biasa
     Row(
         modifier = Modifier
             .fillMaxWidth()

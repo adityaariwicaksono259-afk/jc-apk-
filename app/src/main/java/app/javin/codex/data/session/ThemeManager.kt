@@ -11,7 +11,7 @@ import kotlinx.coroutines.runBlocking
 
 private val Context.themeDataStore by preferencesDataStore(name = "javin_theme")
 
-enum class ThemeMode { GLASS, NEOBRUTALISM }
+enum class ThemeMode { GLASS, NEOBRUTALISM, SKELMORPHISM }
 
 class ThemeManager(private val context: Context) {
 

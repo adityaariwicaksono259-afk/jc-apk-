@@ -5,7 +5,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -14,6 +13,7 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -21,9 +21,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -56,53 +59,68 @@ fun AnimeDetailScreen(
     var errorMsg by remember { mutableStateOf<String?>(null) }
     var inPlaylist by remember { mutableStateOf(false) }
 
+    // AniList metadata
+    var aniListScore by remember { mutableStateOf<Int?>(null) }
+    var aniListGenres by remember { mutableStateOf<List<String>>(emptyList()) }
+    var aniListSynopsis by remember { mutableStateOf<String?>(null) }
+
     // Cek playlist
     LaunchedEffect(item.url) {
         inPlaylist = history.isInPlaylist(item.url)
     }
 
-    // Load detail
+    // Load detail dari Animasu + metadata dari AniList
     LaunchedEffect(item.url, item.title) {
         loading = true
         errorMsg = null
         try {
-            android.util.Log.d("AnimeDetail", "load: ${item.title} (${item.source})")
-
-            if (item.source == "anilist" || item.url.isBlank()) {
-                // Source AniList: cari di Animasu, terus Samehadaku, terus Otakudesu
+            if (item.url.isBlank()) {
+                // Search dulu di 3 source
                 var found = false
-                val sources = listOf("animasu", "samehadaku", "otakudesu")
-                for (source in sources) {
+                for (source in listOf("animasu", "samehadaku", "otakudesu")) {
                     try {
                         val searchResult = repo.searchByTitle(item.title, source)
                         if (searchResult.isNotEmpty()) {
                             val url = searchResult.first().url
                             val r = repo.detail(url, source)
-                            r.onSuccess {
-                                detail = it
+                            r.onSuccess { d ->
+                                detail = d
                                 found = true
+                                onEpisodesLoaded(d.episodes.map { it.url }, d.episodes.map { it.title })
                             }
                             if (found) break
                         }
                     } catch (e: Exception) {
-                        android.util.Log.e("AnimeDetail", "source $source failed: ${e.message}")
-                        // Lanjut ke source berikutnya
+                        // lanjut
                     }
                 }
                 if (!found) {
-                    errorMsg = "Mohon maaf, server belum ada \"${item.title}\"\nSilakan coba anime lain atau tunggu update berikutnya"
+                    errorMsg = "Mohon maaf, server belum ada \"${item.title}\"\nSilakan coba anime lain"
                 }
             } else {
-                // Source langsung (animasu/samehadaku/otakudesu)
                 val r = repo.detail(item.url, item.source)
-                r.onSuccess { detail = it }
+                r.onSuccess { d ->
+                    detail = d
+                    onEpisodesLoaded(d.episodes.map { it.url }, d.episodes.map { it.title })
+                }
                     .onFailure { errorMsg = it.message ?: "Gagal load detail" }
             }
+
+            // Fetch AniList metadata
+            try {
+                val meta = AniListRepository.get().search(item.title).firstOrNull()
+                if (meta != null) {
+                    aniListScore = meta.score
+                    aniListGenres = meta.genres
+                    aniListSynopsis = meta.description
+                }
+            } catch (e: Exception) { /* ignore */ }
+
+            history.updateHistory(item)
         } catch (e: Exception) {
             errorMsg = e.message ?: "Error"
         }
         loading = false
-        history.updateHistory(item)
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
@@ -136,7 +154,6 @@ fun AnimeDetailScreen(
                 color = t.textPrimary
             )
             Spacer(Modifier.weight(1f))
-            // Tombol Bookmark
             Icon(
                 imageVector = if (inPlaylist) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
                 contentDescription = "Bookmark",
@@ -159,12 +176,12 @@ fun AnimeDetailScreen(
                 }
             }
             errorMsg != null -> {
-                Box(Modifier.fillMaxSize().padding(24.dp), contentAlignment = Alignment.Center) {
+                Box(Modifier.fillMaxSize().padding(32.dp), contentAlignment = Alignment.Center) {
                     Text(
                         text = errorMsg!!,
                         color = t.danger,
                         fontSize = 14.sp,
-                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                        textAlign = TextAlign.Center,
                         lineHeight = 20.sp
                     )
                 }
@@ -175,92 +192,154 @@ fun AnimeDetailScreen(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(bottom = 60.dp)
                 ) {
-                    // ====== POSTER + INFO ======
+                    // ====== HERO: poster background + overlay ======
                     item {
-                        Row(
+                        Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = 20.dp),
-                            verticalAlignment = Alignment.Top
+                                .height(280.dp)
                         ) {
-                            // Poster
+                            // Background poster besar
+                            val poster = d.poster ?: item.poster
+                            if (!poster.isNullOrBlank()) {
+                                AsyncImage(
+                                    model = poster,
+                                    contentDescription = d.title,
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier.fillMaxSize()
+                                )
+                            }
+                            // Gradient overlay ke bawah
                             Box(
                                 modifier = Modifier
-                                    .size(120.dp, 170.dp)
-                                    .clip(RoundedCornerShape(if (t.isNeo) 12.dp else 14.dp))
-                                    .background(t.iconBg)
-                                    .then(
-                                        if (t.isNeo) Modifier.border(2.dp, t.cardBorder, RoundedCornerShape(12.dp))
-                                        else Modifier
+                                    .fillMaxSize()
+                                    .background(
+                                        Brush.verticalGradient(
+                                            colors = listOf(
+                                                Color.Transparent,
+                                                t.bg.copy(alpha = 0.6f),
+                                                t.bg
+                                            )
+                                        )
                                     )
+                            )
+                        }
+                    }
+
+                    // ====== JUDUL + INFO (overlap poster) ======
+                    item {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .offset(y = (-60).dp)
+                                .padding(horizontal = 20.dp)
+                        ) {
+                            Text(
+                                text = d.title,
+                                fontSize = 22.sp,
+                                fontWeight = if (t.isNeo) FontWeight.Black else FontWeight.Bold,
+                                color = t.textPrimary,
+                                lineHeight = 28.sp
+                            )
+
+                            Spacer(Modifier.height(8.dp))
+
+                            // Row: skor + tahun + format
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(10.dp)
                             ) {
-                                val poster = d.poster ?: item.poster
-                                if (!poster.isNullOrBlank()) {
-                                    AsyncImage(
-                                        model = poster,
-                                        contentDescription = d.title,
-                                        contentScale = ContentScale.Crop,
-                                        modifier = Modifier.fillMaxSize()
+                                aniListScore?.let { score ->
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Icon(
+                                            imageVector = Icons.Default.Star,
+                                            contentDescription = null,
+                                            tint = Color(0xFFFFC107),
+                                            modifier = Modifier.size(14.dp)
+                                        )
+                                        Spacer(Modifier.width(4.dp))
+                                        Text(
+                                            text = "${score / 10.0}",
+                                            fontSize = 12.sp,
+                                            color = t.textSecondary,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    }
+                                }
+                                if (!d.status.isNullOrBlank()) {
+                                    Text(
+                                        text = d.status,
+                                        fontSize = 12.sp,
+                                        color = t.textMuted
+                                    )
+                                }
+                                if (d.episodes.isNotEmpty()) {
+                                    Text(
+                                        text = "${d.episodes.size} eps",
+                                        fontSize = 12.sp,
+                                        color = t.textMuted
                                     )
                                 }
                             }
-                            Spacer(Modifier.width(12.dp))
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = d.title,
-                                    fontSize = 16.sp,
-                                    fontWeight = if (t.isNeo) FontWeight.Black else FontWeight.Bold,
-                                    color = t.textPrimary,
-                                    maxLines = 3,
-                                    overflow = TextOverflow.Ellipsis
-                                )
-                                Spacer(Modifier.height(6.dp))
-                                if (!d.status.isNullOrBlank()) {
-                                    Text(
-                                        text = "Status: ${d.status}",
-                                        fontSize = 11.sp,
-                                        color = t.textMuted
-                                    )
+
+                            Spacer(Modifier.height(12.dp))
+
+                            // Tombol Tonton Episode 1
+                            if (d.episodes.isNotEmpty()) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(48.dp)
+                                        .clip(RoundedCornerShape(12.dp))
+                                        .background(t.accent)
+                                        .clickable {
+                                            val ep = d.episodes.first()
+                                            onPlayEpisode(ep.url, ep.title, 0)
+                                        },
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Icon(
+                                            imageVector = Icons.Default.PlayArrow,
+                                            contentDescription = null,
+                                            tint = t.accentOn,
+                                            modifier = Modifier.size(22.dp)
+                                        )
+                                        Spacer(Modifier.width(8.dp))
+                                        Text(
+                                            text = "Tonton Episode ${d.episodes.first().number}",
+                                            color = t.accentOn,
+                                            fontSize = 15.sp,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    }
                                 }
-                                if (!d.totalEpisode.isNullOrBlank()) {
-                                    Text(
-                                        text = "Total: ${d.totalEpisode} eps",
-                                        fontSize = 11.sp,
-                                        color = t.textMuted
-                                    )
-                                }
-                                Spacer(Modifier.height(6.dp))
-                                Text(
-                                    text = "${d.episodes.size} episode tersedia",
-                                    fontSize = 11.sp,
-                                    color = t.accent,
-                                    fontWeight = FontWeight.SemiBold
-                                )
                             }
                         }
                     }
 
-                    // ====== GENRES ======
-                    if (d.genres.isNotEmpty()) {
+                    // ====== GENRE CHIPS ======
+                    val genres = if (aniListGenres.isNotEmpty()) aniListGenres else d.genres
+                    if (genres.isNotEmpty()) {
                         item {
-                            Spacer(Modifier.height(16.dp))
+                            Spacer(Modifier.height(4.dp))
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(horizontal = 20.dp),
                                 horizontalArrangement = Arrangement.spacedBy(6.dp)
                             ) {
-                                d.genres.take(4).forEach { g ->
+                                genres.take(4).forEach { g ->
                                     Box(
                                         modifier = Modifier
                                             .clip(RoundedCornerShape(8.dp))
                                             .background(t.accentSoft)
-                                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                                            .padding(horizontal = 10.dp, vertical = 5.dp)
                                     ) {
                                         Text(
                                             text = g,
-                                            fontSize = 10.sp,
-                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 11.sp,
+                                            fontWeight = FontWeight.SemiBold,
                                             color = t.textPrimary
                                         )
                                     }
@@ -270,40 +349,51 @@ fun AnimeDetailScreen(
                     }
 
                     // ====== SINOPSIS ======
-                    if (!d.synopsis.isNullOrBlank()) {
+                    val synopsis = aniListSynopsis ?: d.synopsis
+                    if (!synopsis.isNullOrBlank()) {
                         item {
-                            Spacer(Modifier.height(16.dp))
+                            Spacer(Modifier.height(20.dp))
                             Text(
                                 text = "Sinopsis",
-                                fontSize = 13.sp,
+                                fontSize = 14.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = t.textPrimary,
                                 modifier = Modifier.padding(horizontal = 20.dp)
                             )
-                            Spacer(Modifier.height(4.dp))
+                            Spacer(Modifier.height(6.dp))
                             Text(
-                                text = d.synopsis,
-                                fontSize = 12.sp,
+                                text = synopsis,
+                                fontSize = 13.sp,
                                 color = t.textSecondary,
-                                lineHeight = 18.sp,
-                                modifier = Modifier.padding(horizontal = 20.dp),
-                                maxLines = 6,
-                                overflow = TextOverflow.Ellipsis
+                                lineHeight = 19.sp,
+                                modifier = Modifier.padding(horizontal = 20.dp)
                             )
                         }
                     }
 
                     // ====== LIST EPISODE ======
                     item {
-                        Spacer(Modifier.height(20.dp))
-                        Text(
-                            text = "Episode",
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = t.textPrimary,
-                            modifier = Modifier.padding(horizontal = 20.dp)
-                        )
-                        Spacer(Modifier.height(8.dp))
+                        Spacer(Modifier.height(24.dp))
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 20.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "Episode",
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = t.textPrimary
+                            )
+                            Spacer(Modifier.width(8.dp))
+                            Text(
+                                text = "(${d.episodes.size})",
+                                fontSize = 13.sp,
+                                color = t.textMuted
+                            )
+                        }
+                        Spacer(Modifier.height(10.dp))
                     }
 
                     itemsIndexed(d.episodes, key = { _, ep -> ep.url }) { idx, ep ->
@@ -349,13 +439,22 @@ private fun EpisodeRow(
             .padding(12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(
-            imageVector = Icons.Default.PlayArrow,
-            contentDescription = null,
-            tint = t.accent,
-            modifier = Modifier.size(20.dp)
-        )
-        Spacer(Modifier.width(10.dp))
+        // Nomor episode
+        Box(
+            modifier = Modifier
+                .size(36.dp)
+                .clip(RoundedCornerShape(8.dp))
+                .background(t.accentSoft),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "${ep.number}",
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Bold,
+                color = t.textPrimary
+            )
+        }
+        Spacer(Modifier.width(12.dp))
         Text(
             text = ep.title,
             fontSize = 13.sp,
@@ -371,6 +470,13 @@ private fun EpisodeRow(
                 fontSize = 10.sp,
                 color = t.textMuted
             )
+            Spacer(Modifier.width(8.dp))
         }
+        Icon(
+            imageVector = Icons.Default.PlayArrow,
+            contentDescription = null,
+            tint = t.accent,
+            modifier = Modifier.size(20.dp)
+        )
     }
 }
