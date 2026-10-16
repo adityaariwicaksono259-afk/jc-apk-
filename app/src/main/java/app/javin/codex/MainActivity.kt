@@ -87,7 +87,7 @@ fun JavinAppRoot() {
 
     val session = remember { SessionManager.getInstance(context) }
     val themeManager = remember { ThemeManager.getInstance(context) }
-    var themeMode by remember { mutableStateOf(ThemeMode.GLASS) }
+    var themeMode by remember { mutableStateOf(ThemeMode.SKELMORPHISM) }
     val authRepo = remember { AuthRepository(session) }
     val lockManager = remember { LockManager.getInstance(context) }
     val lifecycleOwner = LocalLifecycleOwner.current

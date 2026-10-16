@@ -72,6 +72,60 @@ class AnimeRepository(private val api: ApiService) {
         }
     }
 
+
+    // ============================================
+    // DOWNLOAD LINKS — Samehadaku/Otakudesu mp4
+    // ============================================
+    suspend fun getDownloadLinks(episodeUrl: String, source: String): Map<String, String> = withContext(Dispatchers.IO) {
+        try {
+            val epId = when (source) {
+                "samehadaku" -> epSamehadakuDownload
+                "otakudesu" -> epOtakudesuDownload
+                else -> return@withContext emptyMap()
+            }
+            val paramKey = "url"
+            val r = api.callToolDynamic(epId, mapOf(paramKey to episodeUrl))
+            val body = r.body()?.string() ?: return@withContext emptyMap()
+            android.util.Log.d("AnimeRepo", "download body=${body.take(500)}")
+
+            // Parse: cari key "360p","480p","720p","1080p" -> URL mp4
+            val gson = com.google.gson.Gson()
+            val root = gson.fromJson(body, Map::class.java) as Map<*, *>
+            val results = mutableMapOf<String, String>()
+
+            fun walk(obj: Any?, depth: Int = 0) {
+                if (depth > 5) return
+                when (obj) {
+                    is Map<*, *> -> {
+                        obj.forEach { (k, v) ->
+                            val key = k?.toString()?.lowercase() ?: ""
+                            if (v is String && v.startsWith("http") &&
+                                (key.contains("360") || key.contains("480") || key.contains("720") ||
+                                 key.contains("1080") || key.contains("mp4") || key.contains("sd") ||
+                                 key.contains("hd"))) {
+                                val quality = when {
+                                    key.contains("1080") -> "1080p"
+                                    key.contains("720") -> "720p"
+                                    key.contains("480") -> "480p"
+                                    key.contains("360") -> "360p"
+                                    else -> k.toString()
+                                }
+                                results[quality] = v
+                            }
+                            walk(v, depth + 1)
+                        }
+                    }
+                    is List<*> -> obj.forEach { walk(it, depth + 1) }
+                }
+            }
+            walk(root)
+            results
+        } catch (e: Exception) {
+            android.util.Log.e("AnimeRepo", "getDownloadLinks error: ${e.message}")
+            emptyMap()
+        }
+    }
+
     suspend fun search(query: String): Result<List<AnimeItem>> = withContext(Dispatchers.IO) {
         if (query.isBlank()) return@withContext Result.success(emptyList())
 

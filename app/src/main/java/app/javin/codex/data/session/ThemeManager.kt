@@ -11,7 +11,7 @@ import kotlinx.coroutines.runBlocking
 
 private val Context.themeDataStore by preferencesDataStore(name = "javin_theme")
 
-enum class ThemeMode { GLASS, NEOBRUTALISM, SKELMORPHISM }
+enum class ThemeMode { NEOBRUTALISM, SKELMORPHISM }
 
 class ThemeManager(private val context: Context) {
 
@@ -35,11 +35,11 @@ class ThemeManager(private val context: Context) {
         cachedMode?.let { return it }
         return try {
             val prefs = context.themeDataStore.data.first()
-            val raw = prefs[KEY_THEME] ?: "GLASS"
-            val mode = try { ThemeMode.valueOf(raw) } catch (e: Exception) { ThemeMode.GLASS }
+            val raw = prefs[KEY_THEME] ?: "SKELMORPHISM"
+            val mode = try { ThemeMode.valueOf(raw) } catch (e: Exception) { ThemeMode.SKELMORPHISM }
             cachedMode = mode
             mode
-        } catch (e: Exception) { ThemeMode.GLASS }
+        } catch (e: Exception) { ThemeMode.SKELMORPHISM }
     }
 
     fun getThemeSync(): ThemeMode {
@@ -53,7 +53,7 @@ class ThemeManager(private val context: Context) {
     }
 
     val themeFlow: Flow<ThemeMode> = context.themeDataStore.data.map { prefs ->
-        val raw = prefs[KEY_THEME] ?: "GLASS"
-        try { ThemeMode.valueOf(raw) } catch (e: Exception) { ThemeMode.GLASS }
+        val raw = prefs[KEY_THEME] ?: "SKELMORPHISM"
+        try { ThemeMode.valueOf(raw) } catch (e: Exception) { ThemeMode.SKELMORPHISM }
     }
 }

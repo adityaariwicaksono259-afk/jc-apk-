@@ -40,7 +40,7 @@ fun SettingsScreen(
     val themeManager = remember { ThemeManager.getInstance(context) }
     val t = LocalThemeTokens.current
 
-    var currentTheme by remember { mutableStateOf(ThemeMode.GLASS) }
+    var currentTheme by remember { mutableStateOf(ThemeMode.SKELMORPHISM) }
     var isOnline by remember { mutableStateOf(checkInternet(context)) }
     var showThemeDialog by remember { mutableStateOf(false) }
     var showAboutDialog by remember { mutableStateOf(false) }
@@ -117,9 +117,8 @@ fun SettingsScreen(
             icon = Icons.Default.DarkMode,
             label = "Tema",
             subtitle = when (currentTheme) {
-                ThemeMode.GLASS -> "Glassmorphism (default)"
                 ThemeMode.NEOBRUTALISM -> "NeoBrutalism (soft)"
-                ThemeMode.SKELMORPHISM -> "Skeuomorphism (3D)"
+                ThemeMode.SKELMORPHISM -> "Skeuomorphism (default)"
             },
             onClick = { showThemeDialog = true }
         )
@@ -162,15 +161,6 @@ fun SettingsScreen(
             title = { Text("Pilih Tema", fontWeight = FontWeight.Bold) },
             text = {
                 Column {
-                    ThemeOption(
-                        label = "Glassmorphism",
-                        selected = currentTheme == ThemeMode.GLASS,
-                        onClick = {
-                            scope.launch { themeManager.setTheme(ThemeMode.GLASS) }
-                            currentTheme = ThemeMode.GLASS
-                            showThemeDialog = false
-                        }
-                    )
                     ThemeOption(
                         label = "NeoBrutalism",
                         selected = currentTheme == ThemeMode.NEOBRUTALISM,

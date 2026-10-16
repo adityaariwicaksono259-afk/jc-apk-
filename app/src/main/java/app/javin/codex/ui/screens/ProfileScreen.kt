@@ -46,7 +46,7 @@ fun ProfileScreen(
     val session = remember { SessionManager.getInstance(context) }
     val t = LocalThemeTokens.current
     val themeManager = remember { ThemeManager.getInstance(context) }
-    var currentTheme by remember { mutableStateOf(ThemeMode.GLASS) }
+    var currentTheme by remember { mutableStateOf(ThemeMode.SKELMORPHISM) }
     var showThemeDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
@@ -207,9 +207,8 @@ fun ProfileScreen(
             icon = Icons.Default.Palette,
             label = "Tema",
             subtitle = when (currentTheme) {
-                ThemeMode.GLASS -> "Glassmorphism (default)"
                 ThemeMode.NEOBRUTALISM -> "NeoBrutalism (soft)"
-                ThemeMode.SKELMORPHISM -> "Skeuomorphism (3D)"
+                ThemeMode.SKELMORPHISM -> "Skeuomorphism (default)"
             },
             onClick = { showThemeDialog = true }
         )
@@ -263,31 +262,7 @@ fun ProfileScreen(
             title = { Text("Pilih Tema", fontWeight = FontWeight.Bold) },
             text = {
                 Column {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable {
-                                scope.launch { themeManager.setTheme(ThemeMode.GLASS) }
-                                currentTheme = ThemeMode.GLASS
-                                showThemeDialog = false
-                            }
-                            .padding(vertical = 12.dp, horizontal = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        RadioButton(
-                            selected = currentTheme == ThemeMode.GLASS,
-                            onClick = {
-                                scope.launch { themeManager.setTheme(ThemeMode.GLASS) }
-                                currentTheme = ThemeMode.GLASS
-                                showThemeDialog = false
-                            }
-                        )
-                        Spacer(Modifier.width(8.dp))
-                        Column {
-                            Text("Glassmorphism", fontWeight = if (currentTheme == ThemeMode.GLASS) FontWeight.Bold else FontWeight.Normal)
-                            Text("Biru ungu transparan (default)", fontSize = 11.sp, color = Color.Gray)
-                        }
-                    }
+
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -335,7 +310,7 @@ fun ProfileScreen(
                         Spacer(Modifier.width(8.dp))
                         Column {
                             Text("Skeuomorphism", fontWeight = if (currentTheme == ThemeMode.SKELMORPHISM) FontWeight.Bold else FontWeight.Normal)
-                            Text("3D shadow + gradient (iOS-like)", fontSize = 11.sp, color = Color.Gray)
+                            Text("Soft gradient + shadow", fontSize = 11.sp, color = Color.Gray)
                         }
                     }
                 }

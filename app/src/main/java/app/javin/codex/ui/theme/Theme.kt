@@ -63,18 +63,18 @@ private val GlassScheme = darkColorScheme(
     outline = Color(0x26FFFFFF)
 )
 
-private val SkelScheme = lightColorScheme(
-    primary = Color(0xFF4A6FA5),
+private val SkelScheme = darkColorScheme(
+    primary = Color(0xFF5B8DEF),
     onPrimary = Color.White,
-    secondary = Color(0xFF6C8EBF),
-    onSecondary = Color.White,
-    tertiary = Color(0xFFE8B4B8),
-    onTertiary = Color(0xFF1A1A1A),
-    background = Color(0xFFEEF0F3),
-    onBackground = Color(0xFF1A1A1A),
-    surface = Color(0xFFF5F6F8),
-    onSurface = Color(0xFF1A1A1A),
-    outline = Color(0xFFD1D5DB)
+    secondary = Color(0xFF8DB4F0),
+    onSecondary = Color(0xFF1A1F2E),
+    tertiary = Color(0xFFB895F0),
+    onTertiary = Color.White,
+    background = Color(0xFF1E2230),
+    onBackground = Color(0xFFE8EAF0),
+    surface = Color(0xFF2A2F40),
+    onSurface = Color(0xFFE8EAF0),
+    outline = Color(0xFF3A4154)
 )
 
 private val NeoScheme = lightColorScheme(
@@ -91,8 +91,8 @@ private val NeoScheme = lightColorScheme(
     outline = Color(0xFF1A1A1A)
 )
 
-val GlassTokens = ThemeTokens(
-    mode = ThemeMode.GLASS, isNeo = false,
+val LegacyGlassTokens = ThemeTokens(
+    mode = ThemeMode.SKELMORPHISM, isNeo = false,
     bg = Color(0xFF0F0F1E),
     bgGradient = listOf(Color(0xFF0F0F1E), Color(0xFF1A1A2E), Color(0xFF16213E), Color(0xFF0F0F1E)),
     bokeh = true,
@@ -135,35 +135,34 @@ val NeoTokens = ThemeTokens(
 
 val SkelTokens = ThemeTokens(
     mode = ThemeMode.SKELMORPHISM, isNeo = false,
-    bg = Color(0xFFEEF0F3),
-    bgGradient = listOf(Color(0xFFF5F6F8), Color(0xFFE0E5EC), Color(0xFFD9DEE7)),
+    bg = Color(0xFF1E2230),
+    bgGradient = listOf(Color(0xFF232838), Color(0xFF1A1F2E), Color(0xFF141825)),
     bokeh = false,
-    cardBg = Color(0xFFF5F6F8), cardBorder = Color(0xFFFFFFFF), cardBorderWidth = 1.dp,
-    cornerRadius = 20.dp,
-    hasShadow = true, shadowColor = Color(0xFFA3B1C6), shadowOffset = 6.dp,
-    textPrimary = Color(0xFF2D3748), textSecondary = Color(0xFF4A5568), textMuted = Color(0xFF718096),
-    accent = Color(0xFF4A6FA5), accentOn = Color.White, accentSoft = Color(0xFFB8C9E0),
-    iconBg = Color(0xFFF5F6F8), iconTint = Color(0xFF4A6FA5),
-    divider = Color(0xFFD1D5DB),
-    searchBg = Color(0xFFEEF0F3), searchBorder = Color(0xFFD1D5DB),
-    searchText = Color(0xFF2D3748), searchPlaceholder = Color(0xFFA0AEC0),
-    success = Color(0xFF38A169), danger = Color(0xFFE53E3E),
+    cardBg = Color(0xFF2A2F40), cardBorder = Color(0x1AFFFFFF), cardBorderWidth = 1.dp,
+    cornerRadius = 18.dp,
+    hasShadow = true, shadowColor = Color(0xFF000000), shadowOffset = 6.dp,
+    textPrimary = Color(0xFFE8EAF0), textSecondary = Color(0xFFB8BDCC), textMuted = Color(0xFF8A90A0),
+    accent = Color(0xFF5B8DEF), accentOn = Color.White, accentSoft = Color(0xFF3A4A6A),
+    iconBg = Color(0xFF3A4154), iconTint = Color(0xFF8DB4F0),
+    divider = Color(0x14FFFFFF),
+    searchBg = Color(0xFF232838), searchBorder = Color(0xFF3A4154),
+    searchText = Color(0xFFE8EAF0), searchPlaceholder = Color(0xFF8A90A0),
+    success = Color(0xFF5DC787), danger = Color(0xFFE57B7B),
     scheme = SkelScheme
 )
 
-val LocalThemeTokens = staticCompositionLocalOf { GlassTokens }
+val LocalThemeTokens = staticCompositionLocalOf { SkelTokens }
 
 @Composable
 fun JavinCodexTheme(
-    mode: ThemeMode = ThemeMode.GLASS,
+    mode: ThemeMode = ThemeMode.SKELMORPHISM,
     content: @Composable () -> Unit
 ) {
     val tokens = when (mode) {
         ThemeMode.NEOBRUTALISM -> NeoTokens
-        ThemeMode.SKELMORPHISM -> SkelTokens
-        else -> GlassTokens
+        else -> SkelTokens
     }
-    val isDark = mode == ThemeMode.GLASS
+    val isDark = mode != ThemeMode.NEOBRUTALISM
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {

@@ -46,6 +46,7 @@ fun AnimeHubScreen(
     var playerTitle by remember { mutableStateOf("Streaming") }
     // Track episode buat auto-next
     var episodeUrls by remember { mutableStateOf<List<String>>(emptyList()) }
+    var episodeSamehadakuUrls by remember { mutableStateOf<List<String>>(emptyList()) }
     var episodeTitles by remember { mutableStateOf<List<String>>(emptyList()) }
     var currentEpisodeIndex by remember { mutableStateOf(-1) }
     val t = LocalThemeTokens.current
