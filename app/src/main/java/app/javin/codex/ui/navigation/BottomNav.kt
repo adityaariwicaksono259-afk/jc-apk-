@@ -37,7 +37,7 @@ enum class NavTab(
 ) {
     HOME("home", "Home", Icons.Filled.Home, Icons.Outlined.Home),
     CHAT("chat", "Chat", Icons.Filled.Chat, Icons.Outlined.Chat),
-    PLAYLIST("playlist", "Playlist", Icons.Filled.PlayCircle, Icons.Outlined.PlayCircle),
+    PLAYLIST("music", "Music", Icons.Filled.PlayCircle, Icons.Outlined.PlayCircle),
     STATUS("status", "Status", Icons.Filled.Timelapse, Icons.Outlined.Timelapse),
     PROFIL("profil", "Profil", Icons.Filled.AccountCircle, Icons.Outlined.AccountCircle)
 }

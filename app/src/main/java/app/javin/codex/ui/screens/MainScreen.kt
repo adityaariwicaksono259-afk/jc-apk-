@@ -71,6 +71,9 @@ fun MainScreen(
     var meloloEpisodes by remember { mutableStateOf<List<Map<String, String>>>(emptyList()) }
     var meloloDetailUrl by remember { mutableStateOf<String?>(null) }
     var meloloProvider by remember { mutableStateOf("dramabox") }
+    var musicTrack by remember { mutableStateOf<app.javin.codex.data.model.MusicTrack?>(null) }
+    var musicPlaylist by remember { mutableStateOf<List<app.javin.codex.data.model.MusicTrack>>(emptyList()) }
+    var musicIndex by remember { mutableStateOf(0) }
     var dramaProvider by remember { mutableStateOf("dramabox") }
     var dramaPlayerUrl by remember { mutableStateOf<String?>(null) }
     var dramaPlayerTitle by remember { mutableStateOf("Episode") }
@@ -90,6 +93,7 @@ fun MainScreen(
                 dramaPlayerUrl = null
                 dramaEpisodeIndex = -1
             }
+            musicTrack != null -> musicTrack = null
             meloloTitle != null -> {
                 meloloTitle = null
                 meloloDetailUrl = null
@@ -192,10 +196,12 @@ fun MainScreen(
                                 title = "Chat",
                                 subtitle = "Chat antar user segera hadir"
                             )
-                            NavTab.PLAYLIST -> PlaceholderTab(
-                                icon = Icons.Filled.PlayCircle,
-                                title = "Playlist",
-                                subtitle = "Playlist segera hadir"
+                            NavTab.PLAYLIST -> MusicHubScreen(
+                                onTrackClick = { track, list, idx ->
+                                    musicTrack = track
+                                    musicPlaylist = list
+                                    musicIndex = idx
+                                }
                             )
                             NavTab.STATUS -> PlaceholderTab(
                                 icon = Icons.Filled.Timelapse,
@@ -379,6 +385,16 @@ fun MainScreen(
                         onTabSelected = { selectedTab = it }
                     )
                 }
+            }
+
+            // Music Player (paling atas)
+            musicTrack?.let { track ->
+                MusicPlayerScreen(
+                    track = track,
+                    playlist = musicPlaylist,
+                    startIndex = musicIndex,
+                    onBack = { musicTrack = null }
+                )
             }
 
             // Anime Player (paling atas)
