@@ -6,6 +6,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -41,7 +42,8 @@ import kotlinx.coroutines.launch
 fun AnimeDetailScreen(
     item: AnimeItem,
     onBack: () -> Unit = {},
-    onPlayEpisode: (url: String, title: String) -> Unit = { _, _ -> }
+    onPlayEpisode: (url: String, title: String, episodeIndex: Int) -> Unit = { _, _, _ -> },
+    onEpisodesLoaded: (List<String>, List<String>) -> Unit = { _, _ -> }
 ) {
     val t = LocalThemeTokens.current
     val context = LocalContext.current
@@ -88,7 +90,7 @@ fun AnimeDetailScreen(
                     }
                 }
                 if (!found) {
-                    errorMsg = "Hasil \"${item.title}\" tidak ditemukan, tunggu next update"
+                    errorMsg = "Mohon maaf, server belum ada \"${item.title}\"\nSilakan coba anime lain atau tunggu update berikutnya"
                 }
             } else {
                 // Source langsung (animasu/samehadaku/otakudesu)
@@ -158,7 +160,13 @@ fun AnimeDetailScreen(
             }
             errorMsg != null -> {
                 Box(Modifier.fillMaxSize().padding(24.dp), contentAlignment = Alignment.Center) {
-                    Text(errorMsg!!, color = t.danger, fontSize = 13.sp)
+                    Text(
+                        text = errorMsg!!,
+                        color = t.danger,
+                        fontSize = 14.sp,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                        lineHeight = 20.sp
+                    )
                 }
             }
             detail != null -> {
@@ -298,11 +306,11 @@ fun AnimeDetailScreen(
                         Spacer(Modifier.height(8.dp))
                     }
 
-                    items(d.episodes, key = { it.url }) { ep ->
+                    itemsIndexed(d.episodes, key = { _, ep -> ep.url }) { idx, ep ->
                         EpisodeRow(
                             ep = ep,
                             onClick = {
-                                onPlayEpisode(ep.url, ep.title)
+                                onPlayEpisode(ep.url, ep.title, idx)
                                 scope.launch {
                                     history.updateHistory(
                                         item = item,

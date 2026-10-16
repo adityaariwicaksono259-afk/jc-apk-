@@ -71,7 +71,26 @@ fun AnimeHomeScreen(
                 url = "",  // belum ada slug Animasu
                 poster = meta.cover,
                 source = "anilist",
-                episode = "${meta.episodes ?: "?"} eps · ${meta.status ?: ""}"
+                episode = run {
+                    val eps = meta.episodes
+                    val stat = meta.status
+                    val epsText = when {
+                        eps != null && eps > 0 -> "$eps eps"
+                        stat == "RELEASING" -> "Ongoing"
+                        stat == "FINISHED" -> "Tamat"
+                        else -> ""
+                    }
+                    val statText = when (stat) {
+                        "RELEASING" -> "Ongoing"
+                        "FINISHED" -> "Tamat"
+                        "NOT_YET_RELEASED" -> "Coming Soon"
+                        else -> ""
+                    }
+                    listOf(epsText, statText)
+                        .filter { it.isNotBlank() && it != epsText || it.isNotBlank() }
+                        .distinct()
+                        .joinToString(" · ")
+                }
             )
         }
         loading = false

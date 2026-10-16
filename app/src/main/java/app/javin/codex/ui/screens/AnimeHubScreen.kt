@@ -44,11 +44,18 @@ fun AnimeHubScreen(
     var selectedAnime by remember { mutableStateOf<AnimeItem?>(null) }
     var playerUrl by remember { mutableStateOf<String?>(null) }
     var playerTitle by remember { mutableStateOf("Streaming") }
+    // Track episode buat auto-next
+    var episodeUrls by remember { mutableStateOf<List<String>>(emptyList()) }
+    var episodeTitles by remember { mutableStateOf<List<String>>(emptyList()) }
+    var currentEpisodeIndex by remember { mutableStateOf(-1) }
     val t = LocalThemeTokens.current
 
     BackHandler(enabled = true) {
         when {
-            playerUrl != null -> playerUrl = null
+            playerUrl != null -> {
+                playerUrl = null
+                currentEpisodeIndex = -1
+            }
             selectedAnime != null -> selectedAnime = null
             selectedTab != AnimeTab.HOME -> selectedTab = AnimeTab.HOME
             else -> onBack()
@@ -113,9 +120,14 @@ fun AnimeHubScreen(
                 AnimeDetailScreen(
                     item = item,
                     onBack = { selectedAnime = null },
-                    onPlayEpisode = { url, title ->
+                    onPlayEpisode = { url, title, index ->
                         playerUrl = url
                         playerTitle = title
+                        currentEpisodeIndex = index
+                    },
+                    onEpisodesLoaded = { urls, titles ->
+                        episodeUrls = urls
+                        episodeTitles = titles
                     }
                 )
             }
