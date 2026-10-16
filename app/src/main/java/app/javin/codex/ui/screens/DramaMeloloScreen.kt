@@ -29,6 +29,7 @@ import androidx.media3.common.MediaItem
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
+import kotlinx.coroutines.launch
 import app.javin.codex.data.api.ApiClient
 import app.javin.codex.data.repository.AnimeRepository
 import app.javin.codex.ui.theme.LocalThemeTokens
