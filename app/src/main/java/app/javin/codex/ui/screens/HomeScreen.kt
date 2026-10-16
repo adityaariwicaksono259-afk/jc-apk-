@@ -35,6 +35,7 @@ import app.javin.codex.data.update.NotificationHelper
 import app.javin.codex.data.update.UpdateManager
 import app.javin.codex.ui.components.DeviceStatsHeader
 import app.javin.codex.ui.components.UpdateBanner
+import app.javin.codex.ui.components.SkeuCard
 import app.javin.codex.ui.theme.LocalThemeTokens
 import app.javin.codex.ui.theme.pickAccent
 import kotlinx.coroutines.launch
@@ -102,12 +103,20 @@ fun HomeScreen(
         val result = repo.getTools()
         loading = false
         result.onSuccess { allTools ->
-            categories = allTools
+            // Hardcode Anime + Drama di atas, merge dari API
+            val hardcoded = listOf("Anime", "Drama")
+            val fromApi = allTools
                 .groupBy { it.displayFolder }
-                .map { (folder, _) -> getCategoryInfo(folder) }
+                .map { (folder, _) -> folder }
+                .filter { it !in hardcoded }
+
+            categories = (hardcoded + fromApi)
+                .map { getCategoryInfo(it) }
                 .sortedBy { it.name }
         }.onFailure { e ->
-            errorMsg = e.message ?: "Gagal load"
+            // Kalau API error, tetap tampil Anime + Drama
+            categories = listOf(getCategoryInfo("Anime"), getCategoryInfo("Drama"))
+            errorMsg = null
         }
     }
 
@@ -237,14 +246,14 @@ fun HomeScreen(
             else -> {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(horizontal = 20.dp, vertical = 4.dp)
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
                 ) {
                     items(visibleCategories, key = { it.name }) { cat ->
                         CategoryRow(info = cat, onClick = { onCategoryClick(cat.name) })
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(start = 66.dp)
+                                .padding(start = 72.dp)
                                 .height(1.dp)
                                 .background(t.divider)
                         )
@@ -260,80 +269,100 @@ fun HomeScreen(
 private fun CategoryRow(info: CategoryInfo, onClick: () -> Unit) {
     val t = LocalThemeTokens.current
     val accent = pickAccent(info.name, t.neoPalette, t.iconBg)
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(vertical = 14.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Box(
-            modifier = Modifier
-                .size(46.dp)
-                .clip(RoundedCornerShape(if (t.isNeo) 10.dp else 14.dp))
-                .background(if (t.isNeo) accent else t.accentSoft)
-                .then(
-                    if (t.isNeo) Modifier.border(2.dp, t.cardBorder, RoundedCornerShape(10.dp))
-                    else Modifier
-                ),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = info.name.take(2).uppercase(),
-                fontSize = 14.sp,
-                fontWeight = if (t.isNeo) FontWeight.Black else FontWeight.Bold,
-                color = if (t.isNeo) t.accentOn else t.accent
-            )
-        }
-
-        Spacer(Modifier.width(16.dp))
-
-        Column(modifier = Modifier.weight(1f)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+    // ===== Inner content =====
+    val innerContent: @Composable () -> Unit = {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Box(
+                modifier = Modifier
+                    .size(56.dp)
+                    .clip(RoundedCornerShape(if (t.isNeo) 12.dp else 16.dp))
+                    .background(if (t.isNeo) accent else t.accentSoft)
+                    .then(
+                        if (t.isNeo) Modifier.border(2.dp, t.cardBorder, RoundedCornerShape(10.dp))
+                        else Modifier
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
                 Text(
-                    text = info.name,
-                    fontSize = 15.sp,
+                    text = info.name.take(2).uppercase(),
+                    fontSize = 14.sp,
                     fontWeight = if (t.isNeo) FontWeight.Black else FontWeight.Bold,
-                    color = t.textPrimary,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    color = if (t.isNeo) t.accentOn else t.accent
                 )
-                if (info.tag.isNotBlank()) {
-                    Spacer(Modifier.width(8.dp))
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(6.dp))
-                            .background(if (t.isNeo) accent else Color(0x1AFFFFFF))
-                            .then(if (t.isNeo) Modifier.border(1.5.dp, t.cardBorder, RoundedCornerShape(6.dp)) else Modifier)
-                            .padding(horizontal = 6.dp, vertical = 2.dp)
-                    ) {
-                        Text(
-                            text = info.tag,
-                            fontSize = 9.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = if (t.isNeo) t.accentOn else Color.White.copy(alpha = 0.7f)
-                        )
+            }
+
+            Spacer(Modifier.width(16.dp))
+
+            Column(modifier = Modifier.weight(1f)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = info.name,
+                        fontSize = 16.sp,
+                        fontWeight = if (t.isNeo) FontWeight.Black else FontWeight.Bold,
+                        color = t.textPrimary,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    if (info.tag.isNotBlank()) {
+                        Spacer(Modifier.width(8.dp))
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(6.dp))
+                                .background(if (t.isNeo) accent else t.accentSoft)
+                                .padding(horizontal = 6.dp, vertical = 2.dp)
+                        ) {
+                            Text(
+                                text = info.tag,
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = if (t.isNeo) t.accentOn else t.accent
+                            )
+                        }
                     }
                 }
+                Spacer(Modifier.height(2.dp))
+                Text(
+                    text = info.desc,
+                    fontSize = 13.sp,
+                    color = t.textMuted,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    lineHeight = 16.sp
+                )
             }
-            Spacer(Modifier.height(2.dp))
-            Text(
-                text = info.desc,
-                fontSize = 12.sp,
-                color = t.textMuted,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-                lineHeight = 16.sp
+
+            Spacer(Modifier.width(8.dp))
+
+            Icon(
+                imageVector = Icons.Default.ChevronRight,
+                contentDescription = null,
+                tint = t.textMuted,
+                modifier = Modifier.size(20.dp)
             )
         }
+    }
 
-        Spacer(Modifier.width(8.dp))
-
-        Icon(
-            imageVector = Icons.Default.ChevronRight,
-            contentDescription = null,
-            tint = t.textMuted,
-            modifier = Modifier.size(20.dp)
-        )
+    // ===== Wrapper: SkeuCard atau Row =====
+    if (t.mode == app.javin.codex.data.session.ThemeMode.SKELMORPHISM) {
+        SkeuCard(
+            modifier = Modifier.padding(horizontal = 4.dp, vertical = 6.dp),
+            onClick = onClick,
+            cornerRadius = 18.dp,
+            contentPadding = PaddingValues(14.dp)
+        ) {
+            innerContent()
+        }
+    } else {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(if (t.isNeo) 12.dp else 16.dp))
+                .background(if (t.isNeo) t.cardBg.copy(alpha = 0.5f) else t.cardBg.copy(alpha = 0.4f))
+                .clickable(onClick = onClick)
+                .padding(horizontal = 12.dp, vertical = 16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            innerContent()
+        }
     }
 }
