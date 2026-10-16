@@ -115,13 +115,14 @@ class MusicRepository(private val api: ApiService) {
             val root = gson.fromJson(body, Map::class.java) as Map<*, *>
             val data = root["data"] as? Map<*, *> ?: return emptyList()
 
-            // Format ep041: single track { data: { title, artist, mp3_url } }
-            if (data.containsKey("mp3_url") || data.containsKey("title")) {
-                val track = parseSingleSpotifyTrack(data)
+            // Format ep041 (spotify play): data.data = { title, artist, cover, mp3_url }
+            val innerData = data["data"] as? Map<*, *>
+            if (innerData != null && (innerData.containsKey("mp3_url") || innerData.containsKey("title"))) {
+                val track = parseSingleSpotifyTrack(innerData)
                 if (track != null) return listOf(track)
             }
 
-            // Format ep040: { data: { tracks: [ { name, artist, mp3_url } ] } }
+            // Format ep040 (spotify download): data.tracks = [...]
             val tracks = data["tracks"] as? List<*>
             if (tracks != null) {
                 tracks.forEach { tt ->
@@ -131,7 +132,15 @@ class MusicRepository(private val api: ApiService) {
                     }
                 }
             }
-        } catch (e: Exception) { /* ignore */ }
+
+            // Fallback: coba langsung dari data
+            if (out.isEmpty() && (data.containsKey("mp3_url") || data.containsKey("title"))) {
+                val track = parseSingleSpotifyTrack(data)
+                if (track != null) return listOf(track)
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("MusicRepo", "parseSpotify: ${e.message}")
+        }
         return out
     }
 
@@ -139,7 +148,7 @@ class MusicRepository(private val api: ApiService) {
         val title = (obj["title"] ?: obj["name"]) as? String ?: return null
         val artist = obj["artist"] as? String ?: "Unknown"
         val album = obj["album"] as? String
-        val cover = obj["cover"] as? String
+        val cover = (obj["cover"] ?: obj["thumbnail"] ?: obj["image"] ?: obj["artwork"]) as? String
         val mp3 = obj["mp3_url"] as? String
         val spUrl = obj["spotify_url"] as? String
         val durationStr = obj["duration"] as? String
