@@ -16,6 +16,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
@@ -85,7 +86,7 @@ fun AnimeHomeScreen(
                 .padding(top = 48.dp, bottom = 12.dp)
         ) {
             Text(
-                text = "Streaming",
+                text = "My Anime",
                 fontSize = 26.sp,
                 fontWeight = if (t.isNeo) FontWeight.Black else FontWeight.Bold,
                 color = t.textPrimary
@@ -123,12 +124,28 @@ fun AnimeHomeScreen(
                     errorMsg = null
                     val list = AniListRepository.get().search(searchQuery)
                     items = list.map { meta ->
+                        val epsText = when {
+                            meta.episodes != null && meta.episodes > 0 -> "${meta.episodes} eps"
+                            meta.status == "RELEASING" -> "Ongoing"
+                            meta.status == "FINISHED" -> "Tamat"
+                            else -> ""
+                        }
+                        val statusText = when (meta.status) {
+                            "RELEASING" -> "Ongoing"
+                            "FINISHED" -> "Tamat"
+                            "NOT_YET_RELEASED" -> "Coming Soon"
+                            else -> meta.status ?: ""
+                        }
+                        val subtitle = listOfNotNull(
+                            epsText.takeIf { it.isNotBlank() },
+                            statusText.takeIf { it.isNotBlank() && it != epsText }
+                        ).joinToString(" · ")
                         AnimeItem(
                             title = meta.title,
                             url = "",
                             poster = meta.cover,
                             source = "anilist",
-                            episode = "${meta.episodes ?: "?"} eps · ${meta.status ?: ""}"
+                            episode = subtitle
                         )
                     }
                     loading = false
@@ -202,11 +219,11 @@ fun AnimeHomeScreen(
             }
             else -> {
                 LazyVerticalGrid(
-                    columns = GridCells.Fixed(2),
+                    columns = GridCells.Fixed(3),
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(horizontal = 20.dp, vertical = 8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     items(items, key = { it.title + it.poster.orEmpty() }) { item ->
                         AnimePosterCard(item = item, onClick = { onAnimeClick(item) })
@@ -223,64 +240,87 @@ private fun AnimePosterCard(
     item: AnimeItem,
     onClick: () -> Unit
 ) {
-    app.javin.codex.JavinDebug.log("PosterCard: ${item.title}")
     val t = LocalThemeTokens.current
-    Column(
+    val shape = RoundedCornerShape(if (t.isNeo) 10.dp else 12.dp)
+
+    Box(
         modifier = Modifier
             .fillMaxWidth()
+            .aspectRatio(0.68f)
+            .clip(shape)
             .clickable(onClick = onClick)
+            .then(
+                if (t.isNeo) Modifier.border(2.dp, t.cardBorder, shape)
+                else Modifier
+            )
     ) {
+        // Poster
+        if (!item.poster.isNullOrBlank()) {
+            AsyncImage(
+                model = item.poster,
+                contentDescription = item.title,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize()
+            )
+        } else {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(t.iconBg),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Search,
+                    contentDescription = null,
+                    tint = t.iconTint,
+                    modifier = Modifier.size(36.dp)
+                )
+            }
+        }
+
+        // Gradient overlay dari bawah
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .aspectRatio(0.7f)
-                .clip(RoundedCornerShape(if (t.isNeo) 12.dp else 14.dp))
-                .background(t.iconBg)
-                .then(
-                    if (t.isNeo) Modifier
-                        .border(2.dp, t.cardBorder, RoundedCornerShape(12.dp))
-                    else Modifier
-                )
-        ) {
-            if (!item.poster.isNullOrBlank()) {
-                AsyncImage(
-                    model = item.poster,
-                    contentDescription = item.title,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize()
-                )
-            } else {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Search,
-                        contentDescription = null,
-                        tint = t.iconTint,
-                        modifier = Modifier.size(40.dp)
+                .fillMaxHeight(0.55f)
+                .align(Alignment.BottomCenter)
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            Color.Transparent,
+                            Color.Black.copy(alpha = 0.4f),
+                            Color.Black.copy(alpha = 0.9f)
+                        )
                     )
-                }
-            }
-        }
-        Spacer(Modifier.height(6.dp))
-        Text(
-            text = item.title,
-            fontSize = 12.sp,
-            fontWeight = if (t.isNeo) FontWeight.Bold else FontWeight.SemiBold,
-            color = t.textPrimary,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-            lineHeight = 15.sp
+                )
         )
-        if (!item.episode.isNullOrBlank()) {
+
+        // Judul + subtitle di bawah poster
+        Column(
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+                .fillMaxWidth()
+                .padding(10.dp)
+        ) {
             Text(
-                text = item.episode,
-                fontSize = 10.sp,
-                color = t.textMuted,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+                text = item.title,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.White,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                lineHeight = 15.sp
             )
+            if (!item.episode.isNullOrBlank()) {
+                Spacer(Modifier.height(2.dp))
+                Text(
+                    text = item.episode,
+                    fontSize = 10.sp,
+                    color = Color.White.copy(alpha = 0.75f),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
         }
     }
 }
