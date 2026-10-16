@@ -41,14 +41,14 @@ fun LiquidNavBar(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 12.dp)
-            .padding(bottom = 30.dp)
+            .padding(bottom = 40.dp)
             .navigationBarsPadding(),
         contentAlignment = Alignment.BottomCenter
     ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(88.dp)
+                .height(82.dp)
                 .shadow(
                     elevation = 16.dp,
                     shape = RoundedCornerShape(44.dp),
@@ -100,7 +100,7 @@ private fun androidx.compose.foundation.layout.RowScope.NavTabItem(
 
     // Icon naik + membesar kalau selected
     val iconSize by animateDpAsState(
-        targetValue = if (selected) 52.dp else 42.dp,
+        targetValue = if (selected) 50.dp else 42.dp,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioMediumBouncy,
             stiffness = Spring.StiffnessMediumLow
@@ -109,7 +109,7 @@ private fun androidx.compose.foundation.layout.RowScope.NavTabItem(
     )
 
     val offsetY by animateDpAsState(
-        targetValue = if (selected) (-14).dp else 0.dp,
+        targetValue = if (selected) (-10).dp else 0.dp,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioMediumBouncy,
             stiffness = Spring.StiffnessMediumLow

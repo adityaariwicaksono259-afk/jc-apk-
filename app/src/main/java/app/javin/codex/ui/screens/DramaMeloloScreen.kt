@@ -2,10 +2,10 @@ package app.javin.codex.ui.screens
 
 import android.view.ViewGroup
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectVerticalDragGestures
+import androidx.compose.foundation.pager.VerticalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -20,7 +20,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -83,53 +82,49 @@ fun DramaMeloloScreen(
     }
 
     // Swipe vertikal: naik = prev, turun = next
-    val dragThreshold = 80f
-    var dragAccum by remember { mutableStateOf(0f) }
-    val alpha by animateFloatAsState(if (loadingDetail) 1f else 1f, label = "alpha")
+    // VerticalPager buat swipe TikTok-style
+    val pagerState = rememberPagerState(
+        pageCount = { if (localEpisodes.isEmpty()) 0 else localEpisodes.size }
+    )
+
+    // Sync currentIndex ke pagerState
+    LaunchedEffect(pagerState.currentPage) {
+        currentIndex = pagerState.currentPage
+    }
 
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.Black)
-            .pointerInput(currentIndex, localEpisodes.size) {
-                detectVerticalDragGestures(
-                    onDragEnd = {
-                        if (dragAccum < -dragThreshold && currentIndex < localEpisodes.size - 1) {
-                            currentIndex++
-                        } else if (dragAccum > dragThreshold && currentIndex > 0) {
-                            currentIndex--
-                        }
-                        dragAccum = 0f
-                    },
-                    onVerticalDrag = { _, delta ->
-                        dragAccum += delta
-                    }
-                )
-            }
     ) {
         if (loadingDetail || localEpisodes.isEmpty()) {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator(color = Color.White, strokeWidth = 3.dp)
             }
         } else {
-            val currentEp = localEpisodes.getOrNull(currentIndex)
-            val mp4Url = currentEp?.get("url")
-
-            if (!mp4Url.isNullOrBlank()) {
-                // ExoPlayer native
-                MeloloExoPlayer(
-                    videoUrl = mp4Url,
-                    onEnded = {
-                        if (currentIndex < localEpisodes.size - 1) currentIndex++
-                    }
-                )
-            } else {
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(
-                        "Episode ini butuh unlock",
-                        color = Color.White,
-                        fontSize = 14.sp
+            VerticalPager(
+                state = pagerState,
+                modifier = Modifier.fillMaxSize(),
+                beyondViewportPageCount = 1
+            ) { page ->
+                val mp4Url = localEpisodes.getOrNull(page)?.get("url")
+                if (!mp4Url.isNullOrBlank()) {
+                    MeloloExoPlayer(
+                        videoUrl = mp4Url,
+                        onEnded = {
+                            if (page < localEpisodes.size - 1) {
+                                scope.launch { pagerState.animateScrollToPage(page + 1) }
+                            }
+                        }
                     )
+                } else {
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text(
+                            "Episode ini butuh unlock",
+                            color = Color.White,
+                            fontSize = 14.sp
+                        )
+                    }
                 }
             }
 
