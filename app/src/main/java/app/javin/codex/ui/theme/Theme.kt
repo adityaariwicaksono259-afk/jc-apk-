@@ -97,19 +97,32 @@ val LegacyGlassTokens = ThemeTokens(
 
 val NeoTokens = ThemeTokens(
     mode = ThemeMode.NEOBRUTALISM, isNeo = true,
-    bg = Color(0xFF1E2230),
-    bgGradient = listOf(Color(0xFF232838), Color(0xFF1A1F2E), Color(0xFF141825)),
+    bg = Color(0xFFFDF6E3),                          // cream lembut
+    bgGradient = null,
     bokeh = false,
-    cardBg = Color(0xFF2A2F40), cardBorder = Color(0x1AFFFFFF), cardBorderWidth = 1.dp,
-    cornerRadius = 18.dp,
-    hasShadow = true, shadowColor = Color(0xFF000000), shadowOffset = 6.dp,
-    textPrimary = Color(0xFFE8EAF0), textSecondary = Color(0xFFB8BDCC), textMuted = Color(0xFF8A90A0),
-    accent = Color(0xFF5B8DEF), accentOn = Color.White, accentSoft = Color(0xFF3A4A6A),
-    iconBg = Color(0xFF3A4154), iconTint = Color(0xFF8DB4F0),
-    divider = Color(0x14FFFFFF),
-    searchBg = Color(0xFF232838), searchBorder = Color(0xFF3A4154),
-    searchText = Color(0xFFE8EAF0), searchPlaceholder = Color(0xFF8A90A0),
-    success = Color(0xFF5DC787), danger = Color(0xFFE57B7B),
+    cardBg = Color.White, cardBorder = Color(0xFF0A0A0A), cardBorderWidth = 3.dp,
+    cornerRadius = 12.dp,
+    hasShadow = true, shadowColor = Color(0xFF0A0A0A), shadowOffset = 5.dp,
+    textPrimary = Color(0xFF0A0A0A), textSecondary = Color(0xFF2A2A2A), textMuted = Color(0xFF5A5A5A),
+    accent = Color(0xFF00D9D9),                      // cyan cerah
+    accentOn = Color(0xFF0A0A0A),
+    accentSoft = Color(0xFFB3F5F5),
+    iconBg = Color(0xFFFFD166),                      // kuning
+    iconTint = Color(0xFF0A0A0A),
+    divider = Color(0x26000000),
+    searchBg = Color.White, searchBorder = Color(0xFF0A0A0A),
+    searchText = Color(0xFF0A0A0A), searchPlaceholder = Color(0xFF6A6A6A),
+    success = Color(0xFF22C55E), danger = Color(0xFFEF4444),
+    neoPalette = listOf(
+        Color(0xFF00D9D9),   // cyan
+        Color(0xFFFF5252),   // merah
+        Color(0xFFFFD166),   // kuning
+        Color(0xFF22C55E),   // hijau
+        Color(0xFFFF8FB1),   // pink
+        Color(0xFF9D7BFF),   // ungu
+        Color(0xFFFF9F43),   // orange
+        Color(0xFF5B9BFF)    // biru
+    ),
     scheme = NeoScheme
 )
 
