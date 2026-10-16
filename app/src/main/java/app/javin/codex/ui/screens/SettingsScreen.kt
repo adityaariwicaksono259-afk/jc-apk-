@@ -119,6 +119,7 @@ fun SettingsScreen(
             subtitle = when (currentTheme) {
                 ThemeMode.GLASS -> "Glassmorphism (default)"
                 ThemeMode.NEOBRUTALISM -> "NeoBrutalism (soft)"
+                ThemeMode.SKELMORPHISM -> "Skeuomorphism (3D)"
             },
             onClick = { showThemeDialog = true }
         )
