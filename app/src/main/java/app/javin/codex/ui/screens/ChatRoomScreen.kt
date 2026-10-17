@@ -172,8 +172,8 @@ fun ChatRoomScreen(
                     unfocusedContainerColor = t.iconBg,
                     focusedBorderColor = Color.Transparent,
                     unfocusedBorderColor = Color.Transparent,
-                    focusedTextColor = Color.White,
-                    unfocusedTextColor = Color.White,
+                    focusedTextColor = t.textPrimary,
+                    unfocusedTextColor = t.textPrimary,
                     cursorColor = t.accent
                 )
             )
@@ -206,6 +206,7 @@ fun ChatRoomScreen(
 
 @Composable
 private fun MessageBubble(message: ChatMessage, isFromMe: Boolean, isGlobal: Boolean = false) {
+    val t = LocalThemeTokens.current
     val shape = if (isFromMe) RoundedCornerShape(18.dp, 18.dp, 4.dp, 18.dp)
                 else RoundedCornerShape(18.dp, 18.dp, 18.dp, 4.dp)
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = if (isFromMe) Arrangement.End else Arrangement.Start) {
@@ -213,12 +214,12 @@ private fun MessageBubble(message: ChatMessage, isFromMe: Boolean, isGlobal: Boo
             modifier = Modifier
                 .widthIn(max = 280.dp)
                 .clip(shape)
-                .background(if (isFromMe) t.accent else Color.White)
+                .background(if (isFromMe) t.accent else t.cardBg)
                 .padding(horizontal = 14.dp, vertical = 10.dp)
         ) {
             Column {
                 if (isGlobal && !isFromMe && message.senderName.isNotBlank()) {
-                    Text(message.senderName, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1DA1F2), modifier = Modifier.padding(bottom = 2.dp))
+                    Text(message.senderName, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = t.accent, modifier = Modifier.padding(bottom = 2.dp))
                 }
                 Text(message.text, fontSize = 14.sp, color = if (isFromMe) t.accentOn else t.textPrimary, lineHeight = 19.sp)
                 Spacer(Modifier.height(2.dp))
@@ -231,7 +232,7 @@ private fun MessageBubble(message: ChatMessage, isFromMe: Boolean, isGlobal: Boo
                         }
                     },
                     fontSize = 9.sp,
-                    color = if (isFromMe) Color.White.copy(alpha = 0.7f) else t.textMuted
+                    color = if (isFromMe) t.accentOn.copy(alpha = 0.7f) else t.textMuted
                 )
             }
         }
