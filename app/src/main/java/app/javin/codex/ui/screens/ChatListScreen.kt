@@ -227,12 +227,12 @@ private fun ChatRoomRow(
                     overflow = TextOverflow.Ellipsis
                 )
                 if (room.isOfficial) {
-                    Spacer(Modifier.width(4.dp))
+                    Spacer(Modifier.width(2.dp))
                     Icon(
                         imageVector = Icons.Default.CheckCircle,
                         contentDescription = "Verified",
                         tint = Color(0xFF1DA1F2),
-                        modifier = Modifier.size(16.dp)
+                        modifier = Modifier.size(14.dp)
                     )
                 }
                 Spacer(Modifier.weight(1f))

@@ -12,6 +12,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
@@ -57,6 +58,7 @@ fun ChatRoomScreen(
     var lastMsgTime by remember { mutableStateOf(0L) }
     var otherTyping by remember { mutableStateOf(false) }
     var lastSeenState by remember { mutableStateOf(otherLastSeen) }
+    var showProfile by remember { mutableStateOf(false) }
 
     BackHandler(enabled = true) { onBack() }
 
@@ -144,40 +146,57 @@ fun ChatRoomScreen(
             }
             Spacer(Modifier.width(10.dp))
 
-            // Avatar
-            Box(
+            // Avatar + nama (klik buka profil)
+            Row(
                 modifier = Modifier
-                    .size(42.dp)
-                    .clip(CircleShape)
-                    .background(t.accentSoft),
-                contentAlignment = Alignment.Center
+                    .weight(1f)
+                    .clickable(enabled = !isGlobal) { showProfile = true },
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                if (!otherAvatar.isNullOrBlank()) {
-                    AsyncImage(
-                        model = otherAvatar,
-                        contentDescription = otherName,
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize()
-                    )
-                } else {
-                    Text(
-                        text = otherName.take(1).uppercase(),
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Black,
-                        color = t.textPrimary
-                    )
+                Box(
+                    modifier = Modifier
+                        .size(42.dp)
+                        .clip(CircleShape)
+                        .background(t.accentSoft),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (!otherAvatar.isNullOrBlank()) {
+                        AsyncImage(
+                            model = otherAvatar,
+                            contentDescription = otherName,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    } else {
+                        Text(
+                            text = otherName.take(1).uppercase(),
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Black,
+                            color = t.textPrimary
+                        )
+                    }
                 }
-            }
-            Spacer(Modifier.width(10.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = otherName,
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF0A0A0A),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
+                Spacer(Modifier.width(10.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = otherName,
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF0A0A0A),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        if (isGlobal) {
+                            Spacer(Modifier.width(3.dp))
+                            Icon(
+                                imageVector = Icons.Default.CheckCircle,
+                                contentDescription = "Verified",
+                                tint = Color(0xFF1DA1F2),
+                                modifier = Modifier.size(14.dp)
+                            )
+                        }
+                    }
                 Text(
                     text = when {
                         otherTyping -> "Sedang mengetik..."
@@ -279,6 +298,94 @@ fun ChatRoomScreen(
                     tint = Color.White,
                     modifier = Modifier.size(22.dp)
                 )
+            }
+        }
+    }
+
+    // ===== USER PROFILE (full screen WA-style) =====
+    if (showProfile) {
+        androidx.compose.ui.window.Dialog(
+            onDismissRequest = { showProfile = false },
+            properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color(0xFFEDEDED))
+            ) {
+                // Header
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(Color.White)
+                        .padding(horizontal = 12.dp)
+                        .padding(top = 48.dp, bottom = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(t.accentSoft)
+                            .clickable { showProfile = false },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = "Back",
+                            tint = t.textPrimary,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                    Spacer(Modifier.width(12.dp))
+                    Text("Profil", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color(0xFF0A0A0A))
+                }
+
+                // Avatar besar
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 100.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Box(
+                        modifier = Modifier.size(180.dp).clip(CircleShape).background(Color.White),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        if (!otherAvatar.isNullOrBlank()) {
+                            AsyncImage(
+                                model = otherAvatar,
+                                contentDescription = otherName,
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier.fillMaxSize().clip(CircleShape)
+                            )
+                        } else {
+                            Text(otherName.take(1).uppercase(), fontSize = 64.sp, fontWeight = FontWeight.Black, color = t.textPrimary)
+                        }
+                    }
+                    Spacer(Modifier.height(24.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(otherName, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Color(0xFF0A0A0A))
+                        if (isGlobal) {
+                            Spacer(Modifier.width(4.dp))
+                            Icon(Icons.Default.CheckCircle, "Verified", tint = Color(0xFF1DA1F2), modifier = Modifier.size(20.dp))
+                        }
+                    }
+                    if (!otherCode.isNullOrBlank()) {
+                        Spacer(Modifier.height(4.dp))
+                        Text(otherCode, fontSize = 12.sp, color = t.textMuted)
+                    }
+                    if (!otherBio.isNullOrBlank()) {
+                        Spacer(Modifier.height(20.dp))
+                        Text(
+                            otherBio,
+                            fontSize = 14.sp,
+                            color = Color(0xFF0A0A0A),
+                            modifier = Modifier.padding(horizontal = 32.dp),
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                        )
+                    }
+                }
             }
         }
     }
