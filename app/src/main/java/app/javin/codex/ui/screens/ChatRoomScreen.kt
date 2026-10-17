@@ -41,6 +41,8 @@ fun ChatRoomScreen(
     otherCode: String,
     otherName: String,
     otherAvatar: String?,
+    otherBio: String? = null,
+    otherLastSeen: Long = 0L,
     onBack: () -> Unit = {}
 ) {
     val t = LocalThemeTokens.current
@@ -53,6 +55,7 @@ fun ChatRoomScreen(
     var loading by remember { mutableStateOf(true) }
     var lastMsgTime by remember { mutableStateOf(0L) }
     var otherTyping by remember { mutableStateOf(false) }
+    var lastSeenState by remember { mutableStateOf(otherLastSeen) }
 
     BackHandler(enabled = true) { onBack() }
 
@@ -61,6 +64,8 @@ fun ChatRoomScreen(
         while (true) {
             try {
                 otherTyping = repo.checkTyping(roomId)
+                // Ambil last seen dari contacts (cache atau fetch)
+                // Fallback: skip kalau gagal
             } catch (e: kotlinx.coroutines.CancellationException) {
                 throw e
             } catch (e: Exception) {}
@@ -163,7 +168,11 @@ fun ChatRoomScreen(
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
-                    text = if (otherTyping) "Sedang mengetik..." else "Online",
+                    text = when {
+                        otherTyping -> "Sedang mengetik..."
+                        lastSeenState > 0 -> lastSeenText(lastSeenState)
+                        else -> "Online"
+                    },
                     fontSize = 11.sp,
                     color = if (otherTyping) t.accent else t.success,
                     fontWeight = if (otherTyping) FontWeight.Bold else FontWeight.Normal
@@ -302,4 +311,16 @@ private fun formatMsgTime(ms: Long): String {
     val h = cal.get(java.util.Calendar.HOUR_OF_DAY)
     val m = cal.get(java.util.Calendar.MINUTE)
     return "${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}"
+}
+
+private fun lastSeenText(lastSeen: Long): String {
+    if (lastSeen <= 0) return "Offline"
+    val diff = System.currentTimeMillis() - lastSeen
+    return when {
+        diff < 60_000 -> "Online"
+        diff < 3600_000 -> "Terakhir dilihat ${diff / 60_000} menit lalu"
+        diff < 86400_000 -> "Terakhir dilihat ${diff / 3600_000} jam lalu"
+        diff < 604800_000 -> "Terakhir dilihat ${diff / 86400_000} hari lalu"
+        else -> "Offline"
+    }
 }

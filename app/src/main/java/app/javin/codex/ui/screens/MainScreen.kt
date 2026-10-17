@@ -78,6 +78,8 @@ fun MainScreen(
     var openChatOtherCode by remember { mutableStateOf("") }
     var openChatOtherName by remember { mutableStateOf("") }
     var openChatOtherAvatar by remember { mutableStateOf<String?>(null) }
+    var openChatOtherBio by remember { mutableStateOf<String?>(null) }
+    var openChatOtherLastSeen by remember { mutableStateOf(0L) }
     var showNewChatPicker by remember { mutableStateOf(false) }
     var dramaProvider by remember { mutableStateOf("dramabox") }
     var dramaPlayerUrl by remember { mutableStateOf<String?>(null) }
@@ -198,11 +200,13 @@ fun MainScreen(
                                 }
                             )
                             NavTab.CHAT -> ChatListScreen(
-                                onOpenRoom = { roomId, otherCode, otherName, otherAvatar ->
+                                onOpenRoom = { roomId, otherCode, otherName, otherAvatar, otherBio, otherLastSeen ->
                                     openChatRoomId = roomId
                                     openChatOtherCode = otherCode
                                     openChatOtherName = otherName
                                     openChatOtherAvatar = otherAvatar
+                                    openChatOtherBio = otherBio
+                                    openChatOtherLastSeen = otherLastSeen
                                 },
                                 onNewChat = { showNewChatPicker = true }
                             )
@@ -409,6 +413,8 @@ fun MainScreen(
                         otherCode = openChatOtherCode,
                         otherName = openChatOtherName,
                         otherAvatar = openChatOtherAvatar,
+                        otherBio = openChatOtherBio,
+                        otherLastSeen = openChatOtherLastSeen,
                         onBack = { openChatRoomId = null }
                     )
                 }

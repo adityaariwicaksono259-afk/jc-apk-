@@ -35,7 +35,7 @@ import kotlinx.coroutines.delay
 
 @Composable
 fun ChatListScreen(
-    onOpenRoom: (roomId: Long, otherCode: String, otherName: String, otherAvatar: String?) -> Unit = { _, _, _, _ -> },
+    onOpenRoom: (roomId: Long, otherCode: String, otherName: String, otherAvatar: String?, otherBio: String?, otherLastSeen: Long) -> Unit = { _, _, _, _, _, _ -> },
     onNewChat: () -> Unit = {}
 ) {
     val t = LocalThemeTokens.current
@@ -157,7 +157,9 @@ fun ChatListScreen(
                                 room.id,
                                 room.other.code,
                                 room.other.name,
-                                room.other.avatar
+                                room.other.avatar,
+                                room.other.bio,
+                                room.other.lastSeen
                             )
                         }
                     )
