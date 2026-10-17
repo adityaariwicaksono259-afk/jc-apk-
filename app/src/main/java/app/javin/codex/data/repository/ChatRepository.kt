@@ -55,7 +55,7 @@ class ChatRepository(private val api: ApiService) {
 
     suspend fun openRoomWithUser(userCode: String): Result<Long> = withContext(Dispatchers.IO) {
         try {
-            val bodyJson = """{"user_code":"$userCode"}"""
+            val bodyJson = """{"target":"$userCode"}"""
             val reqBody = bodyJson.toRequestBody("application/json".toMediaType())
             val r = api.postChatRoom(reqBody)
             if (!r.isSuccessful) return@withContext Result.failure(Exception("HTTP ${r.code()}"))
@@ -135,12 +135,13 @@ class ChatRepository(private val api: ApiService) {
             val now = System.currentTimeMillis()
             val out = users.mapNotNull { item ->
                 if (item !is Map<*, *>) return@mapNotNull null
-                val lastSeen = (item["last_seen"] as? Number)?.toLong() ?: 0
+                val lastSeen = (item["lastSeen"] as? Number)?.toLong()
+                    ?: (item["last_seen"] as? Number)?.toLong() ?: 0
                 ChatContact(
-                    code = item["user_code"]?.toString() ?: "",
+                    code = (item["code"] ?: item["user_code"])?.toString() ?: "",
                     name = item["name"]?.toString() ?: "User",
                     avatar = item["avatar"]?.toString()?.ifBlank { null },
-                    bio = item["bio"]?.toString(),
+                    bio = item["bio"]?.toString()?.ifBlank { null },
                     isOnline = (now - lastSeen) < 60_000
                 )
             }
@@ -181,7 +182,7 @@ class ChatRepository(private val api: ApiService) {
     // ============================================
     suspend fun blockUser(userCode: String): Result<Unit> = withContext(Dispatchers.IO) {
         try {
-            val bodyJson = """{"user_code":"$userCode"}"""
+            val bodyJson = """{"target":"$userCode"}"""
             val reqBody = bodyJson.toRequestBody("application/json".toMediaType())
             val r = api.postChatBlock(reqBody)
             if (r.isSuccessful) Result.success(Unit) else Result.failure(Exception("HTTP ${r.code()}"))

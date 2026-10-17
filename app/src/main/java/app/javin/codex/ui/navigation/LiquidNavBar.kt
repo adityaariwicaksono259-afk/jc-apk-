@@ -48,7 +48,7 @@ fun LiquidNavBar(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(80.dp)
+                .height(92.dp)
                 .shadow(
                     elevation = 16.dp,
                     shape = RoundedCornerShape(44.dp),
@@ -109,7 +109,7 @@ private fun androidx.compose.foundation.layout.RowScope.NavTabItem(
     )
 
     val offsetY by animateDpAsState(
-        targetValue = if (selected) (-14).dp else 0.dp,
+        targetValue = if (selected) (-8).dp else 0.dp,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioMediumBouncy,
             stiffness = Spring.StiffnessMediumLow

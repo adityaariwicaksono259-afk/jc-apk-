@@ -101,6 +101,7 @@ fun MainScreen(
                 dramaEpisodeIndex = -1
             }
             musicTrack != null -> musicTrack = null
+            showNewChatPicker -> showNewChatPicker = false
             openChatRoomId != null -> openChatRoomId = null
             meloloTitle != null -> {
                 meloloTitle = null
@@ -416,6 +417,24 @@ fun MainScreen(
                         otherBio = openChatOtherBio,
                         otherLastSeen = openChatOtherLastSeen,
                         onBack = { openChatRoomId = null }
+                    )
+                }
+            }
+
+            // Chat Contact Picker
+            if (showNewChatPicker) {
+                Box(modifier = Modifier.fillMaxSize().background(t.bg)) {
+                    ChatContactPickerScreen(
+                        onBack = { showNewChatPicker = false },
+                        onContactSelected = { roomId, code, name, avatar, bio, lastSeen ->
+                            showNewChatPicker = false
+                            openChatRoomId = roomId
+                            openChatOtherCode = code
+                            openChatOtherName = name
+                            openChatOtherAvatar = avatar
+                            openChatOtherBio = bio
+                            openChatOtherLastSeen = lastSeen
+                        }
                     )
                 }
             }
