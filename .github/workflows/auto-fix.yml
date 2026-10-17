@@ -4,23 +4,41 @@ on:
   workflow_run:
     workflows: ["Build Android APK"]
     types: [completed]
+  workflow_dispatch:
 
 jobs:
   fix:
-    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'failure' }}
     runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: write
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Get Build Log
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh run view ${{ github.event.workflow_run.id }} --log-failed > error.log || true
+          RUN_ID="${{ github.event.workflow_run.id }}"
+          if [ -z "$RUN_ID" ]; then RUN_ID="${{ github.event.inputs.run_id }}"; fi
+          echo "Run ID: $RUN_ID"
+          if [ -n "$RUN_ID" ]; then
+            gh run view "$RUN_ID" --log-failed > error.log 2>&1 || true
+          else
+            echo "No run_id, use dummy error" > error.log
+          fi
           echo "=== Log length: $(wc -l < error.log) lines ==="
-          head -n 150 error.log
+          head -n 100 error.log
 
       - name: Call AI Auto-Fix Bot
         run: |
-          LOG=$(cat error.log | head -n 150 | tr '\n' ' ' | sed 's/"/\\"/g' | tr -d '\r')
+          LOG=$(cat error.log | head -n 100 | tr '\n' ' ' | sed 's/"/\\"/g' | tr -d '\r')
+          if [ -z "$LOG" ]; then
+            echo "Error log kosong, skip"
+            exit 0
+          fi
           curl -X POST "https://jvin.pages.dev/api/bot/fix-build" \
             -H "Content-Type: application/json" \
             -d "{\"errorLog\": \"$LOG\", \"repo\": \"${{ github.repository }}\", \"branch\": \"main\"}" \
