@@ -2,6 +2,7 @@ package app.javin.codex.ui.screens
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -10,6 +11,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
@@ -54,6 +56,7 @@ fun ChatRoomScreen(
     var loading by remember { mutableStateOf(true) }
     var lastMsgTime by remember { mutableStateOf(0L) }
     var otherTyping by remember { mutableStateOf(false) }
+    var showProfile by remember { mutableStateOf(false) }
 
     BackHandler(enabled = true) { onBack() }
 
@@ -120,18 +123,52 @@ fun ChatRoomScreen(
                 if (!otherAvatar.isNullOrBlank()) {
                     AsyncImage(model = otherAvatar, contentDescription = otherName, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
                 } else {
-                    Text(otherName.take(1).uppercase(), fontSize = 18.sp, fontWeight = FontWeight.Black, color = Color.White)
+                    Text(otherName.take(1).uppercase(), fontSize = 18.sp, fontWeight = FontWeight.Black, color = t.textPrimary)
                 }
             }
             Spacer(Modifier.width(10.dp))
 
-            Column(modifier = Modifier.weight(1f)) {
-                Text(otherName, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color.White, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Text(
-                    if (otherTyping) "Sedang mengetik..." else "Online",
-                    fontSize = 11.sp,
-                    color = if (otherTyping) t.accent else t.success
-                )
+            Row(
+                modifier = Modifier
+                    .weight(1f)
+                    .clickable(enabled = !isGlobal) { showProfile = true },
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = otherName,
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Black,
+                            color = t.textPrimary,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        if (isGlobal) {
+                            Spacer(Modifier.width(3.dp))
+                            Icon(
+                                imageVector = Icons.Default.CheckCircle,
+                                contentDescription = "Verified",
+                                tint = Color(0xFF1DA1F2),
+                                modifier = Modifier.size(15.dp)
+                            )
+                        }
+                    }
+                    Text(
+                        text = when {
+                            otherTyping -> "Sedang mengetik..."
+                            isGlobal && onlineCount > 0 -> "$onlineCount online · $totalUsers total"
+                            else -> "Online"
+                        },
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = when {
+                            otherTyping -> Color(0xFFFF3B5C)
+                            isGlobal && onlineCount > 0 -> Color(0xFF22C55E)
+                            else -> Color(0xFF22C55E)
+                        }
+                    )
+                }
             }
         }
 
@@ -199,6 +236,75 @@ fun ChatRoomScreen(
                 contentAlignment = Alignment.Center
             ) {
                 Icon(Icons.Default.Send, "Kirim", tint = t.textPrimary, modifier = Modifier.size(22.dp))
+            }
+        }
+    }
+
+    // ===== PROFILE DIALOG (WA-style) =====
+    if (showProfile) {
+        androidx.compose.ui.window.Dialog(
+            onDismissRequest = { showProfile = false },
+            properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)
+        ) {
+            Box(modifier = Modifier.fillMaxSize().background(t.bg)) {
+                Column(modifier = Modifier.fillMaxSize()) {
+                    // Top bar
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp).padding(top = 48.dp, bottom = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            modifier = Modifier.size(40.dp).clip(CircleShape).background(t.iconBg).border(2.dp, t.cardBorder, CircleShape).clickable { showProfile = false },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(Icons.Default.ArrowBack, "Back", tint = t.textPrimary, modifier = Modifier.size(20.dp))
+                        }
+                        Spacer(Modifier.width(12.dp))
+                        Text("Profil", fontSize = 18.sp, fontWeight = FontWeight.Black, color = t.textPrimary)
+                    }
+                    
+                    // Avatar besar
+                    Column(
+                        modifier = Modifier.fillMaxWidth().padding(top = 32.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Box(
+                            modifier = Modifier.size(160.dp).clip(CircleShape).background(t.iconBg).border(3.dp, t.cardBorder, CircleShape),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            if (!otherAvatar.isNullOrBlank()) {
+                                AsyncImage(model = otherAvatar, contentDescription = otherName, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
+                            } else {
+                                Text(otherName.take(1).uppercase(), fontSize = 56.sp, fontWeight = FontWeight.Black, color = t.textPrimary)
+                            }
+                        }
+                        Spacer(Modifier.height(20.dp))
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(otherName, fontSize = 22.sp, fontWeight = FontWeight.Black, color = t.textPrimary)
+                            if (isGlobal) {
+                                Spacer(Modifier.width(4.dp))
+                                Icon(Icons.Default.CheckCircle, "Verified", tint = Color(0xFF1DA1F2), modifier = Modifier.size(20.dp))
+                            }
+                        }
+                        Spacer(Modifier.height(4.dp))
+                        Text(otherCode, fontSize = 13.sp, color = t.textMuted, fontWeight = FontWeight.SemiBold)
+                    }
+                    
+                    Spacer(Modifier.height(24.dp))
+                    
+                    // Info bio + bergabung
+                    Column(modifier = Modifier.padding(horizontal = 24.dp)) {
+                        if (!otherBio.isNullOrBlank()) {
+                            Text("TENTANG", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = t.textMuted)
+                            Spacer(Modifier.height(4.dp))
+                            Text(otherBio, fontSize = 14.sp, color = t.textPrimary)
+                            Spacer(Modifier.height(16.dp))
+                        }
+                        Text("BERGABUNG", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = t.textMuted)
+                        Spacer(Modifier.height(4.dp))
+                        Text("Oktober 2026", fontSize = 14.sp, color = t.textPrimary, fontWeight = FontWeight.SemiBold)
+                    }
+                }
             }
         }
     }
