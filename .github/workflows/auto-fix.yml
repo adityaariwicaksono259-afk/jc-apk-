@@ -1,0 +1,29 @@
+name: Auto Fix Build
+
+on:
+  workflow_run:
+    workflows: ["Build Android APK"]
+    types: [completed]
+
+jobs:
+  fix:
+    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get Build Log
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh run view ${{ github.event.workflow_run.id }} --log-failed > error.log || true
+          echo "=== Log length: $(wc -l < error.log) lines ==="
+          head -n 150 error.log
+
+      - name: Call AI Auto-Fix Bot
+        run: |
+          LOG=$(cat error.log | head -n 150 | tr '\n' ' ' | sed 's/"/\\"/g' | tr -d '\r')
+          curl -X POST "https://jvin.pages.dev/api/bot/fix-build" \
+            -H "Content-Type: application/json" \
+            -d "{\"errorLog\": \"$LOG\", \"repo\": \"${{ github.repository }}\", \"branch\": \"main\"}" \
+            -o response.json
+          echo "=== Bot Response ==="
+          cat response.json

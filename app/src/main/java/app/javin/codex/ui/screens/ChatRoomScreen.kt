@@ -44,6 +44,8 @@ fun ChatRoomScreen(
     otherBio: String? = null,
     otherLastSeen: Long = 0L,
     isGlobal: Boolean = false,
+    onlineCount: Int = 0,
+    totalUsers: Int = 0,
     onBack: () -> Unit = {}
 ) {
     val t = LocalThemeTokens.current
