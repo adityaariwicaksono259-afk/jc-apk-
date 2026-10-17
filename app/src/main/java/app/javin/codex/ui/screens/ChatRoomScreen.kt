@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
@@ -173,7 +174,7 @@ fun ChatRoomScreen(
                 val msg = messages[idx]
                 MessageBubble(
                     message = msg,
-                    isFromMe = msg.fromMe || msg.senderCode == otherCode.not(),
+                    isFromMe = msg.fromMe
                 )
             }
         }
@@ -291,7 +292,3 @@ private fun formatMsgTime(ms: Long): String {
     val m = cal.get(java.util.Calendar.MINUTE)
     return "${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}"
 }
-
-// Ext import
-private fun Modifier.navigationBarsPadding(): Modifier =
-    this.then(androidx.compose.foundation.layout.navigationBarsPadding())
