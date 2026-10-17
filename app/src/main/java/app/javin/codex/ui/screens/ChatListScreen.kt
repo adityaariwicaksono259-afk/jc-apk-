@@ -45,15 +45,23 @@ fun ChatListScreen(
     var loading by remember { mutableStateOf(true) }
     var searchQuery by remember { mutableStateOf("") }
 
-    // Load + polling
+    // Load + polling (safe)
     LaunchedEffect(Unit) {
         while (true) {
-            val r = repo.getRooms()
-            r.onSuccess {
-                rooms = it
+            try {
+                val r = repo.getRooms()
+                r.onSuccess {
+                    rooms = it
+                    loading = false
+                }.onFailure {
+                    loading = false
+                }
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
+            } catch (e: Exception) {
                 loading = false
             }
-            delay(3000)  // polling tiap 3 detik
+            delay(3000)
         }
     }
 
@@ -89,7 +97,7 @@ fun ChatListScreen(
                         .clip(CircleShape)
                         .background(t.accent)
                         .border(2.dp, Color(0xFF0A0A0A), CircleShape)
-                        .clickable(onClick = onNewChat),
+                        .clickable(onClick = { /* TODO */ }),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(

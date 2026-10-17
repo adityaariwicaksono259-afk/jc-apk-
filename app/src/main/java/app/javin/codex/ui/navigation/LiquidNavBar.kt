@@ -41,14 +41,14 @@ fun LiquidNavBar(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 12.dp)
-            .padding(bottom = 12.dp)
+            .padding(bottom = 8.dp)
             .navigationBarsPadding(),
         contentAlignment = Alignment.BottomCenter
     ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(64.dp)
+                .height(76.dp)
                 .shadow(
                     elevation = 16.dp,
                     shape = RoundedCornerShape(44.dp),
@@ -100,7 +100,7 @@ private fun androidx.compose.foundation.layout.RowScope.NavTabItem(
 
     // Icon naik + membesar kalau selected
     val iconSize by animateDpAsState(
-        targetValue = if (selected) 42.dp else 38.dp,
+        targetValue = if (selected) 52.dp else 46.dp,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioMediumBouncy,
             stiffness = Spring.StiffnessMediumLow
@@ -109,7 +109,7 @@ private fun androidx.compose.foundation.layout.RowScope.NavTabItem(
     )
 
     val offsetY by animateDpAsState(
-        targetValue = if (selected) (-6).dp else 0.dp,
+        targetValue = if (selected) (-14).dp else 0.dp,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioMediumBouncy,
             stiffness = Spring.StiffnessMediumLow
@@ -151,7 +151,7 @@ private fun androidx.compose.foundation.layout.RowScope.NavTabItem(
                     imageVector = if (selected) tab.iconFilled else tab.iconOutlined,
                     contentDescription = tab.label,
                     tint = if (selected) Color.White else Color(0xFF6A6A6A),
-                    modifier = Modifier.size(if (selected) 26.dp else 22.dp)
+                    modifier = Modifier.size(if (selected) 30.dp else 24.dp)
                 )
             }
             // Label di bawah (cuma kalau selected)

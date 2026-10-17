@@ -59,30 +59,41 @@ fun ChatRoomScreen(
     // Polling typing indicator
     LaunchedEffect(roomId) {
         while (true) {
-            otherTyping = repo.checkTyping(roomId)
+            try {
+                otherTyping = repo.checkTyping(roomId)
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
+            } catch (e: Exception) {}
             delay(1500)
         }
     }
 
-    // Load + polling (polling since -5 menit biar read receipt update ke-detect)
+    // Load + polling (safe)
     LaunchedEffect(roomId) {
         while (true) {
-            val sinceTime = maxOf(0L, lastMsgTime - 300_000L)
-            val r = repo.getMessages(roomId, sinceTime)
-            r.onSuccess { newMsgs ->
-                if (newMsgs.isNotEmpty()) {
-                    // Merge by id: replace existing, add new
-                    val merged = (messages + newMsgs).groupBy { it.id }.map { (_, list) -> list.last() }
-                        .sortedBy { it.createdAt }
-                    messages = merged
-                    val maxTime = newMsgs.maxOfOrNull { it.createdAt } ?: lastMsgTime
-                    if (maxTime > lastMsgTime) {
-                        lastMsgTime = maxTime
-                        try {
-                            listState.animateScrollToItem(messages.size - 1)
-                        } catch (_: Exception) {}
+            try {
+                val sinceTime = maxOf(0L, lastMsgTime - 300_000L)
+                val r = repo.getMessages(roomId, sinceTime)
+                r.onSuccess { newMsgs ->
+                    if (newMsgs.isNotEmpty()) {
+                        val merged = (messages + newMsgs).groupBy { it.id }.map { (_, list) -> list.last() }
+                            .sortedBy { it.createdAt }
+                        messages = merged
+                        val maxTime = newMsgs.maxOfOrNull { it.createdAt } ?: lastMsgTime
+                        if (maxTime > lastMsgTime) {
+                            lastMsgTime = maxTime
+                            try {
+                                if (messages.isNotEmpty()) {
+                                    listState.animateScrollToItem(messages.size - 1)
+                                }
+                            } catch (_: Exception) {}
+                        }
                     }
                 }
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                // ignore
             }
             loading = false
             delay(2500)
