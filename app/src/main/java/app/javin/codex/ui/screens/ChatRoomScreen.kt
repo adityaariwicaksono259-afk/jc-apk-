@@ -89,14 +89,14 @@ fun ChatRoomScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF121212))
+            .background(t.bg)
             .imePadding()
     ) {
         // ===== TOP BAR =====
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color(0xFF1F1F1F))
+                .background(t.cardBg)
                 .statusBarsPadding()
                 .padding(horizontal = 12.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically
@@ -105,16 +105,16 @@ fun ChatRoomScreen(
                 modifier = Modifier
                     .size(40.dp)
                     .clip(CircleShape)
-                    .background(Color(0xFF2A2A2A))
+                    .background(t.iconBg)
                     .clickable(onClick = onBack),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(Icons.Default.ArrowBack, "Back", tint = Color.White, modifier = Modifier.size(20.dp))
+                Icon(Icons.Default.ArrowBack, "Back", tint = t.textPrimary, modifier = Modifier.size(20.dp))
             }
             Spacer(Modifier.width(10.dp))
 
             Box(
-                modifier = Modifier.size(42.dp).clip(CircleShape).background(Color(0xFF2A2A2A)),
+                modifier = Modifier.size(42.dp).clip(CircleShape).background(t.iconBg),
                 contentAlignment = Alignment.Center
             ) {
                 if (!otherAvatar.isNullOrBlank()) {
@@ -130,7 +130,7 @@ fun ChatRoomScreen(
                 Text(
                     if (otherTyping) "Sedang mengetik..." else "Online",
                     fontSize = 11.sp,
-                    color = if (otherTyping) Color(0xFFC62828) else Color(0xFF22C55E)
+                    color = if (otherTyping) t.accent else t.success
                 )
             }
         }
@@ -151,7 +151,7 @@ fun ChatRoomScreen(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color(0xFF1F1F1F))
+                .background(t.cardBg)
                 .navigationBarsPadding()
                 .padding(horizontal = 12.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically
@@ -162,19 +162,19 @@ fun ChatRoomScreen(
                     inputText = it
                     if (it.isNotBlank()) scope.launch { repo.sendTyping(roomId) }
                 },
-                placeholder = { Text("Ketik pesan...", fontSize = 14.sp, color = Color(0xFF808080)) },
+                placeholder = { Text("Ketik pesan...", fontSize = 14.sp, color = t.textMuted) },
                 singleLine = false,
                 maxLines = 4,
                 modifier = Modifier.weight(1f),
                 shape = RoundedCornerShape(24.dp),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = Color(0xFF2A2A2A),
-                    unfocusedContainerColor = Color(0xFF2A2A2A),
+                    focusedContainerColor = t.iconBg,
+                    unfocusedContainerColor = t.iconBg,
                     focusedBorderColor = Color.Transparent,
                     unfocusedBorderColor = Color.Transparent,
                     focusedTextColor = Color.White,
                     unfocusedTextColor = Color.White,
-                    cursorColor = Color(0xFFC62828)
+                    cursorColor = t.accent
                 )
             )
             Spacer(Modifier.width(8.dp))
@@ -182,7 +182,7 @@ fun ChatRoomScreen(
                 modifier = Modifier
                     .size(48.dp)
                     .clip(CircleShape)
-                    .background(if (inputText.isBlank()) Color(0xFF404040) else Color(0xFFC62828))
+                    .background(if (inputText.isBlank()) t.textMuted else t.accent)
                     .clickable(enabled = inputText.isNotBlank()) {
                         val text = inputText.trim()
                         inputText = ""
@@ -198,7 +198,7 @@ fun ChatRoomScreen(
                     },
                 contentAlignment = Alignment.Center
             ) {
-                Icon(Icons.Default.Send, "Kirim", tint = Color.White, modifier = Modifier.size(22.dp))
+                Icon(Icons.Default.Send, "Kirim", tint = t.textPrimary, modifier = Modifier.size(22.dp))
             }
         }
     }
@@ -213,14 +213,14 @@ private fun MessageBubble(message: ChatMessage, isFromMe: Boolean, isGlobal: Boo
             modifier = Modifier
                 .widthIn(max = 280.dp)
                 .clip(shape)
-                .background(if (isFromMe) Color(0xFFC62828) else Color.White)
+                .background(if (isFromMe) t.accent else Color.White)
                 .padding(horizontal = 14.dp, vertical = 10.dp)
         ) {
             Column {
                 if (isGlobal && !isFromMe && message.senderName.isNotBlank()) {
                     Text(message.senderName, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1DA1F2), modifier = Modifier.padding(bottom = 2.dp))
                 }
-                Text(message.text, fontSize = 14.sp, color = if (isFromMe) Color.White else Color(0xFF0A0A0A), lineHeight = 19.sp)
+                Text(message.text, fontSize = 14.sp, color = if (isFromMe) t.accentOn else t.textPrimary, lineHeight = 19.sp)
                 Spacer(Modifier.height(2.dp))
                 Text(
                     text = buildString {
@@ -231,7 +231,7 @@ private fun MessageBubble(message: ChatMessage, isFromMe: Boolean, isGlobal: Boo
                         }
                     },
                     fontSize = 9.sp,
-                    color = if (isFromMe) Color.White.copy(alpha = 0.7f) else Color(0xFF808080)
+                    color = if (isFromMe) Color.White.copy(alpha = 0.7f) else t.textMuted
                 )
             }
         }
