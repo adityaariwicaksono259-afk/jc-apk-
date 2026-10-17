@@ -43,6 +43,7 @@ fun ChatRoomScreen(
     otherAvatar: String?,
     otherBio: String? = null,
     otherLastSeen: Long = 0L,
+    isGlobal: Boolean = false,
     onBack: () -> Unit = {}
 ) {
     val t = LocalThemeTokens.current
@@ -204,7 +205,8 @@ fun ChatRoomScreen(
                 val msg = messages[idx]
                 MessageBubble(
                     message = msg,
-                    isFromMe = msg.fromMe
+                    isFromMe = msg.fromMe,
+                    isGlobal = isGlobal
                 )
             }
         }
@@ -285,7 +287,8 @@ fun ChatRoomScreen(
 @Composable
 private fun MessageBubble(
     message: ChatMessage,
-    isFromMe: Boolean
+    isFromMe: Boolean,
+    isGlobal: Boolean = false
 ) {
     val t = LocalThemeTokens.current
     val shape = if (isFromMe)
@@ -306,6 +309,15 @@ private fun MessageBubble(
                 .padding(horizontal = 14.dp, vertical = 10.dp)
         ) {
             Column {
+                if (isGlobal && !isFromMe && message.senderName.isNotBlank()) {
+                    Text(
+                        text = message.senderName,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF1DA1F2),
+                        modifier = Modifier.padding(bottom = 2.dp)
+                    )
+                }
                 Text(
                     text = message.text,
                     fontSize = 14.sp,

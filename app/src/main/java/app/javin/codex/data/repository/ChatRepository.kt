@@ -34,7 +34,10 @@ class ChatRepository(private val api: ApiService) {
                     other = ChatUser(
                         code = other?.get("code")?.toString() ?: "",
                         name = other?.get("name")?.toString() ?: "User",
-                        avatar = other?.get("avatar")?.toString()?.ifBlank { null }
+                        avatar = other?.get("avatar")?.toString()?.ifBlank { null },
+                        bio = other?.get("bio")?.toString()?.ifBlank { null },
+                        lastSeen = (other?.get("lastSeen") as? Number)?.toLong() ?: 0,
+                        isOfficial = other?.get("isOfficial") as? Boolean ?: false
                     ),
                     lastMessage = last?.let {
                         ChatMessage(
@@ -44,7 +47,10 @@ class ChatRepository(private val api: ApiService) {
                         )
                     },
                     unread = (item["unread"] as? Number)?.toInt() ?: 0,
-                    lastMessageAt = (item["lastMessageAt"] as? Number)?.toLong() ?: 0
+                    lastMessageAt = (item["lastMessageAt"] as? Number)?.toLong() ?: 0,
+                    isOfficial = item["isOfficial"] as? Boolean ?: false,
+                    onlineCount = (item["onlineCount"] as? Number)?.toInt() ?: 0,
+                    totalUsers = (item["totalUsers"] as? Number)?.toInt() ?: 0
                 )
             }
             Result.success(out)
@@ -87,6 +93,7 @@ class ChatRepository(private val api: ApiService) {
                     id = (item["id"] as? Number)?.toLong() ?: 0,
                     roomId = roomId,
                     senderCode = item["sender_code"]?.toString() ?: "",
+                    senderName = item["sender_name"]?.toString() ?: "",
                     text = item["text"]?.toString() ?: "",
                     createdAt = (item["created_at"] as? Number)?.toLong() ?: 0,
                     readAt = (item["read_at"] as? Number)?.toLong() ?: 0,

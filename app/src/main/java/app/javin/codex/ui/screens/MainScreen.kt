@@ -416,6 +416,7 @@ fun MainScreen(
                         otherAvatar = openChatOtherAvatar,
                         otherBio = openChatOtherBio,
                         otherLastSeen = openChatOtherLastSeen,
+                        isGlobal = openChatOtherCode == "GLOBAL",
                         onBack = { openChatRoomId = null }
                     )
                 }

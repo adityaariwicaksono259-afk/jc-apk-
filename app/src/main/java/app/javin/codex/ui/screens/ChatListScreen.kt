@@ -10,6 +10,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -223,9 +224,18 @@ private fun ChatRoomRow(
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFF0A0A0A),
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f)
+                    overflow = TextOverflow.Ellipsis
                 )
+                if (room.isOfficial) {
+                    Spacer(Modifier.width(4.dp))
+                    Icon(
+                        imageVector = Icons.Default.CheckCircle,
+                        contentDescription = "Verified",
+                        tint = Color(0xFF1DA1F2),
+                        modifier = Modifier.size(16.dp)
+                    )
+                }
+                Spacer(Modifier.weight(1f))
                 if (room.lastMessageAt > 0) {
                     Text(
                         text = formatTime(room.lastMessageAt),
@@ -238,9 +248,9 @@ private fun ChatRoomRow(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     text = if (room.lastMessage?.fromMe == true) "✓ ${room.lastMessage?.text ?: ""}"
-                           else room.lastMessage?.text ?: "Mulai chat",
+                           else room.lastMessage?.text ?: if (room.isOfficial) "${room.onlineCount} online · ${room.totalUsers} total" else "Mulai chat",
                     fontSize = 12.sp,
-                    color = t.textMuted,
+                    color = if (room.isOfficial && room.lastMessage == null) t.success else t.textMuted,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f)

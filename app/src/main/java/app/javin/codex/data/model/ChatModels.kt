@@ -5,13 +5,15 @@ data class ChatUser(
     val name: String,
     val avatar: String? = null,
     val bio: String? = null,
-    val lastSeen: Long = 0
+    val lastSeen: Long = 0,
+    val isOfficial: Boolean = false
 )
 
 data class ChatMessage(
     val id: Long = 0,
     val roomId: Long = 0,
     val senderCode: String = "",
+    val senderName: String = "",
     val text: String = "",
     val createdAt: Long = 0,
     val readAt: Long = 0,
@@ -23,7 +25,10 @@ data class ChatRoom(
     val other: ChatUser = ChatUser("", ""),
     val lastMessage: ChatMessage? = null,
     val unread: Int = 0,
-    val lastMessageAt: Long = 0
+    val lastMessageAt: Long = 0,
+    val isOfficial: Boolean = false,
+    val onlineCount: Int = 0,
+    val totalUsers: Int = 0
 )
 
 data class ChatContact(
