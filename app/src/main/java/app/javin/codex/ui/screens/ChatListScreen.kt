@@ -97,7 +97,7 @@ fun ChatListScreen(
                         .clip(CircleShape)
                         .background(t.accent)
                         .border(2.dp, Color(0xFF0A0A0A), CircleShape)
-                        .clickable(onClick = { /* TODO */ }),
+                        .clickable(onClick = onNewChat),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(

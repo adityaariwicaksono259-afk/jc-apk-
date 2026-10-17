@@ -251,6 +251,21 @@ fun ChatRoomScreen(
                         val text = inputText.trim()
                         inputText = ""
                         scope.launch {
+                            // Optimistic: tambah ke list dulu
+                            val tempMsg = ChatMessage(
+                                id = System.currentTimeMillis(),
+                                roomId = roomId,
+                                text = text,
+                                createdAt = System.currentTimeMillis(),
+                                fromMe = true
+                            )
+                            messages = messages + tempMsg
+                            try {
+                                if (messages.isNotEmpty()) {
+                                    listState.animateScrollToItem(messages.size - 1)
+                                }
+                            } catch (_: Exception) {}
+                            // Kirim ke server
                             repo.sendMessage(roomId, text)
                         }
                     },
