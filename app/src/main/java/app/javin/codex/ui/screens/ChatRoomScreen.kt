@@ -6,6 +6,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
@@ -121,7 +122,6 @@ fun ChatRoomScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .imePadding()
             .background(Color(0xFF121212))
     ) {
         // ===== TOP BAR =====
@@ -129,8 +129,9 @@ fun ChatRoomScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(Color(0xFF1F1F1F))
+                .statusBarsPadding()
                 .padding(horizontal = 12.dp)
-                .padding(top = 48.dp, bottom = 10.dp),
+                .padding(vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
