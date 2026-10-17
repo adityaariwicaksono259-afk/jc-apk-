@@ -2,18 +2,14 @@ package app.javin.codex.ui.screens
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
@@ -58,36 +54,16 @@ fun ChatRoomScreen(
     var loading by remember { mutableStateOf(true) }
     var lastMsgTime by remember { mutableStateOf(0L) }
     var otherTyping by remember { mutableStateOf(false) }
-    var lastSeenState by remember { mutableStateOf(otherLastSeen) }
-    var showProfile by remember { mutableStateOf(false) }
 
     BackHandler(enabled = true) { onBack() }
 
-    // Guard: roomId invalid
-    if (roomId <= 0) {
-        androidx.compose.material3.Text(
-            "Room tidak valid",
-            color = t.danger,
-            modifier = Modifier.padding(32.dp)
-        )
-        return
-    }
-
-    // Polling typing indicator
     LaunchedEffect(roomId) {
         while (true) {
-            try {
-                otherTyping = repo.checkTyping(roomId)
-                // Ambil last seen dari contacts (cache atau fetch)
-                // Fallback: skip kalau gagal
-            } catch (e: kotlinx.coroutines.CancellationException) {
-                throw e
-            } catch (e: Exception) {}
+            try { otherTyping = repo.checkTyping(roomId) } catch (_: Exception) {}
             delay(1500)
         }
     }
 
-    // Load + polling (safe)
     LaunchedEffect(roomId) {
         while (true) {
             try {
@@ -95,25 +71,16 @@ fun ChatRoomScreen(
                 val r = repo.getMessages(roomId, sinceTime)
                 r.onSuccess { newMsgs ->
                     if (newMsgs.isNotEmpty()) {
-                        val merged = (messages + newMsgs).groupBy { it.id }.map { (_, list) -> list.last() }
-                            .sortedBy { it.createdAt }
+                        val merged = (messages + newMsgs).groupBy { it.id }.map { (_, l) -> l.last() }.sortedBy { it.createdAt }
                         messages = merged
                         val maxTime = newMsgs.maxOfOrNull { it.createdAt } ?: lastMsgTime
                         if (maxTime > lastMsgTime) {
                             lastMsgTime = maxTime
-                            try {
-                                if (messages.isNotEmpty()) {
-                                    listState.animateScrollToItem(messages.size - 1)
-                                }
-                            } catch (_: Exception) {}
+                            try { if (messages.isNotEmpty()) listState.animateScrollToItem(messages.size - 1) } catch (_: Exception) {}
                         }
                     }
                 }
-            } catch (e: kotlinx.coroutines.CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                // ignore
-            }
+            } catch (_: Exception) {}
             loading = false
             delay(2500)
         }
@@ -123,6 +90,7 @@ fun ChatRoomScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFF121212))
+            .imePadding()
     ) {
         // ===== TOP BAR =====
         Row(
@@ -130,87 +98,39 @@ fun ChatRoomScreen(
                 .fillMaxWidth()
                 .background(Color(0xFF1F1F1F))
                 .statusBarsPadding()
-                .padding(horizontal = 12.dp)
-                .padding(vertical = 10.dp),
+                .padding(horizontal = 12.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
                 modifier = Modifier
                     .size(40.dp)
                     .clip(CircleShape)
-                    .background(t.accentSoft)
+                    .background(Color(0xFF2A2A2A))
                     .clickable(onClick = onBack),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    imageVector = Icons.Default.ArrowBack,
-                    contentDescription = "Back",
-                    tint = t.textPrimary,
-                    modifier = Modifier.size(20.dp)
-                )
+                Icon(Icons.Default.ArrowBack, "Back", tint = Color.White, modifier = Modifier.size(20.dp))
             }
             Spacer(Modifier.width(10.dp))
 
-            // Avatar + nama (klik buka profil)
-            Row(
-                modifier = Modifier
-                    .weight(1f)
-                    .clickable(enabled = !isGlobal) { showProfile = true },
-                verticalAlignment = Alignment.CenterVertically
+            Box(
+                modifier = Modifier.size(42.dp).clip(CircleShape).background(Color(0xFF2A2A2A)),
+                contentAlignment = Alignment.Center
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(42.dp)
-                        .clip(CircleShape)
-                        .background(t.accentSoft),
-                    contentAlignment = Alignment.Center
-                ) {
-                    if (!otherAvatar.isNullOrBlank()) {
-                        AsyncImage(
-                            model = otherAvatar,
-                            contentDescription = otherName,
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier.fillMaxSize()
-                        )
-                    } else {
-                        Text(
-                            text = otherName.take(1).uppercase(),
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Black,
-                            color = t.textPrimary
-                        )
-                    }
+                if (!otherAvatar.isNullOrBlank()) {
+                    AsyncImage(model = otherAvatar, contentDescription = otherName, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
+                } else {
+                    Text(otherName.take(1).uppercase(), fontSize = 18.sp, fontWeight = FontWeight.Black, color = Color.White)
                 }
-                Spacer(Modifier.width(10.dp))
-                Column(modifier = Modifier.weight(1f)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            text = otherName,
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                        if (isGlobal) {
-                            Spacer(Modifier.width(3.dp))
-                            Icon(
-                                imageVector = Icons.Default.CheckCircle,
-                                contentDescription = "Verified",
-                                tint = Color(0xFF1DA1F2),
-                                modifier = Modifier.size(14.dp)
-                            )
-                        }
-                    }
+            }
+            Spacer(Modifier.width(10.dp))
+
+            Column(modifier = Modifier.weight(1f)) {
+                Text(otherName, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color.White, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Text(
-                    text = when {
-                        otherTyping -> "Sedang mengetik..."
-                        lastSeenState > 0 -> lastSeenText(lastSeenState)
-                        else -> "Online"
-                    },
+                    if (otherTyping) "Sedang mengetik..." else "Online",
                     fontSize = 11.sp,
-                    color = if (otherTyping) t.accent else t.success,
-                    fontWeight = if (otherTyping) FontWeight.Bold else FontWeight.Normal
+                    color = if (otherTyping) Color(0xFFC62828) else Color(0xFF22C55E)
                 )
             }
         }
@@ -218,20 +138,12 @@ fun ChatRoomScreen(
         // ===== MESSAGES =====
         LazyColumn(
             state = listState,
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
-                .padding(horizontal = 12.dp),
+            modifier = Modifier.fillMaxWidth().weight(1f).padding(horizontal = 12.dp),
             contentPadding = PaddingValues(vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
             items(messages.size) { idx ->
-                val msg = messages[idx]
-                MessageBubble(
-                    message = msg,
-                    isFromMe = msg.fromMe,
-                    isGlobal = isGlobal
-                )
+                MessageBubble(messages[idx], messages[idx].fromMe, isGlobal)
             }
         }
 
@@ -240,19 +152,17 @@ fun ChatRoomScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(Color(0xFF1F1F1F))
-                .padding(horizontal = 12.dp, vertical = 10.dp)
-                .navigationBarsPadding(),
+                .navigationBarsPadding()
+                .padding(horizontal = 12.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             OutlinedTextField(
                 value = inputText,
                 onValueChange = {
                     inputText = it
-                    if (it.isNotBlank()) {
-                        scope.launch { repo.sendTyping(roomId) }
-                    }
+                    if (it.isNotBlank()) scope.launch { repo.sendTyping(roomId) }
                 },
-                placeholder = { Text("Ketik pesan...", fontSize = 14.sp, color = t.textMuted) },
+                placeholder = { Text("Ketik pesan...", fontSize = 14.sp, color = Color(0xFF808080)) },
                 singleLine = false,
                 maxLines = 4,
                 modifier = Modifier.weight(1f),
@@ -272,147 +182,33 @@ fun ChatRoomScreen(
                 modifier = Modifier
                     .size(48.dp)
                     .clip(CircleShape)
-                    .background(if (inputText.isBlank()) t.textMuted else t.accent)
+                    .background(if (inputText.isBlank()) Color(0xFF404040) else Color(0xFFC62828))
                     .clickable(enabled = inputText.isNotBlank()) {
                         val text = inputText.trim()
                         inputText = ""
-                        scope.launch {
-                            // Optimistic: tambah ke list dulu
-                            val tempMsg = ChatMessage(
-                                id = System.currentTimeMillis(),
-                                roomId = roomId,
-                                text = text,
-                                createdAt = System.currentTimeMillis(),
-                                fromMe = true
-                            )
-                            messages = messages + tempMsg
-                            try {
-                                if (messages.isNotEmpty()) {
-                                    listState.animateScrollToItem(messages.size - 1)
-                                }
-                            } catch (_: Exception) {}
-                            // Kirim ke server
-                            repo.sendMessage(roomId, text)
-                        }
+                        val temp = ChatMessage(
+                            id = System.currentTimeMillis(),
+                            roomId = roomId,
+                            text = text,
+                            createdAt = System.currentTimeMillis(),
+                            fromMe = true
+                        )
+                        messages = messages + temp
+                        scope.launch { repo.sendMessage(roomId, text) }
                     },
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    imageVector = Icons.Default.Send,
-                    contentDescription = "Kirim",
-                    tint = Color.White,
-                    modifier = Modifier.size(22.dp)
-                )
-            }
-        }
-    }
-
-    // ===== USER PROFILE (full screen WA-style) =====
-    if (showProfile) {
-        androidx.compose.ui.window.Dialog(
-            onDismissRequest = { showProfile = false },
-            properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color(0xFFEDEDED))
-            ) {
-                // Header
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(Color.White)
-                        .padding(horizontal = 12.dp)
-                        .padding(top = 48.dp, bottom = 12.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(40.dp)
-                            .clip(CircleShape)
-                            .background(t.accentSoft)
-                            .clickable { showProfile = false },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.ArrowBack,
-                            contentDescription = "Back",
-                            tint = t.textPrimary,
-                            modifier = Modifier.size(20.dp)
-                        )
-                    }
-                    Spacer(Modifier.width(12.dp))
-                    Text("Profil", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color(0xFF0A0A0A))
-                }
-
-                // Avatar besar
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 100.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Box(
-                        modifier = Modifier.size(180.dp).clip(CircleShape).background(Color.White),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        if (!otherAvatar.isNullOrBlank()) {
-                            AsyncImage(
-                                model = otherAvatar,
-                                contentDescription = otherName,
-                                contentScale = ContentScale.Crop,
-                                modifier = Modifier.fillMaxSize().clip(CircleShape)
-                            )
-                        } else {
-                            Text(otherName.take(1).uppercase(), fontSize = 64.sp, fontWeight = FontWeight.Black, color = t.textPrimary)
-                        }
-                    }
-                    Spacer(Modifier.height(24.dp))
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(otherName, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Color(0xFF0A0A0A))
-                        if (isGlobal) {
-                            Spacer(Modifier.width(4.dp))
-                            Icon(Icons.Default.CheckCircle, "Verified", tint = Color(0xFF1DA1F2), modifier = Modifier.size(20.dp))
-                        }
-                    }
-                    if (!otherCode.isNullOrBlank()) {
-                        Spacer(Modifier.height(4.dp))
-                        Text(otherCode, fontSize = 12.sp, color = t.textMuted)
-                    }
-                    if (!otherBio.isNullOrBlank()) {
-                        Spacer(Modifier.height(20.dp))
-                        Text(
-                            otherBio,
-                            fontSize = 14.sp,
-                            color = Color(0xFF0A0A0A),
-                            modifier = Modifier.padding(horizontal = 32.dp),
-                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                        )
-                    }
-                }
+                Icon(Icons.Default.Send, "Kirim", tint = Color.White, modifier = Modifier.size(22.dp))
             }
         }
     }
 }
 
-}
 @Composable
-private fun MessageBubble(
-    message: ChatMessage,
-    isFromMe: Boolean,
-    isGlobal: Boolean = false
-) {
-    val t = LocalThemeTokens.current
-    val shape = if (isFromMe)
-        RoundedCornerShape(18.dp, 18.dp, 4.dp, 18.dp)
-    else
-        RoundedCornerShape(18.dp, 18.dp, 18.dp, 4.dp)
-
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = if (isFromMe) Arrangement.End else Arrangement.Start
-    ) {
+private fun MessageBubble(message: ChatMessage, isFromMe: Boolean, isGlobal: Boolean = false) {
+    val shape = if (isFromMe) RoundedCornerShape(18.dp, 18.dp, 4.dp, 18.dp)
+                else RoundedCornerShape(18.dp, 18.dp, 18.dp, 4.dp)
+    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = if (isFromMe) Arrangement.End else Arrangement.Start) {
         Box(
             modifier = Modifier
                 .widthIn(max = 280.dp)
@@ -422,20 +218,9 @@ private fun MessageBubble(
         ) {
             Column {
                 if (isGlobal && !isFromMe && message.senderName.isNotBlank()) {
-                    Text(
-                        text = message.senderName,
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF1DA1F2),
-                        modifier = Modifier.padding(bottom = 2.dp)
-                    )
+                    Text(message.senderName, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1DA1F2), modifier = Modifier.padding(bottom = 2.dp))
                 }
-                Text(
-                    text = message.text,
-                    fontSize = 14.sp,
-                    color = if (isFromMe) Color.White else Color(0xFF0A0A0A),
-                    lineHeight = 19.sp
-                )
+                Text(message.text, fontSize = 14.sp, color = if (isFromMe) Color.White else Color(0xFF0A0A0A), lineHeight = 19.sp)
                 Spacer(Modifier.height(2.dp))
                 Text(
                     text = buildString {
@@ -460,16 +245,4 @@ private fun formatMsgTime(ms: Long): String {
     val h = cal.get(java.util.Calendar.HOUR_OF_DAY)
     val m = cal.get(java.util.Calendar.MINUTE)
     return "${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}"
-}
-
-private fun lastSeenText(lastSeen: Long): String {
-    if (lastSeen <= 0) return "Offline"
-    val diff = System.currentTimeMillis() - lastSeen
-    return when {
-        diff < 60_000 -> "Online"
-        diff < 3600_000 -> "Terakhir dilihat ${diff / 60_000} menit lalu"
-        diff < 86400_000 -> "Terakhir dilihat ${diff / 3600_000} jam lalu"
-        diff < 604800_000 -> "Terakhir dilihat ${diff / 86400_000} hari lalu"
-        else -> "Offline"
-    }
 }
