@@ -391,6 +391,7 @@ fun ChatRoomScreen(
     }
 }
 
+}
 @Composable
 private fun MessageBubble(
     message: ChatMessage,

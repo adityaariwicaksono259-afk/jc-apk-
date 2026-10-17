@@ -105,7 +105,14 @@ fun HomeScreen(
         result.onSuccess { allTools ->
             // Hardcode Anime + Drama di atas, merge dari API
             val hardcoded = listOf("Anime", "Drama")
-            val fromApi = allTools
+            // Filter tool yang berhubungan Spotify (udah pindah ke Music tab)
+            val spotifyBlacklist = listOf("spotify", "spotify play", "spotify download", "spotify playlist", "spotify card")
+            val filtered = allTools.filter { tool ->
+                val name = tool.displayName.lowercase()
+                val sub = (tool.subfolder ?: "").lowercase()
+                spotifyBlacklist.none { name.contains(it) || sub.contains(it) }
+            }
+            val fromApi = filtered
                 .groupBy { it.displayFolder }
                 .map { (folder, _) -> folder }
                 .filter { it !in hardcoded }
