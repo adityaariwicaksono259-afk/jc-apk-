@@ -118,13 +118,17 @@ fun ChatRoomScreen(
         }
     }
 
-    Column(modifier = Modifier.fillMaxSize()) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .imePadding()
+            .background(Color(0xFF121212))
+    ) {
         // ===== TOP BAR =====
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color.White)
-                .border(0.dp, Color.Transparent)
+                .background(Color(0xFF1F1F1F))
                 .padding(horizontal = 12.dp)
                 .padding(top = 48.dp, bottom = 10.dp),
             verticalAlignment = Alignment.CenterVertically
@@ -183,7 +187,7 @@ fun ChatRoomScreen(
                             text = otherName,
                             fontSize = 15.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color(0xFF0A0A0A),
+                            color = Color.White,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
@@ -234,7 +238,7 @@ fun ChatRoomScreen(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color.White)
+                .background(Color(0xFF1F1F1F))
                 .padding(horizontal = 12.dp, vertical = 10.dp)
                 .navigationBarsPadding(),
             verticalAlignment = Alignment.CenterVertically
@@ -253,13 +257,13 @@ fun ChatRoomScreen(
                 modifier = Modifier.weight(1f),
                 shape = RoundedCornerShape(24.dp),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = Color(0xFFF5F5F5),
-                    unfocusedContainerColor = Color(0xFFF5F5F5),
-                    focusedBorderColor = Color(0xFF0A0A0A),
-                    unfocusedBorderColor = Color(0xFF0A0A0A),
-                    focusedTextColor = t.textPrimary,
-                    unfocusedTextColor = t.textPrimary,
-                    cursorColor = t.accent
+                    focusedContainerColor = Color(0xFF2A2A2A),
+                    unfocusedContainerColor = Color(0xFF2A2A2A),
+                    focusedBorderColor = Color.Transparent,
+                    unfocusedBorderColor = Color.Transparent,
+                    focusedTextColor = Color.White,
+                    unfocusedTextColor = Color.White,
+                    cursorColor = Color(0xFFC62828)
                 )
             )
             Spacer(Modifier.width(8.dp))
@@ -412,8 +416,7 @@ private fun MessageBubble(
             modifier = Modifier
                 .widthIn(max = 280.dp)
                 .clip(shape)
-                .background(if (isFromMe) t.accent else Color.White)
-                .border(2.dp, Color(0xFF0A0A0A), shape)
+                .background(if (isFromMe) Color(0xFFC62828) else Color.White)
                 .padding(horizontal = 14.dp, vertical = 10.dp)
         ) {
             Column {
@@ -429,7 +432,7 @@ private fun MessageBubble(
                 Text(
                     text = message.text,
                     fontSize = 14.sp,
-                    color = if (isFromMe) t.accentOn else Color(0xFF0A0A0A),
+                    color = if (isFromMe) Color.White else Color(0xFF0A0A0A),
                     lineHeight = 19.sp
                 )
                 Spacer(Modifier.height(2.dp))
@@ -442,7 +445,7 @@ private fun MessageBubble(
                         }
                     },
                     fontSize = 9.sp,
-                    color = if (isFromMe) t.accentOn.copy(alpha = 0.7f) else t.textMuted
+                    color = if (isFromMe) Color.White.copy(alpha = 0.7f) else Color(0xFF808080)
                 )
             }
         }
