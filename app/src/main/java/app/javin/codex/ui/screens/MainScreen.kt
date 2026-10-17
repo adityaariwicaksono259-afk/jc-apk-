@@ -74,6 +74,11 @@ fun MainScreen(
     var musicTrack by remember { mutableStateOf<app.javin.codex.data.model.MusicTrack?>(null) }
     var musicPlaylist by remember { mutableStateOf<List<app.javin.codex.data.model.MusicTrack>>(emptyList()) }
     var musicIndex by remember { mutableStateOf(0) }
+    var openChatRoomId by remember { mutableStateOf<Long?>(null) }
+    var openChatOtherCode by remember { mutableStateOf("") }
+    var openChatOtherName by remember { mutableStateOf("") }
+    var openChatOtherAvatar by remember { mutableStateOf<String?>(null) }
+    var showNewChatPicker by remember { mutableStateOf(false) }
     var dramaProvider by remember { mutableStateOf("dramabox") }
     var dramaPlayerUrl by remember { mutableStateOf<String?>(null) }
     var dramaPlayerTitle by remember { mutableStateOf("Episode") }
@@ -94,6 +99,7 @@ fun MainScreen(
                 dramaEpisodeIndex = -1
             }
             musicTrack != null -> musicTrack = null
+            openChatRoomId != null -> openChatRoomId = null
             meloloTitle != null -> {
                 meloloTitle = null
                 meloloDetailUrl = null
@@ -191,10 +197,14 @@ fun MainScreen(
                                     }
                                 }
                             )
-                            NavTab.CHAT -> PlaceholderTab(
-                                icon = Icons.Filled.Chat,
-                                title = "Chat",
-                                subtitle = "Chat antar user segera hadir"
+                            NavTab.CHAT -> ChatListScreen(
+                                onOpenRoom = { roomId, otherCode, otherName, otherAvatar ->
+                                    openChatRoomId = roomId
+                                    openChatOtherCode = otherCode
+                                    openChatOtherName = otherName
+                                    openChatOtherAvatar = otherAvatar
+                                },
+                                onNewChat = { showNewChatPicker = true }
                             )
                             NavTab.PLAYLIST -> MusicHubScreen(
                                 onTrackClick = { track, list, idx ->
@@ -383,6 +393,23 @@ fun MainScreen(
                     LiquidNavBar(
                         selectedTab = selectedTab,
                         onTabSelected = { selectedTab = it }
+                    )
+                }
+            }
+
+            // Chat Room (full screen)
+            openChatRoomId?.let { roomId ->
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(t.bg)
+                ) {
+                    ChatRoomScreen(
+                        roomId = roomId,
+                        otherCode = openChatOtherCode,
+                        otherName = openChatOtherName,
+                        otherAvatar = openChatOtherAvatar,
+                        onBack = { openChatRoomId = null }
                     )
                 }
             }
