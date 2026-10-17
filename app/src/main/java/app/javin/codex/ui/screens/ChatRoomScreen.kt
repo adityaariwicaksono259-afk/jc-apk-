@@ -59,6 +59,16 @@ fun ChatRoomScreen(
 
     BackHandler(enabled = true) { onBack() }
 
+    // Guard: roomId invalid
+    if (roomId <= 0) {
+        androidx.compose.material3.Text(
+            "Room tidak valid",
+            color = t.danger,
+            modifier = Modifier.padding(32.dp)
+        )
+        return
+    }
+
     // Polling typing indicator
     LaunchedEffect(roomId) {
         while (true) {

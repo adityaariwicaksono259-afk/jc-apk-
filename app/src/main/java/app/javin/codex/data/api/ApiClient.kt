@@ -34,6 +34,9 @@ object ApiClient {
                 val builder = original.newBuilder()
                     .header("Accept", "application/json")
                     .header("User-Agent", "JavinCodex/1.0.0 (Android Native)")
+                    .header("Origin", "https://jvin.pages.dev")
+                    .header("Referer", "https://jvin.pages.dev/")
+                    .header("Sec-Fetch-Site", "same-site")
 
                 // Inject Bearer token kalau ada
                 val token = session.getTokenSync()

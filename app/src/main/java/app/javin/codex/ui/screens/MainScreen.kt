@@ -421,22 +421,20 @@ fun MainScreen(
                 }
             }
 
-            // Chat Contact Picker
+            // Chat Add Contact Dialog
             if (showNewChatPicker) {
-                Box(modifier = Modifier.fillMaxSize().background(t.bg)) {
-                    ChatContactPickerScreen(
-                        onBack = { showNewChatPicker = false },
-                        onContactSelected = { roomId, code, name, avatar, bio, lastSeen ->
-                            showNewChatPicker = false
-                            openChatRoomId = roomId
-                            openChatOtherCode = code
-                            openChatOtherName = name
-                            openChatOtherAvatar = avatar
-                            openChatOtherBio = bio
-                            openChatOtherLastSeen = lastSeen
-                        }
-                    )
-                }
+                AddContactDialog(
+                    onDismiss = { showNewChatPicker = false },
+                    onSaved = { roomId, code, name ->
+                        showNewChatPicker = false
+                        openChatRoomId = roomId
+                        openChatOtherCode = code
+                        openChatOtherName = name
+                        openChatOtherAvatar = null
+                        openChatOtherBio = null
+                        openChatOtherLastSeen = 0L
+                    }
+                )
             }
 
             // Music Player (paling atas)
