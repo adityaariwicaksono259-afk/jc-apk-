@@ -128,4 +128,37 @@ interface ApiService {
 
     @GET("api/tools/working")
     suspend fun getWorkingTools(): Response<okhttp3.ResponseBody>
+
+    // ============================================
+    // CHAT
+    // ============================================
+    @GET("api/chat/rooms")
+    suspend fun getChatRooms(): Response<okhttp3.ResponseBody>
+
+    @POST("api/chat/rooms")
+    suspend fun postChatRoom(@Body body: okhttp3.RequestBody): Response<okhttp3.ResponseBody>
+
+    @GET("api/chat/messages")
+    suspend fun getChatMessages(
+        @Query("room_id") roomId: Long,
+        @Query("since") since: Long = 0
+    ): Response<okhttp3.ResponseBody>
+
+    @POST("api/chat/messages")
+    suspend fun postChatMessage(@Body body: okhttp3.RequestBody): Response<okhttp3.ResponseBody>
+
+    @GET("api/chat/contacts")
+    suspend fun getChatContacts(): Response<okhttp3.ResponseBody>
+
+    @POST("api/chat/typing")
+    suspend fun postChatTyping(@Body body: okhttp3.RequestBody): Response<okhttp3.ResponseBody>
+
+    @GET("api/chat/typing")
+    suspend fun getChatTyping(@Query("room_id") roomId: Long): Response<okhttp3.ResponseBody>
+
+    @POST("api/chat/block")
+    suspend fun postChatBlock(@Body body: okhttp3.RequestBody): Response<okhttp3.ResponseBody>
+
+    @POST("api/chat/heartbeat")
+    suspend fun postChatHeartbeat(): Response<okhttp3.ResponseBody>
 }
