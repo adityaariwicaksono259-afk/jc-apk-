@@ -159,7 +159,7 @@ fun ChatRoomScreen(
                     Text(
                         text = when {
                             otherTyping -> "Sedang mengetik..."
-                            isGlobal && onlineCount > 0 -> "$onlineCount online · $totalUsers total"
+                            isGlobal && onlineCount > 0 -> "$onlineCount online"
                             else -> "Online"
                         },
                         fontSize = 11.sp,

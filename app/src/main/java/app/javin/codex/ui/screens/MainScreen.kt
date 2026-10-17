@@ -201,13 +201,15 @@ fun MainScreen(
                                 }
                             )
                             NavTab.CHAT -> ChatListScreen(
-                                onOpenRoom = { roomId, otherCode, otherName, otherAvatar, otherBio, otherLastSeen ->
+                                onOpenRoom = { roomId, otherCode, otherName, otherAvatar, otherBio, otherLastSeen, onlineCount, totalUsers ->
                                     openChatRoomId = roomId
                                     openChatOtherCode = otherCode
                                     openChatOtherName = otherName
                                     openChatOtherAvatar = otherAvatar
                                     openChatOtherBio = otherBio
                                     openChatOtherLastSeen = otherLastSeen
+                                    openChatOnlineCount = onlineCount
+                                    openChatTotalUsers = totalUsers
                                 },
                                 onNewChat = { showNewChatPicker = true }
                             )
@@ -417,6 +419,8 @@ fun MainScreen(
                         otherBio = openChatOtherBio,
                         otherLastSeen = openChatOtherLastSeen,
                         isGlobal = openChatOtherCode == "GLOBAL",
+                        onlineCount = openChatOnlineCount,
+                        totalUsers = openChatTotalUsers,
                         onBack = { openChatRoomId = null }
                     )
                 }
