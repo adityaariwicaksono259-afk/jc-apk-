@@ -29,6 +29,7 @@ class MusicService : Service() {
         const val CHANNEL_ID = "javin_music_channel"
         const val NOTIF_ID = 1001
         const val ACTION_PLAY = "javin.music.PLAY"
+        const val ACTION_RESUME = "javin.music.RESUME"
         const val ACTION_PAUSE = "javin.music.PAUSE"
         const val ACTION_NEXT = "javin.music.NEXT"
         const val ACTION_PREV = "javin.music.PREV"
@@ -93,14 +94,22 @@ class MusicService : Service() {
                 val artist = intent.getStringExtra("artist") ?: ""
                 val cover = intent.getStringExtra("cover")
                 if (!url.isNullOrBlank()) {
+                    // Play track baru
                     currentTitle = title
                     currentArtist = artist
                     currentCoverUrl = cover
                     player.setMediaItem(MediaItem.fromUri(url))
                     player.prepare()
                     player.play()
+                } else {
+                    // Resume (kalau lagi pause)
+                    player.play()
                 }
                 startForeground(NOTIF_ID, buildNotification())
+            }
+            ACTION_RESUME -> {
+                player.play()
+                updateNotification()
             }
             ACTION_PAUSE -> player.pause()
             ACTION_NEXT -> sendBroadcast(Intent("javin.music.NEXT"))
@@ -143,7 +152,7 @@ class MusicService : Service() {
         )
         val playPauseIntent = PendingIntent.getService(
             this, 2,
-            Intent(this, MusicService::class.java).setAction(if (isPlaying) ACTION_PAUSE else ACTION_PLAY),
+            Intent(this, MusicService::class.java).setAction(if (isPlaying) ACTION_PAUSE else ACTION_RESUME),
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
         val nextIntent = PendingIntent.getService(

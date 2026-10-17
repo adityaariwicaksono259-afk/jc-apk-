@@ -104,6 +104,18 @@ fun MusicPlayerScreen(
                             currentTrack = playlist[currentIndex]
                         }
                     }
+                    "javin.music.NEXT" -> {
+                        if (currentIndex < playlist.size - 1) {
+                            currentIndex++
+                            currentTrack = playlist[currentIndex]
+                        }
+                    }
+                    "javin.music.PREV" -> {
+                        if (currentIndex > 0) {
+                            currentIndex--
+                            currentTrack = playlist[currentIndex]
+                        }
+                    }
                 }
             }
         }
