@@ -119,7 +119,11 @@ fun ChatRoomScreen(
             Spacer(Modifier.width(10.dp))
 
             Box(
-                modifier = Modifier.size(42.dp).clip(CircleShape).background(t.iconBg),
+                modifier = Modifier
+                    .size(42.dp)
+                    .clip(CircleShape)
+                    .background(t.iconBg)
+                    .clickable { showProfile = true },
                 contentAlignment = Alignment.Center
             ) {
                 if (!otherAvatar.isNullOrBlank()) {
@@ -133,7 +137,7 @@ fun ChatRoomScreen(
             Row(
                 modifier = Modifier
                     .weight(1f)
-                    .clickable(enabled = !isGlobal) { showProfile = true },
+                    .clickable { showProfile = true },
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(modifier = Modifier.weight(1f)) {
@@ -262,7 +266,7 @@ fun ChatRoomScreen(
                             Icon(Icons.Default.ArrowBack, "Back", tint = t.textPrimary, modifier = Modifier.size(20.dp))
                         }
                         Spacer(Modifier.width(12.dp))
-                        Text("Profil", fontSize = 18.sp, fontWeight = FontWeight.Black, color = t.textPrimary)
+                        Text(if (isGlobal) "Info Grup" else "Info Kontak", fontSize = 18.sp, fontWeight = FontWeight.Black, color = t.textPrimary)
                     }
                     
                     // Avatar besar
@@ -289,7 +293,11 @@ fun ChatRoomScreen(
                             }
                         }
                         Spacer(Modifier.height(4.dp))
-                        Text(otherCode, fontSize = 13.sp, color = t.textMuted, fontWeight = FontWeight.SemiBold)
+                        if (isGlobal) {
+                            Text("${onlineCount} online · ${totalUsers} anggota", fontSize = 13.sp, color = t.success, fontWeight = FontWeight.SemiBold)
+                        } else {
+                            Text(otherCode, fontSize = 13.sp, color = t.textMuted, fontWeight = FontWeight.SemiBold)
+                        }
                     }
                     
                     Spacer(Modifier.height(24.dp))
@@ -297,7 +305,7 @@ fun ChatRoomScreen(
                     // Info bio + bergabung
                     Column(modifier = Modifier.padding(horizontal = 24.dp)) {
                         if (!otherBio.isNullOrBlank()) {
-                            Text("TENTANG", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = t.textMuted)
+                            Text(if (isGlobal) "DESKRIPSI GRUP" else "TENTANG", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = t.textMuted)
                             Spacer(Modifier.height(4.dp))
                             Text(otherBio, fontSize = 14.sp, color = t.textPrimary)
                             Spacer(Modifier.height(16.dp))
@@ -305,6 +313,18 @@ fun ChatRoomScreen(
                         Text("BERGABUNG", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = t.textMuted)
                         Spacer(Modifier.height(4.dp))
                         Text("Oktober 2026", fontSize = 14.sp, color = t.textPrimary, fontWeight = FontWeight.SemiBold)
+                        Spacer(Modifier.height(24.dp))
+                        if (!isGlobal) {
+                            DialogMenuItem("Blokir Kontak", t.danger) { /* TODO */ }
+                            Spacer(Modifier.height(8.dp))
+                            DialogMenuItem("Laporkan", t.danger) { /* TODO */ }
+                            Spacer(Modifier.height(8.dp))
+                            DialogMenuItem("Hapus Kontak", t.danger) { /* TODO */ }
+                        } else {
+                            Text("ANGGOTA GRUP", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = t.textMuted)
+                            Spacer(Modifier.height(8.dp))
+                            Text("Semua user otomatis tergabung", fontSize = 13.sp, color = t.textMuted, lineHeight = 18.sp)
+                        }
                     }
                 }
             }
@@ -354,4 +374,29 @@ private fun formatMsgTime(ms: Long): String {
     val h = cal.get(java.util.Calendar.HOUR_OF_DAY)
     val m = cal.get(java.util.Calendar.MINUTE)
     return "${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}"
+}
+
+@Composable
+private fun DialogMenuItem(
+    label: String,
+    color: Color,
+    onClick: () -> Unit
+) {
+    val t = LocalThemeTokens.current
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .background(t.cardBg)
+            .border(2.dp, t.cardBorder, RoundedCornerShape(12.dp))
+            .clickable(onClick = onClick)
+            .padding(16.dp)
+    ) {
+        Text(
+            text = label,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Bold,
+            color = color
+        )
+    }
 }
