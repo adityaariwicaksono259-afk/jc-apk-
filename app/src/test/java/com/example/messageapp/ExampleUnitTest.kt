@@ -1,4 +1,4 @@
-package com.example.messageapp
+package app.javin.codex
 
 import org.junit.Test
 

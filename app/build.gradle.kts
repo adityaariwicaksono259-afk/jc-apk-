@@ -6,11 +6,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.messageapp"
+    namespace = "app.javin.codex"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.example.messageapp"
+        applicationId = "app.javin.codex"
         minSdk = 26
         targetSdk = 36
         versionCode = 1

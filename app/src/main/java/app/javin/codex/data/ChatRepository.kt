@@ -1,0 +1,289 @@
+package app.javin.codex.data
+
+import app.javin.codex.model.Chat
+import app.javin.codex.model.Message
+import app.javin.codex.storage.StorageAcl
+import com.google.firebase.firestore.FieldValue
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
+import com.google.firebase.firestore.Query
+import kotlinx.coroutines.tasks.await
+import com.google.firebase.firestore.SetOptions
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+
+class ChatRepository(
+    private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
+) {
+    private fun chats() = db.collection("chats")
+
+    fun directChatIdFor(a: String, b: String) =
+        listOf(a, b).sorted().joinToString("_")
+
+    suspend fun ensureDirectChat(uidA: String, uidB: String): String {
+        val chatId = directChatIdFor(uidA, uidB)
+        val ref = chats().document(chatId)
+
+        val data = mapOf(
+            "type" to "direct",
+            "members" to listOf(uidA, uidB),
+            "visibleFor" to listOf(uidA, uidB),
+            "updatedAt" to FieldValue.serverTimestamp()
+        )
+        ref.set(data, SetOptions.merge()).await()
+
+        runCatching { StorageAcl.ensureMemberMarker(chatId, uidA) }
+
+        return chatId
+    }
+
+    fun observeChats(uid: String, onUpdate: (List<Chat>) -> Unit): ListenerRegistration =
+        chats()
+            .whereArrayContains("members", uid)
+            .orderBy("updatedAt", Query.Direction.DESCENDING)
+            .addSnapshotListener { qs, e ->
+                if (e != null) {
+                    android.util.Log.w("ChatRepository", "observeChats error", e)
+                    return@addSnapshotListener
+                }
+                val items = qs?.documents?.mapNotNull {
+                    it.toObject(Chat::class.java)?.copy(id = it.id)
+                }.orEmpty()
+                onUpdate(items)
+            }
+
+    fun observeChat(chatId: String, onUpdate: (Chat?) -> Unit): ListenerRegistration =
+        chats().document(chatId)
+            .addSnapshotListener { snap, _ ->
+                onUpdate(snap?.toObject(Chat::class.java)?.copy(id = snap.id))
+            }
+
+    fun observeMessages(
+        chatId: String,
+        myUid: String?,
+        onUpdate: (List<Message>) -> Unit
+    ): ListenerRegistration =
+        chats().document(chatId)
+            .collection("messages")
+            .orderBy("createdAt", Query.Direction.ASCENDING)
+            .addSnapshotListener { qs, _ ->
+                val items = qs?.documents?.mapNotNull {
+                    it.toObject(Message::class.java)?.copy(id = it.id)
+                }.orEmpty()
+                if (!myUid.isNullOrBlank()) {
+                    markDeliveredForIncoming(chatId, myUid, items)
+                }
+                onUpdate(items)
+            }
+
+    suspend fun migrateVisibleForFor(uid: String) {
+        val snap = chats()
+            .whereArrayContains("members", uid)
+            .get().await()
+
+        val batch = db.batch()
+        for (doc in snap.documents) {
+            val vis = (doc.get("visibleFor") as? List<*>)?.filterIsInstance<String>() ?: emptyList()
+            if (!vis.contains(uid)) {
+                batch.update(doc.reference, mapOf("visibleFor" to FieldValue.arrayUnion(uid)))
+            }
+        }
+        batch.commit().await()
+    }
+
+    private fun markDeliveredForIncoming(chatId: String, myUid: String, items: List<Message>) {
+        val ts = FieldValue.serverTimestamp()
+        val batch = db.batch()
+        items.forEach { m ->
+            val already = m.deliveredTo.containsKey(myUid)
+            val isIncoming = m.senderId != myUid
+            if (isIncoming && !already && m.id.isNotBlank()) {
+                val ref = chats().document(chatId)
+                    .collection("messages").document(m.id)
+                batch.update(ref, "deliveredTo.$myUid", ts)
+            }
+        }
+        batch.commit()
+    }
+
+    suspend fun sendText(chatId: String, senderId: String, textEnc: String) {
+        val chatRef = chats().document(chatId)
+        val msgRef  = chatRef.collection("messages").document()
+        db.runTransaction { tx ->
+            val snap = tx.get(chatRef)
+            val members = (snap.get("members") as? List<*>)?.filterIsInstance<String>() ?: emptyList()
+
+            tx.set(msgRef, mapOf(
+                "senderId" to senderId,
+                "type" to "text",
+                "textEnc" to textEnc,
+                "createdAt" to FieldValue.serverTimestamp(),
+                "deliveredTo" to mapOf<String, Any>(),
+                "readBy" to mapOf<String, Any>()
+            ))
+
+            val update = mutableMapOf<String, Any>(
+                "lastMessageEnc" to textEnc,
+                "updatedAt" to FieldValue.serverTimestamp()
+            )
+            if (members.isNotEmpty()) {
+                update["visibleFor"] = FieldValue.arrayUnion(*members.toTypedArray())
+            }
+            tx.update(chatRef, update)
+            null
+        }.await()
+    }
+
+    suspend fun hideMessageForUser(chatId: String, messageId: String, uid: String) {
+        if (messageId.isBlank()) return
+        val ref = chats().document(chatId).collection("messages").document(messageId)
+        ref.update("deletedFor.$uid", true).await()
+    }
+
+    suspend fun deleteMessageForAll(chatId: String, messageId: String) {
+        if (messageId.isBlank()) return
+        val chatRef = chats().document(chatId)
+        val msgRef  = chatRef.collection("messages").document(messageId)
+
+        db.runBatch { b ->
+            b.update(
+                msgRef,
+                mapOf(
+                    "type" to "deleted",
+                    "textEnc" to "",
+                    "mediaUrl" to null,
+                    "deletedForAll" to true
+                )
+            )
+            b.update(
+                chatRef,
+                mapOf(
+                    "lastMessage" to "[mensagem apagada]",
+                    "updatedAt" to FieldValue.serverTimestamp()
+                )
+            )
+        }.await()
+    }
+
+    suspend fun hideChatForUser(chatId: String, uid: String) {
+        chats().document(chatId)
+            .update("visibleFor", FieldValue.arrayRemove(uid))
+            .await()
+    }
+
+    suspend fun unhideChatForUser(chatId: String, uid: String) {
+        chats().document(chatId)
+            .update("visibleFor", FieldValue.arrayUnion(uid))
+            .await()
+    }
+
+    suspend fun leaveGroup(chatId: String, uid: String) {
+        chats().document(chatId)
+            .update(
+                mapOf(
+                    "members" to FieldValue.arrayRemove(uid),
+                    "visibleFor" to FieldValue.arrayRemove(uid),
+                    "updatedAt" to FieldValue.serverTimestamp()
+                )
+            ).await()
+        StorageAcl.removeMemberMarker(chatId, uid)
+    }
+
+    suspend fun deleteGroup(chatId: String) {
+        chats().document(chatId).delete().await()
+    }
+
+    suspend fun markAsRead(chatId: String, uid: String) {
+        val msgsRef = chats().document(chatId).collection("messages")
+        val unread = msgsRef.whereEqualTo("readBy.$uid", null).get().await()
+        val batch = db.batch()
+        val ts = FieldValue.serverTimestamp()
+        unread.documents.forEach { d -> batch.update(d.reference, "readBy.$uid", ts) }
+        batch.commit().await()
+    }
+
+    suspend fun pinMessage(chatId: String, messageId: String, snippet: String) {
+        chats().document(chatId)
+            .update(mapOf("pinnedMessageId" to messageId, "pinnedSnippet" to snippet))
+            .await()
+    }
+
+    suspend fun markDelivered(chatId: String, messageId: String, uid: String) {
+        val ref = chats().document(chatId).collection("messages").document(messageId)
+        ref.update("deliveredTo.$uid", com.google.firebase.firestore.FieldValue.serverTimestamp()).await()
+    }
+
+    suspend fun createGroup(
+        name: String,
+        ownerId: String,
+        members: List<String>,
+        photoUrl: String? = null
+    ): String {
+        val allMembers = (members + ownerId).distinct()
+
+        val doc = chats().document()
+        val chatId = doc.id
+
+        val data = mutableMapOf<String, Any>(
+            "type" to "group",
+            "name" to name,
+            "ownerId" to ownerId,
+            "members" to allMembers,
+            "visibleFor" to allMembers,
+            "updatedAt" to FieldValue.serverTimestamp()
+        )
+        if (photoUrl != null) data["photoUrl"] = photoUrl
+
+        doc.set(data).await()
+
+        CoroutineScope(Dispatchers.IO).launch {
+            allMembers.forEach { uid ->
+                runCatching { StorageAcl.ensureMemberMarker(chatId, uid) }
+            }
+        }
+
+        return chatId
+    }
+
+    suspend fun renameGroup(chatId: String, name: String) {
+        chats().document(chatId).update("name", name).await()
+    }
+
+    suspend fun addMember(chatId: String, uid: String) {
+        chats().document(chatId).update("members", FieldValue.arrayUnion(uid)).await()
+        StorageAcl.ensureMemberMarker(chatId, uid)
+    }
+
+    suspend fun addMembers(chatId: String, newMembers: List<String>) {
+        val distinct = newMembers.distinct()
+        chats().document(chatId)
+            .update("members", FieldValue.arrayUnion(*distinct.toTypedArray()))
+            .await()
+        distinct.forEach { uid -> StorageAcl.ensureMemberMarker(chatId, uid) }
+    }
+
+    suspend fun removeMember(chatId: String, uid: String) {
+        chats().document(chatId)
+            .update("members", FieldValue.arrayRemove(uid))
+            .await()
+        StorageAcl.removeMemberMarker(chatId, uid)
+    }
+
+    suspend fun updateGroupMeta(chatId: String, name: String?, photoUrl: String?) {
+        val map = mutableMapOf<String, Any>()
+        if (name != null) map["name"] = name
+        if (photoUrl != null) map["photoUrl"] = photoUrl
+        if (map.isNotEmpty()) chats().document(chatId).update(map).await()
+    }
+
+    suspend fun unpinMessage(chatId: String) {
+        chats().document(chatId)
+            .update(
+                mapOf(
+                    "pinnedMessageId" to FieldValue.delete(),
+                    "pinnedSnippet" to FieldValue.delete()
+                )
+            ).await()
+    }
+}
